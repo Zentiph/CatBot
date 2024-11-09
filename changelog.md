@@ -1,6 +1,14 @@
 # CatBot Changelog
 A collective history of all the changes made to CatBot.
 
+## v0.2.0
+* Added color tools commands
+  * Color inversion
+  * Color info
+  * Access predefined colors list
+  * Random color generator
+* Added an optional seed parameter to both random functions
+
 ## v0.1.1
 * Changed changelog formatting (meta)
 * Fixed color inconsistency in banner
