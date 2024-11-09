@@ -10,6 +10,9 @@ from discord import Color
 
 LOG_FILE = "logs.log"
 DEFAULT_EMBED_COLOR = Color(int("575afa", 16))
+LOGGING_FORMAT = (
+    "%(asctime)s | [%(levelname)s] %(name)s - %(message)s (%(filename)s:%(lineno)d)"
+)
 
 
 def get_token(*, override: str = ".env") -> str:
@@ -60,16 +63,13 @@ class ColorFormatter(logging.Formatter):
     ERROR = generate_ansi(255, 0, 0)
     FATAL = generate_ansi(255, 0, 0) + BOLD
     RESET = "\x1b[0m"
-    FORMAT = (
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)"
-    )
 
     FORMATS = {
-        logging.DEBUG: DEBUG + FORMAT + RESET,
-        logging.INFO: INFO + FORMAT + RESET,
-        logging.WARNING: WARNING + FORMAT + RESET,
-        logging.ERROR: ERROR + FORMAT + RESET,
-        logging.CRITICAL: FATAL + FORMAT + RESET,
+        logging.DEBUG: DEBUG + LOGGING_FORMAT + RESET,
+        logging.INFO: INFO + LOGGING_FORMAT + RESET,
+        logging.WARNING: WARNING + LOGGING_FORMAT + RESET,
+        logging.ERROR: ERROR + LOGGING_FORMAT + RESET,
+        logging.CRITICAL: FATAL + LOGGING_FORMAT + RESET,
     }
 
     def format(self, record: logging.LogRecord) -> str:

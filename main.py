@@ -11,7 +11,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from CatBot.internal import LOG_FILE, get_token, ColorFormatter
+from CatBot.internal import LOG_FILE, LOGGING_FORMAT, ColorFormatter, get_token
 
 TOKEN = get_token()
 
@@ -58,7 +58,7 @@ def config_logging() -> None:
 
     logging.basicConfig(
         level=logging.INFO,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        format=LOGGING_FORMAT,
         handlers=handlers,  # type: ignore
     )
 
