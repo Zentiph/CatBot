@@ -105,7 +105,7 @@ async def on_app_command_error(
             "I do not have permissions to perform this command.", ephemeral=True
         )
     else:
-        logging.error("An error occurred: %s", error)
+        logging.error("An error occurred: %s", error, exc_info=True)
         await interaction.response.send_message(
             "An unknown error occurred. Contact @zentiph to report this please!",
             ephemeral=True,
@@ -118,6 +118,7 @@ async def setup() -> None:
     """
 
     await bot.load_extension("color.color_roles")
+    await bot.load_extension("color.color_tools")
 
 
 async def main() -> None:

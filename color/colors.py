@@ -3,8 +3,13 @@ colors.py
 Color constants.
 """
 
-from random import randint
+# We disable this globally due to the
+# immense use of variable name 'hex'
+# pylint: disable=redefined-builtin
+
+from random import randint, seed as set_seed
 from re import match
+from typing import Tuple, Union
 
 REDS = {
     "indian red": "cd5c5c",
@@ -187,7 +192,7 @@ COLORS.update(WHITES)
 COLORS.update(GRAYS)
 
 
-def is_hex_value(hex: str) -> bool:  # pylint: disable=redefined-builtin
+def is_hex_value(hex: str) -> bool:
     """
     Determine if `hex` is a valid hex value.
 
@@ -197,7 +202,7 @@ def is_hex_value(hex: str) -> bool:  # pylint: disable=redefined-builtin
     :rtype: bool
     """
 
-    return bool(match(r"([A-Fa-f0-9]{6})", hex.strip("#")))
+    return bool(match(r"^[A-Fa-f0-9]{6}$", hex.strip("#")))
 
 
 def is_rgb_value(value: int) -> bool:
@@ -213,18 +218,22 @@ def is_rgb_value(value: int) -> bool:
     return 0 <= value <= 255
 
 
-def random_rgb() -> tuple[int, int, int]:
+def random_rgb(*, seed: Union[str, None] = None) -> Tuple[int, int, int]:
     """
     Generate a random RGB value.
 
+    :param seed: Optional seed, defaults to None
+    :type seed: str | None, optional
     :return: Random RGB value.
     :rtype: tuple[int, int, int]
     """
 
+    if seed:
+        set_seed(seed)
     return randint(0, 255), randint(0, 255), randint(0, 255)
 
 
-def invert_rgb(r: int, g: int, b: int) -> tuple[int, int, int]:
+def invert_rgb(r: int, g: int, b: int) -> Tuple[int, int, int]:
     """
     Invert `r`, `g`, and `b`.
 
@@ -241,7 +250,7 @@ def invert_rgb(r: int, g: int, b: int) -> tuple[int, int, int]:
     return abs(255 - r), abs(255 - g), abs(255 - b)
 
 
-def invert_hex(hex: str) -> str:  # pylint: disable=redefined-builtin
+def invert_hex(hex: str) -> str:
     """
     Invert the `hex`.
 
@@ -256,7 +265,7 @@ def invert_hex(hex: str) -> str:  # pylint: disable=redefined-builtin
     return rgb2hex(ir, ig, ib)
 
 
-def hex2rgb(hex: str) -> tuple[int, int, int]:  # pylint: disable=redefined-builtin
+def hex2rgb(hex: str) -> Tuple[int, int, int]:
     """
     Translate `hex` into RGB.
 
@@ -284,7 +293,7 @@ def rgb2hex(r: int, g: int, b: int) -> str:
     :rtype: str
     """
 
-    return f"#{r:02x}{g:02x}{b:02x}".upper()
+    return f"{r:02x}{g:02x}{b:02x}".lower()
 
 
 def random_hex() -> str:

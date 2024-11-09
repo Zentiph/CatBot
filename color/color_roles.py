@@ -9,9 +9,8 @@ from typing import Union
 import discord
 from discord import app_commands
 from discord.ext import commands
-import discord.http
 
-from .colors import COLORS, is_hex_value, is_rgb_value, random_hex, random_rgb, rgb2hex
+from .colors import COLORS, is_hex_value, is_rgb_value, random_rgb
 from .role_manipulation import create_color_role, edit_color_role, find_existing_role
 
 
@@ -70,7 +69,7 @@ class ColorRoleCog(commands.Cog, name="Color Role Commands"):
     Cog containing color role commands.
     """
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
     @commands.Cog.listener()
@@ -197,7 +196,9 @@ class ColorRoleCog(commands.Cog, name="Color Role Commands"):
         name="name", description="Assign yourself a custom color with a color name"
     )
     @app_commands.describe(name="Color name (use /colors for a list of colors)")
-    async def assign_color(self, interaction: discord.Interaction, name: str) -> None:
+    async def assign_color_name(
+        self, interaction: discord.Interaction, name: str
+    ) -> None:
         """
         Assign the user a new color using a color name.
         This role is created if it does not exist, or if it does, it is updated.
@@ -245,18 +246,23 @@ class ColorRoleCog(commands.Cog, name="Color Role Commands"):
     @role_assign_group.command(
         name="random", description="Assign yourself a random color"
     )
-    async def assign_random(self, interaction: discord.Interaction) -> None:
+    @app_commands.describe(seed="Optional seed to use when generating the color")
+    async def assign_random(
+        self, interaction: discord.Interaction, seed: Union[str, None] = None
+    ) -> None:
         """
         Assign the user a random color.
         This role is created if it does not exist, or if it does, it is updated.
 
         :param interaction: Interaction instance
         :type interaction: discord.Interaction
+        :param seed: Optional seed, defaults to None
+        :type seed: str | None, optional
         """
 
         logging.info("/role-assign random invoked by %s", interaction.user)
 
-        r, g, b = random_rgb()
+        r, g, b = random_rgb(seed=seed)
         color = discord.Color.from_rgb(r, g, b)
         existing_role = find_existing_role(
             create_role_name(interaction.user), interaction.guild.roles  # type: ignore
