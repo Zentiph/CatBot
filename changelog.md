@@ -1,6 +1,11 @@
 # CatBot Changelog
 A collective history of all the changes made to CatBot.
 
+## v0.2.1
+* Added colored stream logging
+* Reformatted project directory
+* Small bug fixes
+
 ## v0.2.0
 * Added color tools commands
   * Color inversion
