@@ -11,7 +11,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from CatBot.internal import LOG_FILE, get_token
+from CatBot.internal import LOG_FILE, get_token, ColorFormatter
 
 TOKEN = get_token()
 
@@ -49,9 +49,11 @@ def config_logging() -> None:
     if args.nostreamlogging:
         handlers = [logging.FileHandler(log_file)]
     else:
+        sh = logging.StreamHandler()
+        sh.setFormatter(ColorFormatter())
         handlers = [
             logging.FileHandler(log_file),
-            logging.StreamHandler(),  # type: ignore
+            sh,  # type: ignore
         ]
 
     logging.basicConfig(
@@ -117,8 +119,8 @@ async def setup() -> None:
     Load necessary cogs.
     """
 
-    await bot.load_extension("color.color_roles")
-    await bot.load_extension("color.color_tools")
+    await bot.load_extension("CatBot.color.color_roles")
+    await bot.load_extension("CatBot.color.color_tools")
 
 
 async def main() -> None:
