@@ -11,7 +11,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from internal import LOG_FILE, get_token
+from CatBot.internal import LOG_FILE, get_token
 
 TOKEN = get_token()
 
