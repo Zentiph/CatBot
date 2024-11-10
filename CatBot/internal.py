@@ -10,7 +10,7 @@ from discord import Color, Intents
 from discord.ext.commands import Bot
 
 
-VERSION = "v0.2.2"
+VERSION = "v0.3.0"
 LOG_FILE = "logs.log"
 DEFAULT_EMBED_COLOR = Color(int("ffffff", 16))
 LOGGING_FORMAT = (
