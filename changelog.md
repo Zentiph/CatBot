@@ -1,6 +1,14 @@
 # CatBot Changelog
 A collective history of all the changes made to CatBot.
 
+## v0.3.0
+* Added help commands
+  * Category ver to get commands in a group
+  * Command ver to get help for a specific command
+
+## v0.2.2
+* Updated logging format
+
 ## v0.2.1
 * Added colored stream logging
 * Reformatted project directory

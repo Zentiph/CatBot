@@ -3,68 +3,23 @@ main.py
 Main file.
 """
 
-import argparse
 import logging
 from asyncio import run
 
 import discord
 from discord import app_commands
-from discord.ext import commands
 
-from CatBot.internal import LOG_FILE, LOGGING_FORMAT, ColorFormatter, get_token
+from CatBot.internal import (
+    LOG_FILE,
+    VERSION,
+    config_logging,
+    get_token,
+    initialize_bot,
+    initialize_cli_arg_parser,
+)
 
-TOKEN = get_token()
-
-intents = discord.Intents.default()
-intents.message_content = True
-bot = commands.Bot(command_prefix="!", intents=intents)
-
-
-def config_logging() -> None:
-    """
-    Config logging settings using command-line arguments.
-
-    CLI args are:
-    --logfile {str}
-    --nostreamlogging {store_true}
-
-    Defaults are:
-    --logfile logs.log
-    """
-
-    parser = argparse.ArgumentParser(
-        description="Run CatBot with optional logging arguments"
-    )
-    parser.add_argument(
-        "--logfile",
-        type=str,
-        help="Path to the file where logs will be written, defaults to 'logs.log'",
-    )
-    parser.add_argument(
-        "--nostreamlogging", action="store_true", help="Disable console logging"
-    )
-
-    args = parser.parse_args()
-    log_file = args.logfile if args.logfile else LOG_FILE
-    if args.nostreamlogging:
-        handlers = [logging.FileHandler(log_file)]
-    else:
-        sh = logging.StreamHandler()
-        sh.setFormatter(ColorFormatter())
-        handlers = [
-            logging.FileHandler(log_file),
-            sh,  # type: ignore
-        ]
-
-    logging.basicConfig(
-        level=logging.INFO,
-        format=LOGGING_FORMAT,
-        handlers=handlers,  # type: ignore
-    )
-
-    logging.info(
-        "Logging config: logfile=%s, nostreamlogging=%s", log_file, args.nostreamlogging
-    )
+bot = initialize_bot()
+parser = initialize_cli_arg_parser()
 
 
 @bot.event
@@ -74,7 +29,12 @@ async def on_ready() -> None:
     """
 
     await bot.tree.sync()
-    await bot.change_presence(activity=discord.Game(name="/help"))
+
+    if parser.parse_args().testing:
+        await bot.change_presence(activity=discord.Game(name="⚠ TESTING ⚠"))
+    else:
+        await bot.change_presence(activity=discord.Game(name=f"/help ({VERSION})"))
+
     logging.info("Logged in as %s and slash commands synced", bot.user.name)  # type: ignore
 
 
@@ -121,6 +81,7 @@ async def setup() -> None:
 
     await bot.load_extension("CatBot.color.color_roles")
     await bot.load_extension("CatBot.color.color_tools")
+    await bot.load_extension("CatBot.help")
 
 
 async def main() -> None:
@@ -132,9 +93,9 @@ async def main() -> None:
         logging.info("Log file %s cleared", LOG_FILE)
 
     await setup()
-    await bot.start(TOKEN)
+    await bot.start(get_token(parser))
 
 
 if __name__ == "__main__":
-    config_logging()
+    config_logging(parser)
     run(main())

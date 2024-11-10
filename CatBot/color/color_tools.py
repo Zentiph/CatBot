@@ -96,7 +96,7 @@ class ColorToolsCog(commands.Cog, name="Color Tool Commands"):
     @app_commands.command(
         name="colors", description="Get a list of all supported predefined color names"
     )
-    @app_commands.describe(group="Group of colors to get info about")
+    @app_commands.describe(group="Group of colors to get the allowed names of")
     async def colors(
         self,
         interaction: discord.Interaction,
@@ -216,7 +216,7 @@ class ColorToolsCog(commands.Cog, name="Color Tool Commands"):
         await interaction.response.send_message(embed=embed, file=file)
 
     @info_group.command(name="hex", description="Get info about a hex color")
-    @app_commands.describe(hex="Hex value (000000-ffffff)")
+    @app_commands.describe(hex="Hex value (#000000-#ffffff)")
     async def hex_info(self, interaction: discord.Interaction, hex: str) -> None:
         """
         Get info about the hex value.

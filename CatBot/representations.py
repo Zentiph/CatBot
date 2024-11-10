@@ -1,6 +1,6 @@
 """
-descriptions.py
-File containing descriptions of commands to be used in help.py.
+representations.py
+File containing representations of commands.
 """
 
 from typing import (
@@ -44,7 +44,7 @@ class Param:
     Represents a slash command parameter.
     """
 
-    # We use _SpecialForm here due to Literal not being a Type
+    # We use _SpecialForm here due to Literal and Union not being Types
     def __init__(  # pylint: disable=too-many-arguments
         self,
         *,
@@ -222,11 +222,11 @@ def generate_field_title(command: Command, /) -> str:
     """
 
     if command.group is not None:
-        return f"/{command.group} {command.name}"
-    return f"/{command.name}"
+        return f"**/{command.group} {command.name}**"
+    return f"**/{command.name}**"
 
 
-def generate_field_description(command: Command) -> str:
+def generate_field_description(command: Command, /) -> str:
     """
     Generate an embed field description given `command`.
 
@@ -235,6 +235,13 @@ def generate_field_description(command: Command) -> str:
     :return: Embed field description of `command`
     :rtype: str
     """
+
+    type_map = {
+        "str": "text",
+        "int": "integer",
+        "float": "decimal",
+        "NoneType": "empty",
+    }
 
     field_str = f"{command.description}"
 
@@ -245,34 +252,31 @@ def generate_field_description(command: Command) -> str:
         if get_origin(param.type) is Literal:  # If the param's type is a Literal
             values = get_args(param.type)
             types_str = "Specific Value(s): " + " or ".join(
-                repr(value) for value in values
+                f"*{repr(value)}*" for value in values
             )
 
         elif get_origin(param.type) is Union:  # Elif the param's type is a Union
-            types_str = " or ".join(arg.__name__ for arg in get_args(param.type))
+            types = (
+                type_map.get(arg.__name__, arg.__name__) for arg in get_args(param.type)
+            )
+            types_str = " or ".join(f"*{tn}*" for tn in types)
 
         else:  # Else, the type is a regular type
-            # TODO: Create a map of type names in order to rename them
-            #       to be more user friendly
-            #
-            #       i.e. str -> string or maybe text
-            #            int -> integer
-            #            float -> decimal or fraction
-            #            NoneType -> no value
-            types_str = param.type.__name__  # type: ignore
+            type_name = type_map.get(param.type.__name__, param.type.__name__)  # type: ignore
+            types_str = "*" + type_name + "*"  # type: ignore
 
         optional_str = ", optional" if param.optional else ""
+        default = repr(param.default)
+        default = "empty" if default == "None" else default
         default_str = (
-            f", defaults to {repr(param.default)}"
-            if param.default != NO_DEFAULT
-            else ""
+            f", defaults to *{default}*" if param.default != NO_DEFAULT else ""
         )
 
         # Will look like:
         # {param_name} - {param_description}
         # ({param_type(s)}, {optional}, defaults to {param_default})
         field_str += (
-            f"{param.name} - {param.description}\n"
+            f"**{param.name}** - {param.description}\n"
             + f"({types_str}{optional_str}{default_str})\n"
         )
 
