@@ -211,6 +211,11 @@ class ColorToolsCog(commands.Cog, name="Color Tool Commands"):
             color=discord.Color.from_rgb(r, g, b),
         )
         embed.add_field(name="Hex", value=f"#{hex}")
+
+        key = get_color_key(hex)
+        if key:
+            embed.add_field(name="Color Name", value=key)
+
         embed.set_image(url=f"attachment://{filename}")
 
         await interaction.response.send_message(embed=embed, file=file)
@@ -249,6 +254,11 @@ class ColorToolsCog(commands.Cog, name="Color Tool Commands"):
             color=discord.Color.from_rgb(r, g, b),
         )
         embed.add_field(name="RGB", value=f"{(r, g, b)}")
+
+        key = get_color_key(hex)
+        if key:
+            embed.add_field(name="Color Name", value=key)
+
         embed.set_image(url=f"attachment://{filename}")
 
         await interaction.response.send_message(embed=embed, file=file)
@@ -292,6 +302,52 @@ class ColorToolsCog(commands.Cog, name="Color Tool Commands"):
         )
         embed.add_field(name="Hex", value=f"#{hex}")
         embed.add_field(name="RGB", value=f"{(r, g, b)}")
+        embed.set_image(url=f"attachment://{filename}")
+
+        await interaction.response.send_message(embed=embed, file=file)
+
+    @info_group.command(name="role", description="Get info about a role's color")
+    @app_commands.describe(role="Role to get the color info of")
+    async def role_info(
+        self, interaction: discord.Interaction, role: discord.Role
+    ) -> None:
+        """
+        Get info about `role`'s color.
+
+        :param interaction: Interaction instance
+        :type interaction: discord.Interaction
+        :param role: Role to get color info of
+        :type role: discord.Role
+        """
+
+        logging.info("/color-info role role=%s invoked by %s", role, interaction.user)
+
+        if role not in interaction.guild.roles:  # type: ignore
+            await interaction.response.send_message(
+                "Role was not found in this guild.", ephemeral=True
+            )
+            logging.info("/color-info role halted due to invalid role")
+            return
+
+        color = role.color
+        r, g, b = color.r, color.g, color.b
+        hex = rgb2hex(r, g, b)
+        image = generate_color_image(hex)
+        filename = f"{hex}.png"
+        file = discord.File(fp=image, filename=filename)
+
+        embed = discord.Embed(
+            title=f"{role.name} Color Info",
+            description="Here's some information about your role's color.",
+            color=color,
+        )
+        embed.add_field(name="Hex", value=f"#{hex}")
+        embed.add_field(name="RGB", value=f"{(r, g, b)}")
+
+        key = get_color_key(hex)
+        if key:
+            embed.add_field(name="Color Name", value=key)
+
         embed.set_image(url=f"attachment://{filename}")
 
         await interaction.response.send_message(embed=embed, file=file)

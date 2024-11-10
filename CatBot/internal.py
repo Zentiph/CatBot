@@ -115,6 +115,11 @@ def config_logging(parser: ArgumentParser, /) -> None:
         "Logging config: logfile=%s, nostreamlogging=%s", log_file, args.nostreamlogging
     )
 
+    if args.testing:
+        logging.warning(
+            "Bot is being run in TESTING MODE. If this is intentional, ignore this log"
+        )
+
 
 def get_token(parser: ArgumentParser, /) -> str:
     """

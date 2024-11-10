@@ -117,20 +117,20 @@ class HelpCog(commands.Cog, name="Help Commands"):
         :type cmd: str
         """
 
-        logging.info("/help command cmd=%s", cmd)
+        logging.info("/help command cmd=%s invoked by %s", cmd, interaction.user)
 
         if cmd not in (command.name for command in ALL) and cmd not in (
             f"{command.group} {command.name}" for command in ALL
         ):
             await interaction.response.send_message(
-                f"I do not have a command called '{cmd}'!", ephemeral=True
+                f"I do not have a command called **{cmd}**!", ephemeral=True
             )
             return
 
         command = COMMAND_MAP[cmd]
         embed = discord.Embed(
             title=f"{cmd} Help Page",
-            description=f"Here's how to use {cmd}.",
+            description=f"Here's how to use **{cmd}**.",
             color=DEFAULT_EMBED_COLOR,
         )
         embed.add_field(

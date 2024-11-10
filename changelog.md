@@ -1,6 +1,9 @@
 # CatBot Changelog
 A collective history of all the changes made to CatBot.
 
+## v0.3.1
+* Added color-info role command
+
 ## v0.3.0
 * Added help commands
   * Category ver to get commands in a group

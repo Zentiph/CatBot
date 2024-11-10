@@ -126,7 +126,8 @@ color_info_hex.add_param(
 color_info_name = Command(
     name="name",
     description="Get information about a color name, "
-    + "such as its hex and RGB equivalents and an image preview.",
+    + "such as its hex and RGB equivalents and its color name equivalent, "
+    + "if available, and an image preview.",
     group="color-info",
 )
 color_info_name.add_param(
@@ -135,6 +136,17 @@ color_info_name.add_param(
         type=str,
         description="Color name (use /colors for a list of allowed colors)",
     )
+)
+
+color_info_role = Command(
+    name="role",
+    description="Get information about a role's color, "
+    + "such as its hex and RGB equivalents and its color name equivalent, "
+    + "if available, and an image preview.",
+    group="color-info",
+)
+color_info_role.add_param(
+    Param(name="role", type=Role, description="Role to get the color information of")
 )
 
 random_color = Command(name="random-color", description="Generate a random color.")
@@ -187,6 +199,7 @@ COLOR_TOOLS = (
     color_info_rgb,
     color_info_hex,
     color_info_name,
+    color_info_role,
     random_color,
     invert_rgb,
     invert_hex,
@@ -206,6 +219,7 @@ COMMAND_MAP = {
     "color-info rgb": color_info_rgb,
     "color-info hex": color_info_hex,
     "color-info name": color_info_name,
+    "color-info role": color_info_role,
     "random-color": random_color,
     "invert-color rgb": invert_rgb,
     "invert-color hex": invert_hex,
