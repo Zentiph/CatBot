@@ -12,7 +12,7 @@ from .representations import Command, Param
 role_assign_hex = Command(
     name="hex",
     description="Assign yourself a custom color role with a hex value.",
-    group="role-assign",
+    group="color-role",
 )
 role_assign_hex.add_param(
     Param(name="hex", type=str, description="Hex value (#000000-#ffffff)")
@@ -21,7 +21,7 @@ role_assign_hex.add_param(
 role_assign_rgb = Command(
     name="rgb",
     description="Assign yourself a custom color role with an RGB value.",
-    group="role-assign",
+    group="color-role",
 )
 role_assign_rgb.add_param(Param(name="r", type=int, description="Red value (0-255)"))
 role_assign_rgb.add_param(Param(name="g", type=int, description="Green value (0-255)"))
@@ -30,7 +30,7 @@ role_assign_rgb.add_param(Param(name="b", type=int, description="Blue value (0-2
 role_assign_name = Command(
     name="name",
     description="Assign yourself a custom color role with a color name.",
-    group="role-assign",
+    group="color-role",
 )
 role_assign_name.add_param(
     Param(
@@ -43,7 +43,7 @@ role_assign_name.add_param(
 role_assign_random = Command(
     name="random",
     description="Assign yourself a custom color role with a randomly generated color.",
-    group="role-assign",
+    group="color-role",
 )
 role_assign_random.add_param(
     Param(
@@ -58,7 +58,7 @@ role_assign_random.add_param(
 role_assign_copy = Command(
     name="copy-color",
     description="Assign yourself a custom color role by copying another role's color.",
-    group="role-assign",
+    group="color-role",
 )
 role_assign_copy.add_param(
     Param(name="role", type=Role, description="Role to copy the color of")
@@ -67,14 +67,14 @@ role_assign_copy.add_param(
 role_assign_reset = Command(
     name="reset",
     description="Reset your color role's color to the default Discord color (invisible, #000000).",
-    group="role-assign",
+    group="color-role",
 )
 
 role_assign_reassign = Command(
     name="reassign",
     description="Check if you are missing your color role, "
     + "and reassign it if so and the role exists.",
-    group="role-assign",
+    group="color-role",
 )
 
 colors = Command(
@@ -208,13 +208,13 @@ COLOR_TOOLS = (
 
 ALL = COLOR_ROLES + COLOR_TOOLS
 COMMAND_MAP = {
-    "role-assign hex": role_assign_hex,
-    "role-assign rgb": role_assign_rgb,
-    "role-assign name": role_assign_name,
-    "role-assign random": role_assign_random,
-    "role-assign copy": role_assign_copy,
-    "role-assign reset": role_assign_reset,
-    "role-assign reassign": role_assign_reassign,
+    "color-role hex": role_assign_hex,
+    "color-role rgb": role_assign_rgb,
+    "color-role name": role_assign_name,
+    "color-role random": role_assign_random,
+    "color-role copy": role_assign_copy,
+    "color-role reset": role_assign_reset,
+    "color-role reassign": role_assign_reassign,
     "colors": colors,
     "color-info rgb": color_info_rgb,
     "color-info hex": color_info_hex,

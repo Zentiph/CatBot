@@ -1,6 +1,9 @@
 # CatBot Changelog
 A collective history of all the changes made to CatBot.
 
+## v0.3.2
+* Renamed role-assign commands to color-role
+
 ## v0.3.1
 * Added color-info role command
 
