@@ -10,12 +10,30 @@ from discord import Color, Intents
 from discord.ext.commands import Bot
 
 
-VERSION = "v0.3.0"
 LOG_FILE = "logs.log"
 DEFAULT_EMBED_COLOR = Color(int("ffffff", 16))
 LOGGING_FORMAT = (
     "%(asctime)s | [%(levelname)s] %(name)s - %(message)s (%(filename)s:%(lineno)d)"
 )
+
+
+def get_version() -> str:
+    """
+    Get CatBot's current version.
+
+    :return: Version
+    :rtype: str
+    """
+
+    with open("changelog.md", encoding="utf8") as file:
+        line = file.readline()
+        while not line.startswith("## v"):
+            line = file.readline()
+
+        return line.split(" ")[1].strip()
+
+
+VERSION = get_version()
 
 
 def initialize_bot() -> Bot:
