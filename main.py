@@ -81,7 +81,8 @@ async def setup() -> None:
 
     await bot.load_extension("CatBot.color.color_roles")
     await bot.load_extension("CatBot.color.color_tools")
-    await bot.load_extension("CatBot.help")
+    await bot.load_extension("CatBot.help.help")
+    await bot.load_extension("CatBot.management.moderation")
 
 
 async def main() -> None:

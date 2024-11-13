@@ -15,6 +15,13 @@ DEFAULT_EMBED_COLOR = Color(int("ffffff", 16))
 LOGGING_FORMAT = (
     "%(asctime)s | [%(levelname)s] %(name)s - %(message)s (%(filename)s:%(lineno)d)"
 )
+TIME_MULTIPLICATION_TABLE = {
+    "seconds": 1,
+    "minutes": 60,
+    "hours": 3600,
+    "days": 86400,
+}
+LOGGING_CHANNEL = 1306045987319451718
 
 
 def get_version() -> str:

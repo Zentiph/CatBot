@@ -1,6 +1,13 @@
 # CatBot Changelog
 A collective history of all the changes made to CatBot.
 
+## v0.4.0
+* Started moderation commands
+  * Only /ban as of now
+* Added help commands to /help menu
+* Added colored admin command logging to a specific channel
+* Small bug fixes
+
 ## v0.3.2
 * Renamed role-assign commands to color-role
 

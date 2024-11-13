@@ -5,9 +5,32 @@ Contains definitions of commands to be used with the /help command.
 
 from typing import Literal, Union
 
-from discord import Role
+from discord import Role, User
 
 from .representations import Command, Param
+
+HelpCategory = Literal["color roles", "color tools", "help"]
+ClassifiedHelpCategory = Literal["moderation"]
+
+help_category = Command(
+    name="category",
+    description="List information about all the commands in a category",
+    group="help",
+)
+help_category.add_param(
+    Param(
+        name="category",
+        type=HelpCategory,
+        description="Command category to get help for",
+    )
+)
+
+help_command = Command(
+    name="command", description="Get help for a specific command.", group="help"
+)
+help_command.add_param(
+    Param(name="cmd", type=str, description="Command to get help for")
+)
 
 role_assign_hex = Command(
     name="hex",
@@ -185,6 +208,47 @@ invert_name.add_param(
     )
 )
 
+ban = Command(name="ban", description="Ban a user.")
+ban.add_param(Param(name="user", type=User, description="User to ban"))
+ban.add_param(
+    Param(
+        name="delete_message_time",
+        type=int,
+        description="How much of the user's message history to delete",
+        optional=True,
+        default=0,
+    )
+)
+ban.add_param(
+    Param(
+        name="time_unit",
+        type=Literal["seconds", "minutes", "hours", "days"],
+        description="Unit of time",
+        optional=True,
+        default="seconds",
+    )
+)
+ban.add_param(
+    Param(
+        name="reason",
+        type=Union[str, None],
+        description="Ban reason",
+        optional=True,
+        default=None,
+    )
+)
+ban.add_param(
+    Param(
+        name="ghost",
+        type=bool,
+        description="Don't notify the user",
+        optional=True,
+        default=False,
+    )
+)
+
+HELP = (help_category, help_command)
+
 COLOR_ROLES = (
     role_assign_hex,
     role_assign_rgb,
@@ -206,8 +270,12 @@ COLOR_TOOLS = (
     invert_name,
 )
 
-ALL = COLOR_ROLES + COLOR_TOOLS
-COMMAND_MAP = {
+MODERATION = (ban,)
+
+PUBLIC = HELP + COLOR_ROLES + COLOR_TOOLS
+PUBLIC_COMMAND_MAP = {
+    "help-category": help_category,
+    "help-command": help_command,
     "color-role hex": role_assign_hex,
     "color-role rgb": role_assign_rgb,
     "color-role name": role_assign_name,
@@ -225,3 +293,6 @@ COMMAND_MAP = {
     "invert-color hex": invert_hex,
     "invert-color name": invert_name,
 }
+
+PRIVATE = MODERATION
+PRIVATE_COMMAND_MAP = {"ban": ban}
