@@ -246,7 +246,7 @@ def generate_field_description(command: Command, /) -> str:
     field_str = f"{command.description}"
 
     if command.num_params > 0:
-        field_str += "\nParameters:\n"
+        field_str += "\n**Parameters:**\n"
 
     for param in command:
         if get_origin(param.type) is Literal:  # If the param's type is a Literal

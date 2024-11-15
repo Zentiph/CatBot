@@ -6,12 +6,12 @@ Internal constants and functions for CatBot.
 import logging
 from argparse import ArgumentParser
 
-from discord import Color, Intents
+import discord
 from discord.ext.commands import Bot
 
 
 LOG_FILE = "logs.log"
-DEFAULT_EMBED_COLOR = Color(int("ffffff", 16))
+DEFAULT_EMBED_COLOR = discord.Color(int("ffffff", 16))
 LOGGING_FORMAT = (
     "%(asctime)s | [%(levelname)s] %(name)s - %(message)s (%(filename)s:%(lineno)d)"
 )
@@ -22,6 +22,7 @@ TIME_MULTIPLICATION_TABLE = {
     "days": 86400,
 }
 LOGGING_CHANNEL = 1306045987319451718
+MODERATOR_ROLES = ("Owner", "Management", "Mod")
 
 
 def get_version() -> str:
@@ -51,7 +52,7 @@ def initialize_bot() -> Bot:
     :rtype: Bot
     """
 
-    intents = Intents.default()
+    intents = discord.Intents.default()
     intents.message_content = True
     return Bot(command_prefix="!", intents=intents)
 
@@ -109,6 +110,7 @@ def config_logging(parser: ArgumentParser, /) -> None:
 
     CLI args are:
     --logfile {str}
+    --testing {store_true}
     --nostreamlogging {store_true}
 
     Defaults are:
@@ -139,11 +141,6 @@ def config_logging(parser: ArgumentParser, /) -> None:
     logging.info(
         "Logging config: logfile=%s, nostreamlogging=%s", log_file, args.nostreamlogging
     )
-
-    if args.testing:
-        logging.warning(
-            "Bot is being run in TESTING MODE. If this is intentional, ignore this log"
-        )
 
 
 def get_token(parser: ArgumentParser, /) -> str:
@@ -212,3 +209,28 @@ class ColorFormatter(logging.Formatter):
         log_fmt = self.FORMATS.get(record.levelno)
         formatter = logging.Formatter(log_fmt)
         return formatter.format(record)
+
+
+def generate_image_file(filepath: str) -> discord.File:
+    """
+    Generate an image File given `filepath`.
+    The image's name is "image.png".
+
+    :param filepath: Path to an image
+    :type filepath: str
+    :return: Discord image File
+    :rtype: discord.File
+    """
+
+    if not any(
+        (
+            (
+                filepath.endswith(".jpg"),
+                filepath.endswith(".jpeg"),
+                filepath.endswith(".png"),
+            )
+        )
+    ):
+        raise ValueError("Image filepath should be a .jpg or .png file")
+
+    return discord.File(filepath, filename="image.png")

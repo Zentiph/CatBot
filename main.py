@@ -32,10 +32,14 @@ async def on_ready() -> None:
 
     if parser.parse_args().testing:
         await bot.change_presence(activity=discord.Game(name="⚠ TESTING ⚠"))
+        logging.warning(
+            "The application has been started in testing mode; ignore if this is intentional"
+        )
     else:
         await bot.change_presence(activity=discord.Game(name=f"/help ({VERSION})"))
 
     logging.info("Logged in as %s and slash commands synced", bot.user.name)  # type: ignore
+    logging.info("---------------------------------------------")
 
 
 @bot.tree.error
@@ -56,22 +60,38 @@ async def on_app_command_error(
             "Unauthorized user %s attempted to use a restricted command",
             interaction.user,
         )
-        await interaction.response.send_message(
-            "You do not have permission to use this command.", ephemeral=True
-        )
+        try:
+            await interaction.response.send_message(
+                "You do not have permission to use this command.", ephemeral=True
+            )
+        except discord.errors.InteractionResponded:
+            await interaction.followup.send(
+                "You do not have permission to use this command.", ephemeral=True
+            )
     elif isinstance(error, discord.Forbidden):
         logging.warning(
             "Attempted to perform a command with inadequate permissions allotted to the bot"
         )
-        await interaction.response.send_message(
-            "I do not have permissions to perform this command.", ephemeral=True
-        )
+        try:
+            await interaction.response.send_message(
+                "I do not have permissions to perform this command.", ephemeral=True
+            )
+        except discord.errors.InteractionResponded:
+            await interaction.followup.send(
+                "I do not have permissions to perform this command.", ephemeral=True
+            )
     else:
-        logging.error("An error occurred: %s", error, exc_info=True)
-        await interaction.response.send_message(
-            "An unknown error occurred. Contact @zentiph to report this please!",
-            ephemeral=True,
-        )
+        logging.error("An error occurred: %s", error)
+        try:
+            await interaction.response.send_message(
+                "An unknown error occurred. Contact @zentiph to report this please!",
+                ephemeral=True,
+            )
+        except discord.errors.InteractionResponded:
+            await interaction.followup.send(
+                "An unknown error occurred. Contact @zentiph to report this please!",
+                ephemeral=True,
+            )
 
 
 async def setup() -> None:

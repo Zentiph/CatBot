@@ -9,7 +9,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from ..internal import DEFAULT_EMBED_COLOR
+from ..internal import DEFAULT_EMBED_COLOR, generate_image_file
 from .commands import (
     COLOR_ROLES,
     COLOR_TOOLS,
@@ -74,6 +74,9 @@ class HelpCog(commands.Cog, name="Help Commands"):
                     description="Here's a list of color roles commands and how to use them.",
                     color=DEFAULT_EMBED_COLOR,
                 )
+                icon = generate_image_file("CatBot/images/profile.jpg")
+                embed.set_author(name="CatBot", icon_url="attachment://image.png")
+
                 for command in COLOR_ROLES:
                     embed.add_field(
                         name=generate_field_title(command),
@@ -81,7 +84,7 @@ class HelpCog(commands.Cog, name="Help Commands"):
                         inline=False,
                     )
 
-                await interaction.response.send_message(embed=embed)
+                await interaction.response.send_message(embed=embed, file=icon)
 
             case "color tools":
                 embed = discord.Embed(
@@ -89,6 +92,9 @@ class HelpCog(commands.Cog, name="Help Commands"):
                     description="Here's a list of color tools commands and how to use them.",
                     color=DEFAULT_EMBED_COLOR,
                 )
+                icon = generate_image_file("CatBot/images/profile.jpg")
+                embed.set_author(name="CatBot", icon_url="attachment://image.png")
+
                 for command in COLOR_TOOLS:
                     embed.add_field(
                         name=generate_field_title(command),
@@ -96,7 +102,7 @@ class HelpCog(commands.Cog, name="Help Commands"):
                         inline=False,
                     )
 
-                await interaction.response.send_message(embed=embed)
+                await interaction.response.send_message(embed=embed, file=icon)
 
             case "help":
                 embed = discord.Embed(
@@ -104,6 +110,9 @@ class HelpCog(commands.Cog, name="Help Commands"):
                     description="...Seriously? Okay then.",
                     color=DEFAULT_EMBED_COLOR,
                 )
+                icon = generate_image_file("CatBot/images/profile.jpg")
+                embed.set_author(name="CatBot", icon_url="attachment://image.png")
+
                 for command in HELP:
                     embed.add_field(
                         name=generate_field_title(command),
@@ -111,7 +120,7 @@ class HelpCog(commands.Cog, name="Help Commands"):
                         inline=False,
                     )
 
-                await interaction.response.send_message(embed=embed)
+                await interaction.response.send_message(embed=embed, file=icon)
 
             case _:
                 await interaction.response.send_message(
@@ -153,12 +162,15 @@ class HelpCog(commands.Cog, name="Help Commands"):
             description=f"Here's how to use **{cmd}**.",
             color=DEFAULT_EMBED_COLOR,
         )
+        icon = generate_image_file("CatBot/images/profile.jpg")
+        embed.set_author(name="CatBot", icon_url="attachment://image.png")
+
         embed.add_field(
             name=generate_field_title(command),
             value=generate_field_description(command),
         )
 
-        await interaction.response.send_message(embed=embed)
+        await interaction.response.send_message(embed=embed, file=icon)
 
 
 class ClassifiedHelpCog(commands.Cog, name="Moderation Help Commands"):
@@ -210,6 +222,9 @@ class ClassifiedHelpCog(commands.Cog, name="Moderation Help Commands"):
                     description="Here's a list of moderation commands and how to use them.",
                     color=DEFAULT_EMBED_COLOR,
                 )
+                icon = generate_image_file("CatBot/images/profile.jpg")
+                embed.set_author(name="CatBot", icon_url="attachment://image.png")
+
                 for command in MODERATION:
                     embed.add_field(
                         name=generate_field_title(command),
@@ -217,7 +232,7 @@ class ClassifiedHelpCog(commands.Cog, name="Moderation Help Commands"):
                         inline=False,
                     )
 
-                await interaction.response.send_message(embed=embed)
+                await interaction.response.send_message(embed=embed, file=icon)
 
             case _:
                 await interaction.response.send_message(
@@ -259,12 +274,15 @@ class ClassifiedHelpCog(commands.Cog, name="Moderation Help Commands"):
             description=f"Here's how to use **{cmd}**.",
             color=DEFAULT_EMBED_COLOR,
         )
+        icon = generate_image_file("CatBot/images/profile.jpg")
+        embed.set_author(name="CatBot", icon_url="attachment://image.png")
+
         embed.add_field(
             name=generate_field_title(command),
             value=generate_field_description(command),
         )
 
-        await interaction.response.send_message(embed=embed)
+        await interaction.response.send_message(embed=embed, file=icon)
 
 
 async def setup(bot: commands.Bot):

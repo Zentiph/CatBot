@@ -16,6 +16,7 @@ from discord import app_commands
 from discord.ext import commands
 from PIL import Image
 
+from ..internal import generate_image_file
 from .colors import (
     BLUES,
     BROWNS,
@@ -32,8 +33,8 @@ from .colors import (
     invert_rgb,
     is_hex_value,
     is_rgb_value,
-    rgb2hex,
     random_rgb,
+    rgb2hex,
 )
 
 
@@ -167,7 +168,10 @@ class ColorToolsCog(commands.Cog, name="Color Tool Commands"):
             return embed
 
         embed = generate_embed(group, group_map[group])
-        await interaction.response.send_message(embed=embed)
+        icon = generate_image_file("CatBot/images/profile.jpg")
+        embed.set_author(name="CatBot", icon_url="attachment://image.png")
+
+        await interaction.response.send_message(embed=embed, file=icon)
 
     @info_group.command(name="rgb", description="Get info about an RGB color")
     @app_commands.describe(
@@ -210,6 +214,9 @@ class ColorToolsCog(commands.Cog, name="Color Tool Commands"):
             description="Here's some information about your color.",
             color=discord.Color.from_rgb(r, g, b),
         )
+        icon = generate_image_file("CatBot/images/profile.jpg")
+        embed.set_author(name="CatBot", icon_url="attachment://image.png")
+
         embed.add_field(name="Hex", value=f"#{hex}")
 
         key = get_color_key(hex)
@@ -218,7 +225,7 @@ class ColorToolsCog(commands.Cog, name="Color Tool Commands"):
 
         embed.set_image(url=f"attachment://{filename}")
 
-        await interaction.response.send_message(embed=embed, file=file)
+        await interaction.response.send_message(embed=embed, files=(file, icon))
 
     @info_group.command(name="hex", description="Get info about a hex color")
     @app_commands.describe(hex="Hex value (#000000-#ffffff)")
@@ -253,6 +260,9 @@ class ColorToolsCog(commands.Cog, name="Color Tool Commands"):
             description="Here's some information about your color.",
             color=discord.Color.from_rgb(r, g, b),
         )
+        icon = generate_image_file("CatBot/images/profile.jpg")
+        embed.set_author(name="CatBot", icon_url="attachment://image.png")
+
         embed.add_field(name="RGB", value=f"{(r, g, b)}")
 
         key = get_color_key(hex)
@@ -261,7 +271,7 @@ class ColorToolsCog(commands.Cog, name="Color Tool Commands"):
 
         embed.set_image(url=f"attachment://{filename}")
 
-        await interaction.response.send_message(embed=embed, file=file)
+        await interaction.response.send_message(embed=embed, files=(file, icon))
 
     @info_group.command(name="name", description="Get info about a color name")
     @app_commands.describe(
@@ -300,11 +310,14 @@ class ColorToolsCog(commands.Cog, name="Color Tool Commands"):
             description="Here's some information about your color.",
             color=discord.Color.from_rgb(r, g, b),
         )
+        icon = generate_image_file("CatBot/images/profile.jpg")
+        embed.set_author(name="CatBot", icon_url="attachment://image.png")
+
         embed.add_field(name="Hex", value=f"#{hex}")
         embed.add_field(name="RGB", value=f"{(r, g, b)}")
         embed.set_image(url=f"attachment://{filename}")
 
-        await interaction.response.send_message(embed=embed, file=file)
+        await interaction.response.send_message(embed=embed, files=(file, icon))
 
     @info_group.command(name="role", description="Get info about a role's color")
     @app_commands.describe(role="Role to get the color info of")
@@ -341,6 +354,9 @@ class ColorToolsCog(commands.Cog, name="Color Tool Commands"):
             description="Here's some information about your role's color.",
             color=color,
         )
+        icon = generate_image_file("CatBot/images/profile.jpg")
+        embed.set_author(name="CatBot", icon_url="attachment://image.png")
+
         embed.add_field(name="Hex", value=f"#{hex}")
         embed.add_field(name="RGB", value=f"{(r, g, b)}")
 
@@ -350,7 +366,7 @@ class ColorToolsCog(commands.Cog, name="Color Tool Commands"):
 
         embed.set_image(url=f"attachment://{filename}")
 
-        await interaction.response.send_message(embed=embed, file=file)
+        await interaction.response.send_message(embed=embed, files=(file, icon))
 
     @app_commands.command(name="random-color", description="Generate a random color.")
     @app_commands.describe(seed="Optional seed to use when generating the color")
@@ -380,6 +396,9 @@ class ColorToolsCog(commands.Cog, name="Color Tool Commands"):
             description="Here's your randomly generated color.",
             color=discord.Color.from_rgb(r, g, b),
         )
+        icon = generate_image_file("CatBot/images/profile.jpg")
+        embed.set_author(name="CatBot", icon_url="attachment://image.png")
+
         embed.add_field(name="RGB", value=f"{(r, g, b)}")
         embed.add_field(name="Hex", value=f"#{hex}")
 
@@ -389,7 +408,7 @@ class ColorToolsCog(commands.Cog, name="Color Tool Commands"):
 
         embed.set_image(url=f"attachment://{filename}")
 
-        await interaction.response.send_message(embed=embed, file=file)
+        await interaction.response.send_message(embed=embed, files=(file, icon))
 
     @invert_group.command(name="rgb", description="Invert the RGB color")
     @app_commands.describe(
@@ -434,6 +453,9 @@ class ColorToolsCog(commands.Cog, name="Color Tool Commands"):
             description="Here's your inverted color.",
             color=discord.Color.from_rgb(nr, ng, nb),
         )
+        icon = generate_image_file("CatBot/images/profile.jpg")
+        embed.set_author(name="CatBot", icon_url="attachment://image.png")
+
         embed.add_field(name="RGB", value=f"{(nr, ng, nb)}")
         embed.add_field(name="Hex", value=f"#{hex}")
 
@@ -443,7 +465,7 @@ class ColorToolsCog(commands.Cog, name="Color Tool Commands"):
 
         embed.set_image(url=f"attachment://{filename}")
 
-        await interaction.response.send_message(embed=embed, file=file)
+        await interaction.response.send_message(embed=embed, files=(file, icon))
 
     @invert_group.command(name="hex", description="Invert the hex color")
     @app_commands.describe(hex="Hex color")
@@ -481,6 +503,9 @@ class ColorToolsCog(commands.Cog, name="Color Tool Commands"):
             description="Here's your inverted color.",
             color=discord.Color.from_rgb(nr, ng, nb),
         )
+        icon = generate_image_file("CatBot/images/profile.jpg")
+        embed.set_author(name="CatBot", icon_url="attachment://image.png")
+
         embed.add_field(name="Hex", value=f"#{hex}")
         embed.add_field(name="RGB", value=f"{(nr, ng, nb)}")
 
@@ -490,7 +515,7 @@ class ColorToolsCog(commands.Cog, name="Color Tool Commands"):
 
         embed.set_image(url=f"attachment://{filename}")
 
-        await interaction.response.send_message(embed=embed, file=file)
+        await interaction.response.send_message(embed=embed, files=(file, icon))
 
     @invert_group.command(name="name", description="Invert the color name")
     @app_commands.describe(name="Color name (use /colors for a list of colors)")
@@ -532,6 +557,9 @@ class ColorToolsCog(commands.Cog, name="Color Tool Commands"):
             description="Here's your inverted color.",
             color=discord.Color.from_rgb(nr, ng, nb),
         )
+        icon = generate_image_file("CatBot/images/profile.jpg")
+        embed.set_author(name="CatBot", icon_url="attachment://image.png")
+
         embed.add_field(name="Hex", value=f"#{hex}")
         embed.add_field(name="RGB", value=f"{(nr, ng, nb)}")
 
@@ -541,7 +569,7 @@ class ColorToolsCog(commands.Cog, name="Color Tool Commands"):
 
         embed.set_image(url=f"attachment://{filename}")
 
-        await interaction.response.send_message(embed=embed, file=file)
+        await interaction.response.send_message(embed=embed, files=(file, icon))
 
 
 async def setup(bot: commands.Bot):

@@ -1,6 +1,18 @@
 # CatBot Changelog
 A collective history of all the changes made to CatBot.
 
+## v0.4.2
+* Added more moderation commands
+  * /timeout add
+  * /timeout reduce
+  * /timeout remove
+  * /unban
+  * /clear (similar to purge)
+* Small bug fixes
+
+## v0.4.1
+* Added embed author text and image to all embeds
+
 ## v0.4.0
 * Started moderation commands
   * Only /ban as of now
