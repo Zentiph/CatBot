@@ -240,6 +240,7 @@ def generate_field_description(command: Command, /) -> str:
         "str": "text",
         "int": "integer",
         "float": "decimal",
+        "bool": "true/false",
         "NoneType": "empty",
     }
 
