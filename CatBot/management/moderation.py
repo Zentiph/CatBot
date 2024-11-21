@@ -13,8 +13,12 @@ from discord import app_commands
 from discord.ext import commands
 
 from ..confirm_button import ConfirmButton
-from ..internal import LOGGING_CHANNEL, MODERATOR_ROLES, TIME_MULTIPLICATION_TABLE
-
+from ..internal import (
+    LOGGING_CHANNEL,
+    MODERATOR_ROLES,
+    TIME_MULTIPLICATION_TABLE,
+    wrap_reason,
+)
 
 MAX_MESSAGE_DELETE_TIME = 604800
 MAX_TIMEOUT_TIME = 86400
@@ -185,6 +189,7 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
         delete_message_time = max(delete_message_time, 0)
         if reason is None:
             reason = "No reason provided."
+        reason = wrap_reason(reason, interaction.user)
 
         async def attempt_ban() -> None:
             try:
@@ -271,6 +276,7 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
 
         if reason is None:
             reason = "No reason provided."
+        reason = wrap_reason(reason, interaction.user)
 
         user = await interaction.client.fetch_user(int_user_id)  # type: ignore
 
@@ -461,6 +467,7 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
 
         if reason is None:
             reason = "No reason provided."
+        reason = wrap_reason(reason, interaction.user)
 
         if user.timed_out_until is None:
             await interaction.response.send_message(
@@ -528,6 +535,7 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
 
         if reason is None:
             reason = "No reason provided."
+        reason = wrap_reason(reason, interaction.user)
 
         if not user.is_timed_out():
             await interaction.response.send_message(
@@ -589,15 +597,20 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
             "/clear amount=%s channel=%s reason=%s invoked by %s",
             amount,
             channel,
-            reason,
+            repr(reason),
             interaction.user,
         )
         await self.log_command(
-            "clear", interaction.user, amount=amount, channel=channel, reason=reason
+            "clear",
+            interaction.user,
+            amount=amount,
+            channel=channel,
+            reason=repr(reason),
         )
 
         if reason is None:
             reason = "No reason provided."
+        reason = wrap_reason(reason, interaction.user)
 
         async def attempt_purge(channel: discord.TextChannel) -> None:
             try:
@@ -648,6 +661,7 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
         self,
         interaction: discord.Interaction,
         user: discord.Member,
+        channel: Optional[discord.TextChannel] = None,
         reason: Optional[str] = None,
     ) -> None:
         """
@@ -657,22 +671,32 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
         :type interaction: discord.Interaction
         :param user: User to warn
         :type user: discord.Member
+        :param channel: Channel to send warning message to;
+        sends the message to the current channel if None, defaults to None
+        :type channel: discord.TextChannel | None, optional
         :param reason: Warning reason, defaults to None
-        :type reason: Optional[str], optional
+        :type reason: str | None, optional
         """
 
         logging.info(
-            "/warn user=%s reason=%s invoked by %s",
+            "/warn user=%s channel=%s reason=%s invoked by %s",
             user,
-            reason,
+            channel,
+            repr(reason),
             interaction.user,
         )
-        await self.log_command("warn", interaction.user, user=user, reason=reason)
+        await self.log_command(
+            "warn", interaction.user, user=user, channel=channel, reason=repr(reason)
+        )
+
+        if channel is None:
+            channel = interaction.channel  # type: ignore
 
         if reason is None:
             reason = "No reason provided."
+        reason = wrap_reason(reason, interaction.user)
 
-        await interaction.channel.send(  # type: ignore
+        await channel.send(  # type: ignore
             f"{user.mention}, you have been warned.\nReason: {reason}"
         )
         await interaction.response.send_message(
@@ -699,19 +723,20 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
         :param user: User to kick
         :type user: discord.Member
         :param reason: Kick reason, defaults to None
-        :type reason: Optional[str], optional
+        :type reason: str | None, optional
         """
 
         logging.info(
             "/kick user=%s reason=%s invoked by %s",
             user,
-            reason,
+            repr(reason),
             interaction.user,
         )
-        await self.log_command("kick", interaction.user, user=user, reason=reason)
+        await self.log_command("kick", interaction.user, user=user, reason=repr(reason))
 
         if reason is None:
             reason = "No reason provided."
+        reason = wrap_reason(reason, interaction.user)
 
         async def attempt_kick():
             try:
@@ -753,19 +778,20 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
         :param user: User to mute
         :type user: discord.Member
         :param reason: Mute reason, defaults to None
-        :type reason: Optional[str], optional
+        :type reason: str | None, optional
         """
 
         logging.info(
             "/mute user=%s reason=%s invoked by %s",
             user,
-            reason,
+            repr(reason),
             interaction.user,
         )
-        await self.log_command("mute", interaction.user, user=user, reason=reason)
+        await self.log_command("mute", interaction.user, user=user, reason=repr(reason))
 
         if reason is None:
             reason = "No reason provided."
+        reason = wrap_reason(reason, interaction.user)
 
         try:
             await user.edit(mute=True, reason=reason)
@@ -777,6 +803,13 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
                 "I do not have permissions to mute this user.", ephemeral=True
             )
             logging.warning("Failed to mute user due to lack of permissions")
+        except discord.HTTPException:
+            await interaction.response.send_message(
+                "An error occurred while attempting to mute the user. "
+                + "This is likely because they are not in a voice channel. "
+                + "If this isn't the case, please report this to @zentiph!",
+                ephemeral=True,
+            )
 
     @app_commands.command(name="unmute", description="Unmute a user")
     @app_commands.describe(
@@ -798,19 +831,22 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
         :param user: User to unmute
         :type user: discord.Member
         :param reason: Unmute reason, defaults to None
-        :type reason: Optional[str], optional
+        :type reason: str | None, optional
         """
 
         logging.info(
             "/unmute user=%s reason=%s invoked by %s",
             user,
-            reason,
+            repr(reason),
             interaction.user,
         )
-        await self.log_command("unmute", interaction.user, user=user, reason=reason)
+        await self.log_command(
+            "unmute", interaction.user, user=user, reason=repr(reason)
+        )
 
         if reason is None:
             reason = "No reason provided."
+        reason = wrap_reason(reason, interaction.user)
 
         try:
             await user.edit(mute=False, reason=reason)
@@ -822,6 +858,13 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
                 "I do not have permissions to unmute this user.", ephemeral=True
             )
             logging.warning("Failed to unmute user due to lack of permissions")
+        except discord.HTTPException:
+            await interaction.response.send_message(
+                "An error occurred while attempting to unmute the user. "
+                + "This is likely because they are not in a voice channel. "
+                + "If this isn't the case, please report this to @zentiph!",
+                ephemeral=True,
+            )
 
 
 async def setup(bot: commands.Bot):

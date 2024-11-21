@@ -31,7 +31,7 @@
   * other cartesian equations, etc
 
 ## Improvements
-* ,,,
+* Make colored-logging a cli arg
 
 ## Bug Fixes
 * ...

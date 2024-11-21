@@ -356,6 +356,11 @@ warn = Command(name="warn", description="Warn a user.")
 warn.add_param(Param(name="user", type=Member, description="User to warn"))
 warn.add_param(
     Param(
+        name="channel", type=TextChannel, description="Channel to send the warning in"
+    )
+)
+warn.add_param(
+    Param(
         name="reason",
         type=Union[str, None],
         description="Warning reason",

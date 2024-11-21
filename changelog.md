@@ -2,6 +2,10 @@
 A collective history of all the changes made to CatBot.
 
 ## v0.4.3
+* Fixed uncaught error when muting/unmuting a user not in voice
+* Small consistency fixes
+
+## v0.4.3
 * Added more moderation commands
   * /warn
   * /kick

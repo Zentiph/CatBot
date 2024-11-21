@@ -5,6 +5,7 @@ Internal constants and functions for CatBot.
 
 import logging
 from argparse import ArgumentParser
+from typing import Union
 
 import discord
 from discord.ext.commands import Bot
@@ -234,3 +235,18 @@ def generate_image_file(filepath: str) -> discord.File:
         raise ValueError("Image filepath should be a .jpg or .png file")
 
     return discord.File(filepath, filename="image.png")
+
+
+def wrap_reason(reason: str, caller: Union[discord.Member, discord.User]) -> str:
+    """
+    Wrap reason to include the caller's name and ID in the reason (for admin logging purposes).
+
+    :param reason: Original reason string
+    :type reason: str
+    :param caller: Command caller
+    :type caller: Union[discord.Member, discord.User]
+    :return: Wrapped reason string
+    :rtype: str
+    """
+
+    return f"@{caller.name} (ID={caller.id}): {reason}"
