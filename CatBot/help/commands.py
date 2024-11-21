@@ -12,6 +12,8 @@ from .representations import Command, Param
 HelpCategory = Literal["color roles", "color tools", "help"]
 ClassifiedHelpCategory = Literal["moderation"]
 
+# HELP CMDS
+
 help_category = Command(
     name="category",
     description="List information about all the commands in a category",
@@ -31,6 +33,9 @@ help_command = Command(
 help_command.add_param(
     Param(name="cmd", type=str, description="Command to get help for")
 )
+
+
+# COLOR ROLES CMDS
 
 role_assign_hex = Command(
     name="hex",
@@ -74,7 +79,6 @@ role_assign_random.add_param(
         type=Union[str, None],
         description="Optional seed to use when generating the random color",
         optional=True,
-        default=None,
     )
 )
 
@@ -100,6 +104,7 @@ role_assign_reassign = Command(
     group="color-role",
 )
 
+# COLOR TOOLS CMDS
 colors = Command(
     name="colors",
     description="Provides a list of all allowed color names used with CatBot.",
@@ -179,7 +184,6 @@ random_color.add_param(
         type=Union[str, None],
         description="Optional seed to use when generating the random color",
         optional=True,
-        default=None,
     )
 )
 
@@ -208,6 +212,43 @@ invert_name.add_param(
     )
 )
 
+# MANAGEMENT CMDS
+echo = Command(name="echo", description="Echo a message back to a channel.")
+echo.add_param(Param(name="message", type=str, description="Message to echo"))
+echo.add_param(
+    Param(
+        name="channel",
+        type=Union[TextChannel, None],
+        description="Channel to send the echoed message to; defaults to current channel if empty",
+    )
+)
+
+dm = Command(name="dm", description="Send a direct message to a user.")
+dm.add_param(
+    Param(name="user", type=User, description="User to send the direct message to")
+)
+dm.add_param(Param(name="message", type=str, description="Message to send to the user"))
+
+announce = Command(name="announce", description="Announce a message to a channel.")
+announce.add_param(Param(name="message", type=str, description="Message to announce"))
+announce.add_param(
+    Param(
+        name="channel",
+        type=Union[TextChannel, None],
+        description="Channel to send the announced message to; "
+        + "defaults to current channel if empty",
+    )
+)
+announce.add_param(
+    Param(
+        name="ping",
+        type=Role,
+        description="Role to ping for the announcement, or no ping if left empty",
+        optional=True,
+    )
+)
+
+# MODERATION CMDS
 ban = Command(name="ban", description="Ban a user.")
 ban.add_param(Param(name="user", type=User, description="User to ban"))
 ban.add_param(
@@ -234,7 +275,6 @@ ban.add_param(
         type=Union[str, None],
         description="Ban reason",
         optional=True,
-        default=None,
     )
 )
 ban.add_param(
@@ -255,7 +295,6 @@ unban.add_param(
         type=Union[str, None],
         description="Unban reason",
         optional=True,
-        default=None,
     )
 )
 
@@ -281,7 +320,6 @@ timeout_add.add_param(
         type=Union[str, None],
         description="Timeout addition reason",
         optional=True,
-        default=None,
     )
 )
 
@@ -309,7 +347,6 @@ timeout_reduce.add_param(
         type=Union[str, None],
         description="Timeout reduction reason",
         optional=True,
-        default=None,
     )
 )
 
@@ -325,7 +362,6 @@ timeout_remove.add_param(
         type=Union[str, None],
         description="Timeout removal reason",
         optional=True,
-        default=None,
     )
 )
 
@@ -339,7 +375,6 @@ clear.add_param(
         type=Union[TextChannel, None],
         description="Channel to delete messages from; defaults to current channel if empty",
         optional=True,
-        default=None,
     )
 )
 clear.add_param(
@@ -348,7 +383,6 @@ clear.add_param(
         type=Union[str, None],
         description="Deletion reason",
         optional=True,
-        default=None,
     )
 )
 
@@ -365,7 +399,6 @@ warn.add_param(
         type=Union[str, None],
         description="Warning reason",
         optional=True,
-        default=None,
     )
 )
 
@@ -377,7 +410,6 @@ kick.add_param(
         type=Union[str, None],
         description="Kick reason",
         optional=True,
-        default=None,
     )
 )
 
@@ -389,7 +421,6 @@ mute.add_param(
         type=Union[str, None],
         description="Mute reason",
         optional=True,
-        default=None,
     )
 )
 
@@ -401,7 +432,6 @@ unmute.add_param(
         type=Union[str, None],
         description="Unmute reason",
         optional=True,
-        default=None,
     )
 )
 
@@ -427,6 +457,8 @@ COLOR_TOOLS = (
     invert_hex,
     invert_name,
 )
+
+MANAGEMENT = (echo, dm, announce)
 
 MODERATION = (
     ban,
@@ -462,7 +494,7 @@ PUBLIC_COMMAND_MAP = {
     "invert-color name": invert_name,
 }
 
-PRIVATE = MODERATION
+PRIVATE = MANAGEMENT + MODERATION
 PRIVATE_COMMAND_MAP = {
     "ban": ban,
     "timeout-add": timeout_add,
@@ -473,4 +505,7 @@ PRIVATE_COMMAND_MAP = {
     "kick": kick,
     "mute": mute,
     "unmute": unmute,
+    "echo": echo,
+    "dm": dm,
+    "announce": announce,
 }

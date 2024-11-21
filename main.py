@@ -102,6 +102,7 @@ async def setup() -> None:
     await bot.load_extension("CatBot.color.color_roles")
     await bot.load_extension("CatBot.color.color_tools")
     await bot.load_extension("CatBot.help.help")
+    await bot.load_extension("CatBot.management.management")
     await bot.load_extension("CatBot.management.moderation")
 
 

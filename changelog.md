@@ -1,6 +1,12 @@
 # CatBot Changelog
 A collective history of all the changes made to CatBot.
 
+## v0.5.0
+* Added management commands
+  * /echo
+  * /announce
+  * /dm
+
 ## v0.4.4
 * Fixed uncaught error when muting/unmuting a user not in voice
 * Small consistency fixes

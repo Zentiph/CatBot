@@ -5,57 +5,19 @@ Moderation tools for CatBot.
 
 import logging
 from datetime import datetime, timedelta, timezone
-from enum import StrEnum
-from typing import Any, Literal, Optional, Union
+from typing import Literal, Optional
 
 import discord
 from discord import app_commands
 from discord.ext import commands
 
 from ..confirm_button import ConfirmButton
-from ..internal import (
-    LOGGING_CHANNEL,
-    MODERATOR_ROLES,
-    TIME_MULTIPLICATION_TABLE,
-    wrap_reason,
-)
+from ..internal import MODERATOR_ROLES, TIME_MULTIPLICATION_TABLE, wrap_reason
+from .command_logging import log_command
 
 MAX_MESSAGE_DELETE_TIME = 604800
 MAX_TIMEOUT_TIME = 86400
 MESSAGE_WARNING_THRESHOLD = 5
-
-
-# pylint: disable=invalid-name
-class AnsiFormats(StrEnum):
-    """
-    ANSI formats for logging commands.
-    """
-
-    reset = "\u001b[0m"
-    gray = "\u001b[0;30m"
-    bold_gray = "\u001b[1;30m"
-    underlined_gray = "\u001b[4;30m"
-    red = "\u001b[0;31m"
-    bold_red = "\u001b[1;31m"
-    underlined_red = "\u001b[4;31m"
-    green = "\u001b[0;32m"
-    bold_green = "\u001b[1;32m"
-    underlined_green = "\u001b[4;32m"
-    yellow = "\u001b[0;33m"
-    bold_yellow = "\u001b[1;33m"
-    underlined_yellow = "\u001b[4;33m"
-    blue = "\u001b[0;34m"
-    bold_blue = "\u001b[1;34m"
-    underlined_blue = "\u001b[4;34m"
-    pink = "\u001b[0;35m"
-    bold_pink = "\u001b[1;35m"
-    underlined_pink = "\u001b[4;35m"
-    cyan = "\u001b[0;36m"
-    bold_cyan = "\u001b[1;36m"
-    underlined_cyan = "\u001b[4;36m"
-    white = "\u001b[0;37m"
-    bold_white = "\u001b[1;37m"
-    underlined_white = "\u001b[4;37m"
 
 
 # IMPORTANT:
@@ -79,60 +41,6 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
         """
 
         logging.info("ModerationCog loaded")
-
-    async def log_command(
-        self,
-        cmd_name: str,
-        caller: Union[discord.User, discord.Member],
-        /,
-        **cmd_args: Any,
-    ) -> None:
-        """
-        Log a command's usage.
-
-        :param cmd_name: Name of the command
-        :type cmd_name: str
-        :param caller: User who called the command
-        :type caller: discord.User | discord.Member
-        :param cmd_args: Arguments given to the command
-        :type cmd_args: Any
-        """
-
-        def generate_log_message(cmd_name, caller, **cmd_args):
-            msg = (
-                "```ansi\n"
-                + AnsiFormats.gray
-                + f"[{datetime.now()}]\n"
-                + AnsiFormats.yellow
-                + f"/{cmd_name}"
-            )
-            for name, value in cmd_args.items():
-                msg += (
-                    " "
-                    + AnsiFormats.pink
-                    + name
-                    + AnsiFormats.reset
-                    + "="
-                    + AnsiFormats.white
-                    + str(value)
-                )
-            msg += (
-                AnsiFormats.reset
-                + "\ncalled by "
-                + AnsiFormats.cyan
-                + caller.name
-                + "\n```"
-            )
-            return msg
-
-        channel = self.bot.get_channel(LOGGING_CHANNEL)
-        if isinstance(channel, discord.TextChannel):
-            await channel.send(generate_log_message(cmd_name, caller, **cmd_args))
-
-        elif channel is None or isinstance(channel, discord.abc.PrivateChannel):
-            logging.error("Could not find logging channel")
-        else:
-            logging.error("Cannot log to %s; it is not a TextChannel", channel.name)
 
     timeout_group = app_commands.Group(
         name="timeout", description="Tools for timing out users"
@@ -177,9 +85,10 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
             repr(reason),
             interaction.user,
         )
-        await self.log_command(
+        await log_command(
             "ban",
             interaction.user,
+            self.bot,
             user=user,
             delete_message_time=delete_message_time,
             time_unit=time_unit,
@@ -189,14 +98,13 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
         delete_message_time = max(delete_message_time, 0)
         if reason is None:
             reason = "No reason provided."
-        reason = wrap_reason(reason, interaction.user)
 
         async def attempt_ban() -> None:
             try:
 
                 await interaction.guild.ban(  # type: ignore
                     user,
-                    reason=reason,
+                    reason=wrap_reason(reason, interaction.user),
                     delete_message_seconds=min(
                         MAX_MESSAGE_DELETE_TIME,
                         delete_message_time * TIME_MULTIPLICATION_TABLE[time_unit],
@@ -262,8 +170,8 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
             repr(reason),
             interaction.user,
         )
-        await self.log_command(
-            "unban", interaction.user, user_id=user_id, reason=repr(reason)
+        await log_command(
+            "unban", interaction.user, self.bot, user_id=user_id, reason=repr(reason)
         )
 
         try:
@@ -276,13 +184,12 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
 
         if reason is None:
             reason = "No reason provided."
-        reason = wrap_reason(reason, interaction.user)
 
         user = await interaction.client.fetch_user(int_user_id)  # type: ignore
 
         async def attempt_unban():
             try:
-                await interaction.guild.unban(user, reason=reason)  # type: ignore
+                await interaction.guild.unban(user, reason=wrap_reason(reason, interaction.user))  # type: ignore
                 logging.info("%s was successfully unbanned", user)
 
                 try:
@@ -361,9 +268,10 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
             repr(reason),
             interaction.user,
         )
-        await self.log_command(
+        await log_command(
             "timeout add",
             interaction.user,
+            self.bot,
             user=user,
             time=time,
             time_unit=time_unit,
@@ -456,9 +364,10 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
             repr(reason),
             interaction.user,
         )
-        await self.log_command(
+        await log_command(
             "timeout reduce",
             interaction.user,
+            self.bot,
             user=user,
             time=time,
             time_unit=time_unit,
@@ -467,7 +376,6 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
 
         if reason is None:
             reason = "No reason provided."
-        reason = wrap_reason(reason, interaction.user)
 
         if user.timed_out_until is None:
             await interaction.response.send_message(
@@ -480,7 +388,9 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
         )
 
         try:
-            await user.timeout(timed_out_until, reason=reason)
+            await user.timeout(
+                timed_out_until, reason=wrap_reason(reason, interaction.user)
+            )
             await interaction.response.send_message(
                 f"{user}'s timeout reduced by {time} {time_unit}.", ephemeral=True
             )
@@ -526,16 +436,16 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
             repr(reason),
             interaction.user,
         )
-        await self.log_command(
+        await log_command(
             "timeout remove",
             interaction.user,
+            self.bot,
             user=user,
             reason=repr(reason),
         )
 
         if reason is None:
             reason = "No reason provided."
-        reason = wrap_reason(reason, interaction.user)
 
         if not user.is_timed_out():
             await interaction.response.send_message(
@@ -544,7 +454,7 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
             return
 
         try:
-            await user.timeout(None)
+            await user.timeout(None, reason=wrap_reason(reason, interaction.user))
             await interaction.response.send_message(
                 f"{user}'s timeout was removed.", ephemeral=True
             )
@@ -600,9 +510,10 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
             repr(reason),
             interaction.user,
         )
-        await self.log_command(
+        await log_command(
             "clear",
             interaction.user,
+            self.bot,
             amount=amount,
             channel=channel,
             reason=repr(reason),
@@ -610,11 +521,12 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
 
         if reason is None:
             reason = "No reason provided."
-        reason = wrap_reason(reason, interaction.user)
 
         async def attempt_purge(channel: discord.TextChannel) -> None:
             try:
-                await channel.purge(limit=amount)
+                await channel.purge(
+                    limit=amount, reason=wrap_reason(reason, interaction.user)
+                )
             except discord.Forbidden:
                 await interaction.response.send_message(
                     f"I do not have permissions to delete messages in {channel}.",
@@ -685,8 +597,13 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
             repr(reason),
             interaction.user,
         )
-        await self.log_command(
-            "warn", interaction.user, user=user, channel=channel, reason=repr(reason)
+        await log_command(
+            "warn",
+            interaction.user,
+            self.bot,
+            user=user,
+            channel=channel,
+            reason=repr(reason),
         )
 
         if channel is None:
@@ -694,7 +611,6 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
 
         if reason is None:
             reason = "No reason provided."
-        reason = wrap_reason(reason, interaction.user)
 
         await channel.send(  # type: ignore
             f"{user.mention}, you have been warned.\nReason: {reason}"
@@ -732,18 +648,16 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
             repr(reason),
             interaction.user,
         )
-        await self.log_command("kick", interaction.user, user=user, reason=repr(reason))
+        await log_command(
+            "kick", interaction.user, self.bot, user=user, reason=repr(reason)
+        )
 
         if reason is None:
             reason = "No reason provided."
-        reason = wrap_reason(reason, interaction.user)
 
         async def attempt_kick():
             try:
-                await user.kick(reason=reason)
-                await interaction.response.send_message(
-                    f"{user} has been kicked.", ephemeral=True
-                )
+                await user.kick(reason=wrap_reason(reason, interaction.user))
             except discord.Forbidden:
                 await interaction.response.send_message(
                     "I do not have permissions to kick this user.", ephemeral=True
@@ -787,14 +701,15 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
             repr(reason),
             interaction.user,
         )
-        await self.log_command("mute", interaction.user, user=user, reason=repr(reason))
+        await log_command(
+            "mute", interaction.user, self.bot, user=user, reason=repr(reason)
+        )
 
         if reason is None:
             reason = "No reason provided."
-        reason = wrap_reason(reason, interaction.user)
 
         try:
-            await user.edit(mute=True, reason=reason)
+            await user.edit(mute=True, reason=wrap_reason(reason, interaction.user))
             await interaction.response.send_message(
                 f"{user} has been muted.", ephemeral=True
             )
@@ -840,16 +755,15 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
             repr(reason),
             interaction.user,
         )
-        await self.log_command(
-            "unmute", interaction.user, user=user, reason=repr(reason)
+        await log_command(
+            "unmute", interaction.user, self.bot, user=user, reason=repr(reason)
         )
 
         if reason is None:
             reason = "No reason provided."
-        reason = wrap_reason(reason, interaction.user)
 
         try:
-            await user.edit(mute=False, reason=reason)
+            await user.edit(mute=False, reason=wrap_reason(reason, interaction.user))
             await interaction.response.send_message(
                 f"{user} has been unmuted.", ephemeral=True
             )

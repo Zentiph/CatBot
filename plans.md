@@ -2,13 +2,11 @@
 
 ## New Features
 * Moderation tools
-  * Stash warnings and allow people to view a user's warnings.
+  * Stash warnings and allow people to view a user's warnings
   * Add ability to remove warnings
 * Management tools
-  * /echo channel (optional)
-  * /dm {user} {message}
   * /create-channel {name} etc
-  * /announce {message}
+  * Add silent param for commands that use pings
 * Fun commands
   * Random something generator (int, float, etc)
   * coin flip
