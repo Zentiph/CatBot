@@ -1,7 +1,7 @@
 # CatBot Changelog
 A collective history of all the changes made to CatBot.
 
-## v0.4.3
+## v0.4.4
 * Fixed uncaught error when muting/unmuting a user not in voice
 * Small consistency fixes
 
