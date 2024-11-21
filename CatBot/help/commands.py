@@ -5,7 +5,7 @@ Contains definitions of commands to be used with the /help command.
 
 from typing import Literal, Union
 
-from discord import Role, User
+from discord import Member, Role, TextChannel, User
 
 from .representations import Command, Param
 
@@ -247,6 +247,159 @@ ban.add_param(
     )
 )
 
+unban = Command(name="unban", description="Unban a user.")
+unban.add_param(Param(name="user_id", type=str, description="ID of the user to unban"))
+unban.add_param(
+    Param(
+        name="reason",
+        type=Union[str, None],
+        description="Unban reason",
+        optional=True,
+        default=None,
+    )
+)
+
+timeout_add = Command(
+    name="add", description="Add time to a user's timeout.", group="timeout"
+)
+timeout_add.add_param(
+    Param(name="user", type=Member, description="User to add timeout time to")
+)
+timeout_add.add_param(Param(name="time", type=int, description="Timeout addition time"))
+timeout_add.add_param(
+    Param(
+        name="time_unit",
+        type=Literal["seconds", "minutes", "hours", "days"],
+        description="Unit of time",
+        optional=True,
+        default="seconds",
+    )
+)
+timeout_add.add_param(
+    Param(
+        name="reason",
+        type=Union[str, None],
+        description="Timeout addition reason",
+        optional=True,
+        default=None,
+    )
+)
+
+timeout_reduce = Command(
+    name="reduce", description="Reduce time from a user's timeout.", group="timeout"
+)
+timeout_reduce.add_param(
+    Param(name="user", type=Member, description="User to reduce timeout time from")
+)
+timeout_reduce.add_param(
+    Param(name="time", type=int, description="Timeout reduction time")
+)
+timeout_reduce.add_param(
+    Param(
+        name="time_unit",
+        type=Literal["seconds", "minutes", "hours", "days"],
+        description="Unit of time",
+        optional=True,
+        default="seconds",
+    )
+)
+timeout_reduce.add_param(
+    Param(
+        name="reason",
+        type=Union[str, None],
+        description="Timeout reduction reason",
+        optional=True,
+        default=None,
+    )
+)
+
+timeout_remove = Command(
+    name="remove", description="Remove a user's timeout.", group="timeout"
+)
+timeout_remove.add_param(
+    Param(name="user", type=Member, description="User to remove timeout from")
+)
+timeout_remove.add_param(
+    Param(
+        name="reason",
+        type=Union[str, None],
+        description="Timeout removal reason",
+        optional=True,
+        default=None,
+    )
+)
+
+clear = Command(name="clear", description="Delete a number of messages from a channel.")
+clear.add_param(
+    Param(name="amount", type=int, description="Number of messages to delete")
+)
+clear.add_param(
+    Param(
+        name="channel",
+        type=Union[TextChannel, None],
+        description="Channel to delete messages from; defaults to current channel if empty",
+        optional=True,
+        default=None,
+    )
+)
+clear.add_param(
+    Param(
+        name="reason",
+        type=Union[str, None],
+        description="Deletion reason",
+        optional=True,
+        default=None,
+    )
+)
+
+warn = Command(name="warn", description="Warn a user.")
+warn.add_param(Param(name="user", type=Member, description="User to warn"))
+warn.add_param(
+    Param(
+        name="reason",
+        type=Union[str, None],
+        description="Warning reason",
+        optional=True,
+        default=None,
+    )
+)
+
+kick = Command(name="kick", description="Kick a user.")
+kick.add_param(Param(name="user", type=Member, description="User to kick"))
+kick.add_param(
+    Param(
+        name="reason",
+        type=Union[str, None],
+        description="Kick reason",
+        optional=True,
+        default=None,
+    )
+)
+
+mute = Command(name="mute", description="Mute a user.")
+mute.add_param(Param(name="user", type=Member, description="User to mute"))
+mute.add_param(
+    Param(
+        name="reason",
+        type=Union[str, None],
+        description="Mute reason",
+        optional=True,
+        default=None,
+    )
+)
+
+unmute = Command(name="unmute", description="Unmute a user.")
+unmute.add_param(Param(name="user", type=Member, description="User to unmute"))
+unmute.add_param(
+    Param(
+        name="reason",
+        type=Union[str, None],
+        description="Unmute reason",
+        optional=True,
+        default=None,
+    )
+)
+
 HELP = (help_category, help_command)
 
 COLOR_ROLES = (
@@ -270,7 +423,17 @@ COLOR_TOOLS = (
     invert_name,
 )
 
-MODERATION = (ban,)
+MODERATION = (
+    ban,
+    timeout_add,
+    timeout_reduce,
+    timeout_remove,
+    clear,
+    warn,
+    kick,
+    mute,
+    unmute,
+)
 
 PUBLIC = HELP + COLOR_ROLES + COLOR_TOOLS
 PUBLIC_COMMAND_MAP = {
@@ -295,4 +458,14 @@ PUBLIC_COMMAND_MAP = {
 }
 
 PRIVATE = MODERATION
-PRIVATE_COMMAND_MAP = {"ban": ban}
+PRIVATE_COMMAND_MAP = {
+    "ban": ban,
+    "timeout-add": timeout_add,
+    "timeout-reduce": timeout_reduce,
+    "timeout-remove": timeout_remove,
+    "clear": clear,
+    "warn": warn,
+    "kick": kick,
+    "mute": mute,
+    "unmute": unmute,
+}

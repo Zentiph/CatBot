@@ -5,3 +5,4 @@
 *.bat
 __pycache__/
 sandbox.py
+*.cbdata

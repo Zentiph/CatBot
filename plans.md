@@ -2,9 +2,8 @@
 
 ## New Features
 * Moderation tools
-  * Copy over from ServerTools
-  * Kick, ban, timeout, etc
-  * /erase (similar to purge)
+  * Stash warnings and allow people to view a user's warnings.
+  * Add ability to remove warnings
 * Management tools
   * /echo channel (optional)
   * /dm {user} {message}

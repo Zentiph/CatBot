@@ -1,6 +1,14 @@
 # CatBot Changelog
 A collective history of all the changes made to CatBot.
 
+## v0.4.3
+* Added more moderation commands
+  * /warn
+  * /kick
+  * /mute
+  * /unmute
+* Small bug fixes
+
 ## v0.4.2
 * Added more moderation commands
   * /timeout add

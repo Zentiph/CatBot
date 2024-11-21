@@ -509,7 +509,7 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
         :type interaction: discord.Interaction
         :param user: User to remove timeout from
         :type user: discord.Member
-        :param reason: Timeout reason, defaults to None
+        :param reason: Timeout removal reason, defaults to None
         :type reason: str | None, optional
         """
 
@@ -557,7 +557,9 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
         name="clear", description="Delete a number of messages from a channel"
     )
     @app_commands.describe(
-        amount="Number of messages to delete", channel="Channel to delete messages from"
+        amount="Number of messages to delete",
+        channel="Channel to delete messages from",
+        reason="Deletion reason",
     )
     async def clear(
         self,
@@ -636,6 +638,190 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
             view=view,
             ephemeral=True,
         )
+
+    @app_commands.command(name="warn", description="Warn a user")
+    @app_commands.describe(
+        user="User to warn",
+        reason="Warning reason",
+    )
+    async def warn(
+        self,
+        interaction: discord.Interaction,
+        user: discord.Member,
+        reason: Optional[str] = None,
+    ) -> None:
+        """
+        Warn `user` with `reason`.
+
+        :param interaction: Interaction instance
+        :type interaction: discord.Interaction
+        :param user: User to warn
+        :type user: discord.Member
+        :param reason: Warning reason, defaults to None
+        :type reason: Optional[str], optional
+        """
+
+        logging.info(
+            "/warn user=%s reason=%s invoked by %s",
+            user,
+            reason,
+            interaction.user,
+        )
+        await self.log_command("warn", interaction.user, user=user, reason=reason)
+
+        if reason is None:
+            reason = "No reason provided."
+
+        await interaction.channel.send(  # type: ignore
+            f"{user.mention}, you have been warned.\nReason: {reason}"
+        )
+        await interaction.response.send_message(
+            f"{user} has been warned.", ephemeral=True
+        )
+
+    @app_commands.command(name="kick", description="Kick a user")
+    @app_commands.describe(
+        user="User to kick",
+        reason="Kick reason",
+    )
+    @app_commands.checks.has_any_role(*MODERATOR_ROLES)
+    async def kick(
+        self,
+        interaction: discord.Interaction,
+        user: discord.Member,
+        reason: Optional[str] = None,
+    ) -> None:
+        """
+        Kick `user` with `reason`.
+
+        :param interaction: Interaction instance
+        :type interaction: discord.Interaction
+        :param user: User to kick
+        :type user: discord.Member
+        :param reason: Kick reason, defaults to None
+        :type reason: Optional[str], optional
+        """
+
+        logging.info(
+            "/kick user=%s reason=%s invoked by %s",
+            user,
+            reason,
+            interaction.user,
+        )
+        await self.log_command("kick", interaction.user, user=user, reason=reason)
+
+        if reason is None:
+            reason = "No reason provided."
+
+        async def attempt_kick():
+            try:
+                await user.kick(reason=reason)
+                await interaction.response.send_message(
+                    f"{user} has been kicked.", ephemeral=True
+                )
+            except discord.Forbidden:
+                await interaction.response.send_message(
+                    "I do not have permissions to kick this user.", ephemeral=True
+                )
+                logging.warning("Failed to kick user due to lack of permissions")
+
+        view = ConfirmButton(
+            interaction, f"{user} kicked successfully.", "Cancelled kick."
+        )
+        view.on_confirmation(attempt_kick)
+        await interaction.response.send_message(
+            f"Are you sure you want to kick {user}?", view=view, ephemeral=True
+        )
+
+    @app_commands.command(name="mute", description="Mute a user")
+    @app_commands.describe(
+        user="User to mute",
+        reason="Mute reason",
+    )
+    @app_commands.checks.has_any_role(*MODERATOR_ROLES)
+    async def mute(
+        self,
+        interaction: discord.Interaction,
+        user: discord.Member,
+        reason: Optional[str] = None,
+    ) -> None:
+        """
+        Mute `user` with `reason`.
+
+        :param interaction: Interaction instance
+        :type interaction: discord.Interaction
+        :param user: User to mute
+        :type user: discord.Member
+        :param reason: Mute reason, defaults to None
+        :type reason: Optional[str], optional
+        """
+
+        logging.info(
+            "/mute user=%s reason=%s invoked by %s",
+            user,
+            reason,
+            interaction.user,
+        )
+        await self.log_command("mute", interaction.user, user=user, reason=reason)
+
+        if reason is None:
+            reason = "No reason provided."
+
+        try:
+            await user.edit(mute=True, reason=reason)
+            await interaction.response.send_message(
+                f"{user} has been muted.", ephemeral=True
+            )
+        except discord.Forbidden:
+            await interaction.response.send_message(
+                "I do not have permissions to mute this user.", ephemeral=True
+            )
+            logging.warning("Failed to mute user due to lack of permissions")
+
+    @app_commands.command(name="unmute", description="Unmute a user")
+    @app_commands.describe(
+        user="User to unmute",
+        reason="Unmute reason",
+    )
+    @app_commands.checks.has_any_role(*MODERATOR_ROLES)
+    async def unmute(
+        self,
+        interaction: discord.Interaction,
+        user: discord.Member,
+        reason: Optional[str] = None,
+    ) -> None:
+        """
+        Unmute `user` with `reason`.
+
+        :param interaction: Interaction instance
+        :type interaction: discord.Interaction
+        :param user: User to unmute
+        :type user: discord.Member
+        :param reason: Unmute reason, defaults to None
+        :type reason: Optional[str], optional
+        """
+
+        logging.info(
+            "/unmute user=%s reason=%s invoked by %s",
+            user,
+            reason,
+            interaction.user,
+        )
+        await self.log_command("unmute", interaction.user, user=user, reason=reason)
+
+        if reason is None:
+            reason = "No reason provided."
+
+        try:
+            await user.edit(mute=False, reason=reason)
+            await interaction.response.send_message(
+                f"{user} has been unmuted.", ephemeral=True
+            )
+        except discord.Forbidden:
+            await interaction.response.send_message(
+                "I do not have permissions to unmute this user.", ephemeral=True
+            )
+            logging.warning("Failed to unmute user due to lack of permissions")
 
 
 async def setup(bot: commands.Bot):
