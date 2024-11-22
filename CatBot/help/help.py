@@ -14,6 +14,7 @@ from .commands import (
     COLOR_ROLES,
     COLOR_TOOLS,
     HELP,
+    MANAGEMENT,
     MODERATION,
     PRIVATE,
     PRIVATE_COMMAND_MAP,
@@ -233,6 +234,15 @@ class ClassifiedHelpCog(commands.Cog, name="Moderation Help Commands"):
                     )
 
                 await interaction.response.send_message(embed=embed, file=icon)
+
+            case "management":
+                embed = discord.Embed(
+                    title="Management Commands Help Page",
+                    description="Here's a list of management commands and how to use them.",
+                    color=DEFAULT_EMBED_COLOR,
+                )
+                icon = generate_image_file("CatBot/images/profile.jpg")
+                embed.set_author(name="CatBot", icon_url="attachment://image.png")
 
             case _:
                 await interaction.response.send_message(

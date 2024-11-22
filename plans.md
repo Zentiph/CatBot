@@ -30,6 +30,8 @@
 
 ## Improvements
 * Make colored-logging a cli arg
+* Scan and refactor code
+* Modularize repetitive processes
 
 ## Bug Fixes
 * ...

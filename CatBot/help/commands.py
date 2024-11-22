@@ -10,7 +10,7 @@ from discord import Member, Role, TextChannel, User
 from .representations import Command, Param
 
 HelpCategory = Literal["color roles", "color tools", "help"]
-ClassifiedHelpCategory = Literal["moderation"]
+ClassifiedHelpCategory = Literal["management", "moderation"]
 
 # HELP CMDS
 
