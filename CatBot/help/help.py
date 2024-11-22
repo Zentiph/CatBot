@@ -244,6 +244,15 @@ class ClassifiedHelpCog(commands.Cog, name="Moderation Help Commands"):
                 icon = generate_image_file("CatBot/images/profile.jpg")
                 embed.set_author(name="CatBot", icon_url="attachment://image.png")
 
+                for command in MANAGEMENT:
+                    embed.add_field(
+                        name=generate_field_title(command),
+                        value=generate_field_description(command),
+                        inline=False,
+                    )
+
+                await interaction.response.send_message(embed=embed, file=icon)
+
             case _:
                 await interaction.response.send_message(
                     "You have entered an incorrect category.", ephemeral=True
