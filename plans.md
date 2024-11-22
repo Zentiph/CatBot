@@ -6,7 +6,6 @@
   * Add ability to remove warnings
 * Management tools
   * /create-channel {name} etc
-  * Add silent param for commands that use pings
 * Fun commands
   * Random something generator (int, float, etc)
   * coin flip
@@ -32,6 +31,7 @@
 * Make colored-logging a cli arg
 * Scan and refactor code
 * Modularize repetitive processes
+* Move certain commands with different types (like invert-rgb and invert-hex) into one command (like invert)
 
 ## Bug Fixes
 * ...

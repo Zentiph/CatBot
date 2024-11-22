@@ -9,7 +9,7 @@ from asyncio import run
 import discord
 from discord import app_commands
 
-from CatBot.internal import (
+from CatBot.bot_init import (
     LOG_FILE,
     VERSION,
     config_logging,
@@ -20,6 +20,7 @@ from CatBot.internal import (
 
 bot = initialize_bot()
 parser = initialize_cli_arg_parser()
+cli_args = parser.parse_args()
 
 
 @bot.event
@@ -30,7 +31,7 @@ async def on_ready() -> None:
 
     await bot.tree.sync()
 
-    if parser.parse_args().testing:
+    if cli_args.testing:
         await bot.change_presence(activity=discord.Game(name="⚠ TESTING ⚠"))
         logging.warning(
             "The application has been started in testing mode; ignore if this is intentional"
@@ -96,8 +97,14 @@ async def on_app_command_error(
 
 async def setup() -> None:
     """
-    Load necessary cogs.
+    Reset logs and load necessary cogs.
     """
+
+    with open(LOG_FILE, "w", encoding="utf8"):
+        logging.info("Log file %s cleared", LOG_FILE)
+
+    if cli_args.testing:
+        await bot.load_extension("CatBot.experiments.experimental")
 
     await bot.load_extension("CatBot.color.color_roles")
     await bot.load_extension("CatBot.color.color_tools")
@@ -106,18 +113,15 @@ async def setup() -> None:
     await bot.load_extension("CatBot.management.moderation")
 
 
-async def main() -> None:
+def main():
     """
-    Main entrypoint.
+    Config logging, run setup, and run the bot.
     """
 
-    with open(LOG_FILE, "w", encoding="utf8"):
-        logging.info("Log file %s cleared", LOG_FILE)
-
-    await setup()
-    await bot.start(get_token(parser))
+    config_logging(parser)
+    run(setup())
+    bot.run(get_token(parser))
 
 
 if __name__ == "__main__":
-    config_logging(parser)
-    run(main())
+    main()

@@ -11,8 +11,9 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+from ..bot_init import MODERATOR_ROLES, TIME_MULTIPLICATION_TABLE
 from ..confirm_button import ConfirmButton
-from ..internal import MODERATOR_ROLES, TIME_MULTIPLICATION_TABLE, wrap_reason
+from ..internal_utils import wrap_reason
 from .command_logging import log_command
 
 MAX_MESSAGE_DELETE_TIME = 604800

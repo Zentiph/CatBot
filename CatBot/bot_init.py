@@ -1,21 +1,18 @@
 """
-internal.py
-Internal constants and functions for CatBot.
+bot_init.py
+Bot initialization code.
 """
 
 import logging
 from argparse import ArgumentParser
-from typing import Union
 
 import discord
 from discord.ext.commands import Bot
 
+from .logging_formatting import LOGGING_FORMAT, ColorFormatter
 
 LOG_FILE = "logs.log"
 DEFAULT_EMBED_COLOR = discord.Color(int("ffffff", 16))
-LOGGING_FORMAT = (
-    "%(asctime)s | [%(levelname)s] %(name)s - %(message)s (%(filename)s:%(lineno)d)"
-)
 TIME_MULTIPLICATION_TABLE = {
     "seconds": 1,
     "minutes": 60,
@@ -157,96 +154,3 @@ def get_token(parser: ArgumentParser, /) -> str:
 
     args = parser.parse_args()
     return args.tokenoverride if args.tokenoverride else get_token_from_env()
-
-
-def generate_ansi(r: int, g: int, b: int) -> str:
-    """
-    Generate an ANSI code given the RGB color.
-
-    :param r: R value
-    :type r: int
-    :param g: G value
-    :type g: int
-    :param b: B value
-    :type b: int
-    :return: ANSI code matching the RGB color
-    :rtype: str
-    """
-
-    return f"\x1b[38;2;{r};{g};{b}m"
-
-
-class ColorFormatter(logging.Formatter):
-    """
-    Custom color formatter for logging stream outputs.
-    """
-
-    BOLD = "\x1b[1m"
-    DEBUG = generate_ansi(166, 227, 161)
-    INFO = generate_ansi(93, 157, 243)
-    WARNING = generate_ansi(255, 255, 0)
-    ERROR = generate_ansi(255, 0, 0)
-    FATAL = generate_ansi(255, 0, 0) + BOLD
-    RESET = "\x1b[0m"
-
-    FORMATS = {
-        logging.DEBUG: DEBUG + LOGGING_FORMAT + RESET,
-        logging.INFO: INFO + LOGGING_FORMAT + RESET,
-        logging.WARNING: WARNING + LOGGING_FORMAT + RESET,
-        logging.ERROR: ERROR + LOGGING_FORMAT + RESET,
-        logging.CRITICAL: FATAL + LOGGING_FORMAT + RESET,
-    }
-
-    def format(self, record: logging.LogRecord) -> str:
-        """
-        Apply the format to the log message.
-
-        :param record: Logging record
-        :type record: logging.LogRecord
-        :return: Formatted log
-        :rtype: str
-        """
-
-        log_fmt = self.FORMATS.get(record.levelno)
-        formatter = logging.Formatter(log_fmt)
-        return formatter.format(record)
-
-
-def generate_image_file(filepath: str) -> discord.File:
-    """
-    Generate an image File given `filepath`.
-    The image's name is "image.png".
-
-    :param filepath: Path to an image
-    :type filepath: str
-    :return: Discord image File
-    :rtype: discord.File
-    """
-
-    if not any(
-        (
-            (
-                filepath.endswith(".jpg"),
-                filepath.endswith(".jpeg"),
-                filepath.endswith(".png"),
-            )
-        )
-    ):
-        raise ValueError("Image filepath should be a .jpg or .png file")
-
-    return discord.File(filepath, filename="image.png")
-
-
-def wrap_reason(reason: str, caller: Union[discord.Member, discord.User]) -> str:
-    """
-    Wrap reason to include the caller's name and ID in the reason (for admin logging purposes).
-
-    :param reason: Original reason string
-    :type reason: str
-    :param caller: Command caller
-    :type caller: Union[discord.Member, discord.User]
-    :return: Wrapped reason string
-    :rtype: str
-    """
-
-    return f"@{caller.name} (ID={caller.id}): {reason}"

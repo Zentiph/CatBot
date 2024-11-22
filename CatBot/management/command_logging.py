@@ -10,7 +10,7 @@ from typing import Any, Union
 
 import discord
 
-from ..internal import LOGGING_CHANNEL
+from ..bot_init import LOGGING_CHANNEL
 
 
 # pylint: disable=invalid-name
