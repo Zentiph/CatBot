@@ -22,10 +22,13 @@
   * /bot-count
   * /member-count
 * Math commands
-  * /add, /sub, /mul, /div
-  * /exp, /log, etc
-  * /distance
   * other cartesian equations, etc
+  * TrigCog
+  * CalculusCog
+  * CalculatorCog
+  * StatisticsCog
+  * Add ability to pass strings as numbers ("pi", "e", "tau")
+  * BinaryCog
 
 ## Improvements
 * Make colored-logging a cli arg

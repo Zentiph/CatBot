@@ -9,10 +9,12 @@ from discord import Member, Role, TextChannel, User
 
 from .representations import Command, Param
 
-HelpCategory = Literal["color roles", "color tools", "help"]
+HelpCategory = Literal["color roles", "color tools", "help", "math"]
 ClassifiedHelpCategory = Literal["management", "moderation"]
 
-# HELP CMDS
+# # # # # # #
+# HELP CMDS #
+# # # # # # #
 
 help_category = Command(
     name="category",
@@ -34,8 +36,9 @@ help_command.add_param(
     Param(name="cmd", type=str, description="Command to get help for")
 )
 
-
-# COLOR ROLES CMDS
+# # # # # # # # # #
+# COLOR ROLE CMDS #
+# # # # # # # # # #
 
 role_assign_hex = Command(
     name="hex",
@@ -104,7 +107,10 @@ role_assign_reassign = Command(
     group="color-role",
 )
 
-# COLOR TOOLS CMDS
+# # # # # # # # # #
+# COLOR TOOL CMDS #
+# # # # # # # # # #
+
 colors = Command(
     name="colors",
     description="Provides a list of all allowed color names used with CatBot.",
@@ -212,7 +218,10 @@ invert_name.add_param(
     )
 )
 
-# MANAGEMENT CMDS
+# # # # # # # # # #
+# MANAGEMENT CMDS #
+# # # # # # # # # #
+
 echo = Command(name="echo", description="Echo a message back to a channel.")
 echo.add_param(Param(name="message", type=str, description="Message to echo"))
 echo.add_param(
@@ -248,7 +257,10 @@ announce.add_param(
     )
 )
 
-# MODERATION CMDS
+# # # # # # # # # #
+# MODERATION CMDS #
+# # # # # # # # # #
+
 ban = Command(name="ban", description="Ban a user.")
 ban.add_param(Param(name="user", type=User, description="User to ban"))
 ban.add_param(
@@ -435,8 +447,180 @@ unmute.add_param(
     )
 )
 
-HELP = (help_category, help_command)
+# # # # # # #
+# MATH CMDS #
+# # # # # # #
 
+add = Command(name="add", description="Add two numbers.")
+add.add_param(Param(name="x", type=float, description="First number"))
+add.add_param(Param(name="y", type=float, description="Second number"))
+
+sub = Command(name="sub", description="Subtract two numbers.")
+sub.add_param(Param(name="x", type=float, description="First number"))
+sub.add_param(Param(name="y", type=float, description="Second number"))
+
+mul = Command(name="mul", description="Multiply two numbers.")
+mul.add_param(Param(name="x", type=float, description="First number"))
+mul.add_param(Param(name="y", type=float, description="Second number"))
+
+div = Command(name="div", description="Divide two numbers.")
+div.add_param(Param(name="x", type=float, description="First number"))
+div.add_param(Param(name="y", type=float, description="Second number"))
+
+floordiv = Command(name="floordiv", description="Divide two numbers and floor it.")
+floordiv.add_param(Param(name="x", type=float, description="First number"))
+floordiv.add_param(Param(name="y", type=float, description="Second number"))
+
+pow_ = Command(name="pow", description="Raise a number to the power of another.")
+pow_.add_param(Param(name="x", type=float, description="First number"))
+pow_.add_param(Param(name="y", type=float, description="Second number"))
+
+mod = Command(name="mod", description="Calculate the modulus of two numbers.")
+mod.add_param(Param(name="x", type=float, description="First number"))
+mod.add_param(Param(name="y", type=float, description="Second number"))
+
+sqrt = Command(name="sqrt", description="Calculate the square root of a number.")
+sqrt.add_param(
+    Param(
+        name="x",
+        type=float,
+        description="Number to calculate the square root of",
+    )
+)
+
+cbrt = Command(name="cbrt", description="Calculate the cube root of a number.")
+cbrt.add_param(
+    Param(
+        name="x",
+        type=float,
+        description="Number to calculate the cube root of",
+    )
+)
+
+nroot = Command(name="nroot", description="Calculate the nth root of a number.")
+nroot.add_param(
+    Param(
+        name="x",
+        type=float,
+        description="Number to calculate the nth root of",
+    )
+)
+
+abs_ = Command(name="abs", description="Calculate the absolute value of a number.")
+abs_.add_param(
+    Param(
+        name="x",
+        type=float,
+        description="Number to calculate the absolute value of",
+    )
+)
+
+ceil = Command(name="ceil", description="Calculate the ceiling of a number.")
+ceil.add_param(
+    Param(
+        name="x",
+        type=float,
+        description="Number to calculate the ceiling of",
+    )
+)
+
+floor = Command(name="floor", description="Calculate the floor of a number.")
+floor.add_param(
+    Param(name="x", type=float, description="Number to calculate the floor of")
+)
+
+round_ = Command(
+    name="round", description="Round a number to a specified number of digits."
+)
+round_.add_param(Param(name="x", type=float, description="Number to round"))
+round_.add_param(
+    Param(name="ndigits", type=int, description="Number of digits to round to")
+)
+
+log = Command(name="log", description="Calculate the logarithm of a number.")
+log.add_param(
+    Param(
+        name="x",
+        type=float,
+        description="Number to calculate the logarithm of",
+    )
+)
+log.add_param(
+    Param(
+        name="base",
+        type=Union[float, None],
+        description="Base of the logarithm; if left empty, uses base e",
+    )
+)
+
+gcd = Command(
+    name="gcd",
+    description="Calculate the greatest common divisor/denominator (GDC) of two numbers",
+)
+gcd.add_param(Param(name="x", type=int, description="First number"))
+gcd.add_param(Param(name="y", type=int, description="Second number"))
+
+lcm = Command(
+    name="lcm",
+    description="Calculate the least common multiplier (LCM) of two numbers.",
+)
+lcm.add_param(Param(name="x", type=int, description="First number"))
+lcm.add_param(Param(name="y", type=int, description="Second number"))
+
+distance_cartesian_2d = Command(
+    name="cartesian-2d",
+    description="Calculate the Cartesian distance between two points in 2D space.",
+    group="distance",
+)
+distance_cartesian_2d.add_param(
+    Param(name="x1", type=float, description="First x-coordinate")
+)
+distance_cartesian_2d.add_param(
+    Param(name="y1", type=float, description="First y-coordinate")
+)
+distance_cartesian_2d.add_param(
+    Param(name="x2", type=float, description="Second x-coordinate")
+)
+distance_cartesian_2d.add_param(
+    Param(name="y2", type=float, description="Second y-coordinate")
+)
+
+distance_cartesian_3d = Command(
+    name="cartesian-3d",
+    description="Calculate the Cartesian distance between two points in 3D space.",
+    group="distance",
+)
+distance_cartesian_3d.add_param(
+    Param(name="x1", type=float, description="First x-coordinate")
+)
+distance_cartesian_3d.add_param(
+    Param(name="y1", type=float, description="First y-coordinate")
+)
+distance_cartesian_3d.add_param(
+    Param(name="z1", type=float, description="First z-coordinate")
+)
+distance_cartesian_3d.add_param(
+    Param(name="x2", type=float, description="Second x-coordinate")
+)
+distance_cartesian_3d.add_param(
+    Param(name="y2", type=float, description="Second y-coordinate")
+)
+distance_cartesian_3d.add_param(
+    Param(name="z2", type=float, description="Second z-coordinate")
+)
+
+factorial = Command(
+    name="factorial", description="Calculate the factorial of a number."
+)
+factorial.add_param(
+    Param(name="x", type=int, description="Number to calculate the factorial of")
+)
+
+# # # # # # # # #
+# CMD LIST INIT #
+# # # # # # # # #
+
+HELP = (help_category, help_command)
 COLOR_ROLES = (
     role_assign_hex,
     role_assign_rgb,
@@ -457,9 +641,30 @@ COLOR_TOOLS = (
     invert_hex,
     invert_name,
 )
+MATH = (
+    add,
+    sub,
+    mul,
+    div,
+    floordiv,
+    pow_,
+    mod,
+    sqrt,
+    cbrt,
+    nroot,
+    abs_,
+    ceil,
+    floor,
+    round_,
+    log,
+    gcd,
+    lcm,
+    distance_cartesian_2d,
+    distance_cartesian_3d,
+    factorial,
+)
 
 MANAGEMENT = (echo, dm, announce)
-
 MODERATION = (
     ban,
     timeout_add,
@@ -472,7 +677,7 @@ MODERATION = (
     unmute,
 )
 
-PUBLIC = HELP + COLOR_ROLES + COLOR_TOOLS
+PUBLIC = HELP + COLOR_ROLES + COLOR_TOOLS + MATH
 PUBLIC_COMMAND_MAP = {
     "help-category": help_category,
     "help-command": help_command,
@@ -492,6 +697,26 @@ PUBLIC_COMMAND_MAP = {
     "invert-color rgb": invert_rgb,
     "invert-color hex": invert_hex,
     "invert-color name": invert_name,
+    "add": add,
+    "sub": sub,
+    "mul": mul,
+    "div": div,
+    "floordiv": floordiv,
+    "pow": pow_,
+    "mod": mod,
+    "sqrt": sqrt,
+    "cbrt": cbrt,
+    "nroot": nroot,
+    "abs": abs_,
+    "ceil": ceil,
+    "floor": floor,
+    "round": round_,
+    "log": log,
+    "gcd": gcd,
+    "lcm": lcm,
+    "distance cartesian-2d": distance_cartesian_2d,
+    "distance cartesian-3d": distance_cartesian_3d,
+    "factorial": factorial,
 }
 
 PRIVATE = MANAGEMENT + MODERATION

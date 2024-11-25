@@ -19,6 +19,7 @@ from .commands import (
     COLOR_TOOLS,
     HELP,
     MANAGEMENT,
+    MATH,
     MODERATION,
     PRIVATE,
     PRIVATE_COMMAND_MAP,
@@ -116,6 +117,23 @@ class HelpCog(commands.Cog, name="Help Commands"):
                 )
 
                 for command in HELP:
+                    embed.add_field(
+                        name=generate_field_title(command),
+                        value=generate_field_description(command),
+                        inline=False,
+                    )
+
+                await interaction.response.send_message(embed=embed, file=icon)
+
+            case "math":
+                icon = generate_image_file("CatBot/images/profile.jpg")
+                embed = generate_authored_embed(
+                    title="Math Commands Help Page",
+                    description="Here's a list of math commands and how to use them.",
+                    color=DEFAULT_EMBED_COLOR,
+                )
+
+                for command in MATH:
                     embed.add_field(
                         name=generate_field_title(command),
                         value=generate_field_description(command),

@@ -1,6 +1,12 @@
 # CatBot Changelog
 A collective history of all the changes made to CatBot.
 
+## v0.6.0
+* Added math commands
+  * Standard operations
+  * Special functions (factorial, etc.)
+  * More
+
 ## v0.5.1
 * Fixed management commands not showing up in the help menu
 

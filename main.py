@@ -111,6 +111,7 @@ async def setup() -> None:
     await bot.load_extension("CatBot.help.help")
     await bot.load_extension("CatBot.management.management")
     await bot.load_extension("CatBot.management.moderation")
+    await bot.load_extension("CatBot.math.maths")
 
 
 def main():

@@ -11,14 +11,8 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from ..internal_utils import (
-    DEFAULT_EMBED_COLOR,
-    generate_authored_embed,
-    generate_image_file,
-)
 
-
-class ExperimentalCog(commands.Cog, name="Help Commands"):
+class ExperimentalCog(commands.Cog, name="Experimental Stuff"):
     """
     Cog containing experimental commands.
     """
@@ -34,5 +28,13 @@ class ExperimentalCog(commands.Cog, name="Help Commands"):
 
         logging.info("ExperimentalCog loaded")
 
-    # @app_commands.command(name="star-args-experiment")
-    # async def
+
+async def setup(bot: commands.Bot):
+    """
+    Set up the ExperimentalCog.
+
+    :param bot: Bot to add the cog to.
+    :type bot: commands.Bot
+    """
+
+    await bot.add_cog(ExperimentalCog(bot))
