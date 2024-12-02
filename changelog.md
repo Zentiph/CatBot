@@ -1,6 +1,13 @@
 # CatBot Changelog
 A collective history of all the changes made to CatBot.
 
+## v0.6.1
+* Added bulk commands to math module
+  * /sum
+  * /prod
+  * /gcd-bulk
+  * /lcm-bulk
+
 ## v0.6.0
 * Added math commands
   * Standard operations

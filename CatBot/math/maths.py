@@ -5,11 +5,20 @@ Code for mathematical operations/functions to be used for CatBot's math-related 
 
 import logging
 import math
+from re import match as re_match
 from typing import Optional
 
 import discord
 from discord import app_commands
 from discord.ext import commands
+
+
+def is_number(string: str) -> bool:
+    """
+    Determine if `string` is a valid number.
+    """
+
+    return bool(re_match(r"^-?\d+(\.\d+)?$", string))
 
 
 # pylint: disable=too-many-public-methods
@@ -34,11 +43,6 @@ class MathCog(commands.Cog, name="Math Commands"):
         description="Calculate the distance between two points.",
     )
 
-    bulk_group = app_commands.Group(  # TODO:
-        name="bulk",
-        description="Versions of math commands designed to take bulk inputs.",
-    )
-
     @app_commands.command(name="add", description="Add two numbers")
     @app_commands.describe(x="First number", y="Second number")
     async def add(
@@ -52,7 +56,42 @@ class MathCog(commands.Cog, name="Math Commands"):
         """
 
         logging.info("/add x=%s y=%s invoked by %s", x, y, interaction.user)
-        await interaction.response.send_message(f"{x} + {y} = {x + y}")
+        await interaction.response.send_message(f"{x} + {y} = **{x + y}**")
+
+    @app_commands.command(
+        name="sum", description="Sum up an arbitrary amount of numbers"
+    )
+    @app_commands.describe(numbers="An arbitrary amount of numbers separated by commas")
+    async def sum(
+        self,
+        interaction: discord.Interaction,
+        numbers: str,
+    ) -> None:
+        """
+        Sum up the provided numbers.
+
+        :param interaction: Interaction instance
+        :type interaction: discord.Interaction
+        :param numbers: Numbers
+        :type numbers: str
+        """
+
+        logging.info("/sum numbers=%s invoked by %s", numbers, interaction.user)
+
+        numbers_list = numbers.replace(" ", "").split(
+            ","
+        )  # Split at commas and remove spaces
+        if any(not is_number(num) for num in numbers_list):
+            await interaction.response.send_message(
+                "Invalid input. Please provide only numbers separated by commas.",
+                ephemeral=True,
+            )
+            return
+        total = sum(float(num) for num in numbers_list)
+
+        await interaction.response.send_message(
+            f"{" + ".join(numbers_list)} = **{total}**"
+        )
 
     @app_commands.command(name="sub", description="Subtract two numbers")
     @app_commands.describe(x="First number", y="Second number")
@@ -67,7 +106,7 @@ class MathCog(commands.Cog, name="Math Commands"):
         """
 
         logging.info("/sub x=%s y=%s invoked by %s", x, y, interaction.user)
-        await interaction.response.send_message(f"{x} - {y} = {x - y}")
+        await interaction.response.send_message(f"{x} - {y} = **{x - y}**")
 
     @app_commands.command(name="mul", description="Multiply two numbers")
     @app_commands.describe(x="First number", y="Second number")
@@ -83,6 +122,41 @@ class MathCog(commands.Cog, name="Math Commands"):
 
         logging.info("/mul x=%s y=%s invoked by %s", x, y, interaction.user)
         await interaction.response.send_message(f"{x} * {y} = {x * y}")
+
+    @app_commands.command(
+        name="prod", description="Find the product of an arbitrary amount of numbers"
+    )
+    @app_commands.describe(numbers="An arbitrary amount of numbers separated by commas")
+    async def prod(
+        self,
+        interaction: discord.Interaction,
+        numbers: str,
+    ) -> None:
+        """
+        Find the product of the provided numbers.
+
+        :param interaction: Interaction instance
+        :type interaction: discord.Interaction
+        :param numbers: Numbers
+        :type numbers: str
+        """
+
+        logging.info("/prod numbers=%s invoked by %s", numbers, interaction.user)
+
+        numbers_list = numbers.replace(" ", "").split(
+            ","
+        )  # Split at commas and remove spaces
+        if any(not is_number(num) for num in numbers_list):
+            await interaction.response.send_message(
+                "Invalid input. Please provide only numbers separated by commas.",
+                ephemeral=True,
+            )
+            return
+        total = math.prod(float(num) for num in numbers_list)
+
+        await interaction.response.send_message(
+            f"{" * ".join(numbers_list)} = **{total}**"
+        )
 
     @app_commands.command(name="div", description="Divide two numbers")
     @app_commands.describe(x="First number", y="Second number")
@@ -285,8 +359,48 @@ class MathCog(commands.Cog, name="Math Commands"):
         await interaction.response.send_message(f"gcd({x}, {y}) = {math.gcd(x, y)}")
 
     @app_commands.command(
+        name="gcd-bulk",
+        description="Calculate the greatest common divisor/denominator "
+        + "(GCD) of an arbitrary amount of numbers",
+    )
+    @app_commands.describe(numbers="An arbitrary amount of numbers separated by commas")
+    async def gcd_bulk(
+        self,
+        interaction: discord.Interaction,
+        numbers: str,
+    ) -> None:
+        """
+        Calculate the greatest common divisor of an arbitrary amount of numbers.
+        """
+
+        logging.info("/gcd-bulk numbers=%s invoked by %s", numbers, interaction.user)
+
+        numbers_list = numbers.replace(" ", "").split(
+            ","
+        )  # Split at commas and remove spaces
+        if any(not is_number(num) for num in numbers_list):
+            await interaction.response.send_message(
+                "Invalid input. Please provide only numbers separated by commas.",
+                ephemeral=True,
+            )
+            return
+
+        floats = (float(num) for num in numbers_list)
+        if any(not flt.is_integer() for flt in floats):
+            await interaction.response.send_message(
+                "Invalid input. Please provide only positive integers separated by commas."
+            )
+            return
+
+        gcd = math.gcd(*(int(num) for num in numbers_list))
+
+        await interaction.response.send_message(
+            f"gcd({", ".join(numbers_list)}) = **{gcd}**"
+        )
+
+    @app_commands.command(
         name="lcm",
-        description="Calculate the least common multiplier (LCM) of two numbers",
+        description="Calculate the least common multiple (LCM) of two numbers",
     )
     @app_commands.describe(x="First number", y="Second number")
     async def lcm(
@@ -296,11 +410,50 @@ class MathCog(commands.Cog, name="Math Commands"):
         y: int,
     ) -> None:
         """
-        Calculate the least common multiplier of `x` and `y`.
+        Calculate the least common multiple of `x` and `y`.
         """
 
         logging.info("/lcm x=%s y=%s invoked by %s", x, y, interaction.user)
         await interaction.response.send_message(f"lcm({x}, {y}) = {math.lcm(x, y)}")
+
+    @app_commands.command(
+        name="lcm-bulk",
+        description="Calculate the least common multiple (LCM) of an arbitrary amount of numbers",
+    )
+    @app_commands.describe(numbers="An arbitrary amount of numbers separated by commas")
+    async def lcm_bulk(
+        self,
+        interaction: discord.Interaction,
+        numbers: str,
+    ) -> None:
+        """
+        Calculate the greatest common divisor of an arbitrary amount of numbers.
+        """
+
+        logging.info("/lcm-bulk numbers=%s invoked by %s", numbers, interaction.user)
+
+        numbers_list = numbers.replace(" ", "").split(
+            ","
+        )  # Split at commas and remove spaces
+        if any(not is_number(num) for num in numbers_list):
+            await interaction.response.send_message(
+                "Invalid input. Please provide only numbers separated by commas.",
+                ephemeral=True,
+            )
+            return
+
+        floats = (float(num) for num in numbers_list)
+        if any(not flt.is_integer() for flt in floats):
+            await interaction.response.send_message(
+                "Invalid input. Please provide only positive integers separated by commas."
+            )
+            return
+
+        lcm = math.lcm(*(int(num) for num in numbers_list))
+
+        await interaction.response.send_message(
+            f"lcm({", ".join(numbers_list)}) = **{lcm}**"
+        )
 
     @dist_group.command(
         name="cartesian-2d",

@@ -455,6 +455,13 @@ add = Command(name="add", description="Add two numbers.")
 add.add_param(Param(name="x", type=float, description="First number"))
 add.add_param(Param(name="y", type=float, description="Second number"))
 
+sum_ = Command(
+    name="sum", description="Calculate the sum of an arbitrary amount of numbers."
+)
+sum_.add_param(
+    Param(name="numbers", type=str, description="Numbers to sum, separated by commas")
+)
+
 sub = Command(name="sub", description="Subtract two numbers.")
 sub.add_param(Param(name="x", type=float, description="First number"))
 sub.add_param(Param(name="y", type=float, description="Second number"))
@@ -462,6 +469,18 @@ sub.add_param(Param(name="y", type=float, description="Second number"))
 mul = Command(name="mul", description="Multiply two numbers.")
 mul.add_param(Param(name="x", type=float, description="First number"))
 mul.add_param(Param(name="y", type=float, description="Second number"))
+
+prod = Command(
+    name="prod",
+    description="Calculate the product of an arbitrary amount of numbers.",
+)
+prod.add_param(
+    Param(
+        name="numbers",
+        type=str,
+        description="Numbers to find the product of, separated by commas",
+    )
+)
 
 div = Command(name="div", description="Divide two numbers.")
 div.add_param(Param(name="x", type=float, description="First number"))
@@ -560,12 +579,35 @@ gcd = Command(
 gcd.add_param(Param(name="x", type=int, description="First number"))
 gcd.add_param(Param(name="y", type=int, description="Second number"))
 
+gcd_bulk = Command(
+    name="gcd-bulk", description="Calculate the GCD of an arbitrary amount of numbers."
+)
+gcd_bulk.add_param(
+    Param(
+        name="numbers",
+        type=str,
+        description="Numbers to find the GCD of, separated by commas",
+    )
+)
+
 lcm = Command(
     name="lcm",
     description="Calculate the least common multiplier (LCM) of two numbers.",
 )
 lcm.add_param(Param(name="x", type=int, description="First number"))
 lcm.add_param(Param(name="y", type=int, description="Second number"))
+
+lcm_bulk = Command(
+    name="lcm-bulk",
+    description="Calculate the LCM of an arbitrary amount of numbers.",
+)
+lcm_bulk.add_param(
+    Param(
+        name="numbers",
+        type=str,
+        description="Numbers to find the LCM of, separated by commas",
+    )
+)
 
 distance_cartesian_2d = Command(
     name="cartesian-2d",
@@ -643,8 +685,10 @@ COLOR_TOOLS = (
 )
 MATH = (
     add,
+    sum_,
     sub,
     mul,
+    prod,
     div,
     floordiv,
     pow_,
@@ -658,7 +702,9 @@ MATH = (
     round_,
     log,
     gcd,
+    gcd_bulk,
     lcm,
+    lcm_bulk,
     distance_cartesian_2d,
     distance_cartesian_3d,
     factorial,
@@ -698,8 +744,10 @@ PUBLIC_COMMAND_MAP = {
     "invert-color hex": invert_hex,
     "invert-color name": invert_name,
     "add": add,
+    "sum": sum_,
     "sub": sub,
     "mul": mul,
+    "prod": prod,
     "div": div,
     "floordiv": floordiv,
     "pow": pow_,
@@ -713,7 +761,9 @@ PUBLIC_COMMAND_MAP = {
     "round": round_,
     "log": log,
     "gcd": gcd,
+    "gcd-bulk": gcd_bulk,
     "lcm": lcm,
+    "lcm-bulk": lcm_bulk,
     "distance cartesian-2d": distance_cartesian_2d,
     "distance cartesian-3d": distance_cartesian_3d,
     "factorial": factorial,
