@@ -11,7 +11,6 @@ from discord import app_commands
 
 from CatBot.bot_init import (
     LOG_FILE,
-    VERSION,
     config_logging,
     get_token,
     initialize_bot,
@@ -37,7 +36,7 @@ async def on_ready() -> None:
             "The application has been started in testing mode; ignore if this is intentional"
         )
     else:
-        await bot.change_presence(activity=discord.Game(name=f"/help ({VERSION})"))
+        await bot.change_presence(activity=discord.Game(name="/help"))
 
     logging.info("Logged in as %s and slash commands synced", bot.user.name)  # type: ignore
     logging.info("---------------------------------------------")
@@ -112,6 +111,7 @@ async def setup() -> None:
     await bot.load_extension("CatBot.management.management")
     await bot.load_extension("CatBot.management.moderation")
     await bot.load_extension("CatBot.math.maths")
+    await bot.load_extension("CatBot.stats.stats")
 
 
 def main():

@@ -1,6 +1,10 @@
 # CatBot Changelog
 A collective history of all the changes made to CatBot.
 
+## v0.7.0
+* Added /stats command
+* Refactored some code
+
 ## v0.6.1
 * Added bulk commands to math module
   * /sum

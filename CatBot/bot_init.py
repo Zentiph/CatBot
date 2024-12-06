@@ -13,12 +13,6 @@ from .logging_formatting import LOGGING_FORMAT, ColorFormatter
 
 LOG_FILE = "logs.log"
 DEFAULT_EMBED_COLOR = discord.Color(int("ffffff", 16))
-TIME_MULTIPLICATION_TABLE = {
-    "seconds": 1,
-    "minutes": 60,
-    "hours": 3600,
-    "days": 86400,
-}
 LOGGING_CHANNEL = 1306045987319451718
 MODERATOR_ROLES = ("Owner", "Management", "Mod")
 

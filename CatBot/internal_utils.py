@@ -3,12 +3,21 @@ internal_utils.py
 Utilities for internal functions such as embed creation.
 """
 
-from typing import Any, Optional, Union
+from datetime import datetime
+from typing import Any, Literal, Optional, Union
 
 import discord
 
 # We redefine this here to prevent circular import
 DEFAULT_EMBED_COLOR = discord.Color(int("ffffff", 16))
+START_TIME = datetime.now()
+TimeUnit = Literal["seconds", "minutes", "hours", "days"]
+TIME_MULTIPLICATION_TABLE = {
+    "seconds": 1,
+    "minutes": 60,
+    "hours": 3600,
+    "days": 86400,
+}
 
 
 def generate_image_file(filepath: str) -> discord.File:

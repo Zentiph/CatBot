@@ -5,15 +5,15 @@ Moderation tools for CatBot.
 
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Literal, Optional
+from typing import Optional
 
 import discord
 from discord import app_commands
 from discord.ext import commands
 
-from ..bot_init import MODERATOR_ROLES, TIME_MULTIPLICATION_TABLE
+from ..bot_init import MODERATOR_ROLES
 from ..confirm_button import ConfirmButton
-from ..internal_utils import wrap_reason
+from ..internal_utils import TIME_MULTIPLICATION_TABLE, TimeUnit, wrap_reason
 from .command_logging import log_command
 
 MAX_MESSAGE_DELETE_TIME = 604800
@@ -60,7 +60,7 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
         interaction: discord.Interaction,
         user: discord.User,
         delete_message_time: int = 0,
-        time_unit: Literal["seconds", "minutes", "hours", "days"] = "seconds",
+        time_unit: TimeUnit = "seconds",
         reason: Optional[str] = None,
     ) -> None:
         """
@@ -73,7 +73,7 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
         :param delete_message_time: The amount of `user`'s message history to delete, defaults to 0
         :type delete_message_time: int, optional
         :param time_unit: Unit of time, defaults to "seconds"
-        :type time_unit: Literal["seconds", "minutes", "hours", "days"], optional
+        :type time_unit: TimeUnit, optional
         :param reason: Reason for the ban, defaults to None
         :type reason: str | None, optional
         """
@@ -243,7 +243,7 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
         interaction: discord.Interaction,
         user: discord.Member,
         time: int,
-        time_unit: Literal["seconds", "minutes", "hours", "days"] = "seconds",
+        time_unit: TimeUnit = "seconds",
         reason: Optional[str] = None,
     ) -> None:
         """
@@ -256,7 +256,7 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
         :param time: Timeout duration
         :type time: int
         :param time_unit: Unit of time, defaults to "seconds"
-        :type time_unit: Literal["seconds", "minutes", "hours", "days"], optional
+        :type time_unit: TimeUnit, optional
         :param reason: Timeout reason, defaults to None
         :type reason: str | None, optional
         """
@@ -339,7 +339,7 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
         interaction: discord.Interaction,
         user: discord.Member,
         time: int,
-        time_unit: Literal["seconds", "minutes", "hours", "days"] = "seconds",
+        time_unit: TimeUnit = "seconds",
         reason: Optional[str] = None,
     ) -> None:
         """
@@ -352,7 +352,7 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
         :param time: Timeout duration
         :type time: int
         :param time_unit: Unit of time, defaults to "seconds"
-        :type time_unit: Literal["seconds", "minutes", "hours", "days"], optional
+        :type time_unit: TimeUnit, optional
         :param reason: Timeout reason, defaults to None
         :type reason: str | None, optional
         """

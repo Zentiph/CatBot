@@ -9,7 +9,7 @@ from discord import Member, Role, TextChannel, User
 
 from .representations import Command, Param
 
-HelpCategory = Literal["color roles", "color tools", "help", "math"]
+HelpCategory = Literal["color roles", "color tools", "help", "math", "stats"]
 ClassifiedHelpCategory = Literal["management", "moderation"]
 
 # # # # # # #
@@ -658,6 +658,12 @@ factorial.add_param(
     Param(name="x", type=int, description="Number to calculate the factorial of")
 )
 
+# # # # # # #
+# STATS CMD #
+# # # # # # #
+
+stats = Command(name="stats", description="Get statistics about CatBot.")
+
 # # # # # # # # #
 # CMD LIST INIT #
 # # # # # # # # #
@@ -709,6 +715,7 @@ MATH = (
     distance_cartesian_3d,
     factorial,
 )
+STATS = (stats,)
 
 MANAGEMENT = (echo, dm, announce)
 MODERATION = (
@@ -723,7 +730,7 @@ MODERATION = (
     unmute,
 )
 
-PUBLIC = HELP + COLOR_ROLES + COLOR_TOOLS + MATH
+PUBLIC = HELP + COLOR_ROLES + COLOR_TOOLS + MATH + STATS
 PUBLIC_COMMAND_MAP = {
     "help-category": help_category,
     "help-command": help_command,
@@ -767,6 +774,7 @@ PUBLIC_COMMAND_MAP = {
     "distance cartesian-2d": distance_cartesian_2d,
     "distance cartesian-3d": distance_cartesian_3d,
     "factorial": factorial,
+    "stats": stats,
 }
 
 PRIVATE = MANAGEMENT + MODERATION

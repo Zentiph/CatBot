@@ -25,6 +25,7 @@ from .commands import (
     PRIVATE_COMMAND_MAP,
     PUBLIC,
     PUBLIC_COMMAND_MAP,
+    STATS,
     ClassifiedHelpCategory,
     HelpCategory,
 )
@@ -73,9 +74,10 @@ class HelpCog(commands.Cog, name="Help Commands"):
             "/help category category=%s invoked by %s", category, interaction.user
         )
 
+        icon = generate_image_file("CatBot/images/profile.jpg")
+
         match category:
             case "color roles":
-                icon = generate_image_file("CatBot/images/profile.jpg")
                 embed = generate_authored_embed(
                     title="Color Roles Commands Help Page",
                     description="Here's a list of color roles commands and how to use them.",
@@ -92,7 +94,6 @@ class HelpCog(commands.Cog, name="Help Commands"):
                 await interaction.response.send_message(embed=embed, file=icon)
 
             case "color tools":
-                icon = generate_image_file("CatBot/images/profile.jpg")
                 embed = generate_authored_embed(
                     title="Color Tools Commands Help Page",
                     description="Here's a list of color tools commands and how to use them.",
@@ -109,7 +110,6 @@ class HelpCog(commands.Cog, name="Help Commands"):
                 await interaction.response.send_message(embed=embed, file=icon)
 
             case "help":
-                icon = generate_image_file("CatBot/images/profile.jpg")
                 embed = generate_authored_embed(
                     title="Help Commands Help Page",
                     description="...Seriously? Okay then.",
@@ -126,7 +126,6 @@ class HelpCog(commands.Cog, name="Help Commands"):
                 await interaction.response.send_message(embed=embed, file=icon)
 
             case "math":
-                icon = generate_image_file("CatBot/images/profile.jpg")
                 embed = generate_authored_embed(
                     title="Math Commands Help Page",
                     description="Here's a list of math commands and how to use them.",
@@ -134,6 +133,22 @@ class HelpCog(commands.Cog, name="Help Commands"):
                 )
 
                 for command in MATH:
+                    embed.add_field(
+                        name=generate_field_title(command),
+                        value=generate_field_description(command),
+                        inline=False,
+                    )
+
+                await interaction.response.send_message(embed=embed, file=icon)
+
+            case "stats":
+                embed = generate_authored_embed(
+                    title="Stats Commands Help Page",
+                    description="Here's a list of stats commands and how to use them.",
+                    color=DEFAULT_EMBED_COLOR,
+                )
+
+                for command in STATS:
                     embed.add_field(
                         name=generate_field_title(command),
                         value=generate_field_description(command),
