@@ -7,6 +7,7 @@ import logging
 from datetime import datetime
 from platform import platform
 from sys import version_info
+from typing import List
 
 import discord
 from discord import app_commands
@@ -22,6 +23,21 @@ SECONDS_PER_MINUTE = 60
 HOURS_PER_DAY = 24
 MINUTES_PER_HOUR = 60
 MICROSECONDS_PER_SECOND = 1000000
+
+
+def get_dependencies() -> str:
+    """
+    Get the dependencies used by CatBot.
+
+    :return: A string representation of the dependencies used by CatBot
+    :rtype: str
+    """
+
+    dependencies: List[str] = []
+    with open("requirements.txt", encoding="utf8") as file:
+        for line in file:
+            dependencies.append(line.strip())
+    return ", ".join(dependencies)
 
 
 # pylint: disable=too-many-public-methods
@@ -84,15 +100,16 @@ class StatsCog(commands.Cog, name="Bot Stats Commands"):
             + f"{seconds} seconds, {microseconds} microseconds",
             inline=False,
         )
-        embed.add_field(
-            name="Memory Usage", value=f"{memory_usage:2f} MiB", inline=False
-        )
-        embed.add_field(name="Host", value=host, inline=False)
         # We use inline=True here to line up similar fields
         embed.add_field(name="Language", value="Python")
-        embed.add_field(name="Python Version", value=python_version)
-        embed.add_field(name="Package", value="discord.py", inline=False)
+        embed.add_field(name="Language Version", value=python_version)
+        embed.add_field(
+            name="Memory Usage", value=f"{round(memory_usage, 2)} MiB", inline=False
+        )
+        embed.add_field(name="Package", value="discord.py")
         embed.add_field(name="Package Version", value=discord_py_version)
+        embed.add_field(name="Dependencies", value=get_dependencies())
+        embed.add_field(name="Host", value=host, inline=False)
 
         await interaction.response.send_message(embed=embed)
 
