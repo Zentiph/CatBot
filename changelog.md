@@ -1,6 +1,9 @@
 # CatBot Changelog
 A collective history of all the changes made to CatBot.
 
+## v0.7.1
+* Added total servers to stats command
+
 ## v0.7.0
 * Added /stats command
 * Refactored some code

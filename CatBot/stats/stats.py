@@ -68,6 +68,7 @@ class StatsCog(commands.Cog, name="Bot Stats Commands"):
 
         logging.info("/stats invoked by %s", interaction.user)
 
+        servers = str(len(self.bot.guilds))
         uptime = datetime.now() - START_TIME
         days = uptime.days
         # We use modulo here to make sure the number of hours is less than 24,
@@ -93,7 +94,8 @@ class StatsCog(commands.Cog, name="Bot Stats Commands"):
         embed = generate_authored_embed(
             title="CatBot Stats", description="Here's some statistics about myself."
         )
-        embed.add_field(name="Version", value=VERSION, inline=False)
+        embed.add_field(name="Version", value=VERSION)
+        embed.add_field(name="Servers", value=servers)
         embed.add_field(
             name="Uptime",
             value=f"{days} days, {hours} hours, {minutes} minutes, "
