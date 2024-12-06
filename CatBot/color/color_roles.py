@@ -103,14 +103,15 @@ class ColorRoleCog(commands.Cog, name="Color Role Commands"):
         :type hex: str
         """
 
-        logging.info("/color-role hex hex=%s invoked by %s", hex, interaction.user)
+        logging.info(
+            "/color-role hex hex=%s invoked by %s", repr(hex), interaction.user
+        )
 
         if not is_hex_value(hex):
             await interaction.response.send_message(
                 "Invalid hex value provided. Supported range: 000000-ffffff",
                 ephemeral=True,
             )
-            logging.info("/color-role hex halted due to invalid value")
             return
 
         color = discord.Color(int(hex.strip().strip("#"), 16))
@@ -166,7 +167,6 @@ class ColorRoleCog(commands.Cog, name="Color Role Commands"):
             await interaction.response.send_message(
                 "Invalid RGB value provided. Supported range: 0-255", ephemeral=True
             )
-            logging.info("/color-role rgb halted due to invalid value")
             return
 
         color = discord.Color.from_rgb(r, g, b)
@@ -211,14 +211,15 @@ class ColorRoleCog(commands.Cog, name="Color Role Commands"):
 
         name = name.lower()
 
-        logging.info("/color-role name name=%s invoked by %s", name, interaction.user)
+        logging.info(
+            "/color-role name name=%s invoked by %s", repr(name), interaction.user
+        )
 
         if name not in COLORS:
             await interaction.response.send_message(
                 "Invalid color name provided. Use /colors for a list of supported colors.",
                 ephemeral=True,
             )
-            logging.info("/color-role name halted due to invalid value")
             return
 
         color = discord.Color(int(COLORS[name], 16))
@@ -310,7 +311,6 @@ class ColorRoleCog(commands.Cog, name="Color Role Commands"):
             await interaction.response.send_message(
                 "Role was not found in this guild.", ephemeral=True
             )
-            logging.info("/color-role copy-color halted due to invalid role")
             return
 
         color = role.color
@@ -360,11 +360,9 @@ class ColorRoleCog(commands.Cog, name="Color Role Commands"):
             await interaction.response.send_message(
                 "You do not have a color role!", ephemeral=True
             )
-            logging.info("/color-role reset halted due to nonexisting color role")
             return
 
         await existing_role.edit(color=discord.Color(int("000000", 16)))
-        logging.info("Role %s exists and has been reset", existing_role.name)
         await interaction.response.send_message(
             "Your role's color has been reset.", ephemeral=True
         )
@@ -391,26 +389,17 @@ class ColorRoleCog(commands.Cog, name="Color Role Commands"):
             await interaction.response.send_message(
                 "You do not have a color role.", ephemeral=True
             )
-            logging.info(
-                "/color-role reassign halted due to user not having a color role"
-            )
             return
 
         if existing_role in interaction.user.roles:  # type: ignore
             await interaction.response.send_message(
                 "You already have your color role.", ephemeral=True
             )
-            logging.info("User already has their color role")
             return
 
         await interaction.user.add_roles(existing_role)  # type: ignore
         await interaction.response.send_message(
             "Your role has been reassigned.", ephemeral=True
-        )
-        logging.info(
-            "Role %s exists and has been reassigned to %s",
-            existing_role.name,
-            interaction.user,
         )
 
 

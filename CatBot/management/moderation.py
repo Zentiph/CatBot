@@ -118,9 +118,8 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
                         f"You have been banned from **{interaction.guild.name}**."  # type: ignore
                         + f"\nReason: {reason}"
                     )
-                    logging.info("%s messaged successfully", user)
                 except discord.Forbidden:
-                    logging.info("Could not DM %s; they may have DMs disabled", user)
+                    pass
 
             except discord.Forbidden:
                 await interaction.response.send_message(
@@ -131,7 +130,6 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
                 await interaction.response.send_message(
                     f"User **{user}** was not found.", ephemeral=True
                 )
-                logging.info("%s was not found", user)
 
         view = ConfirmButton(
             interaction, f"{user} banned successfully.", f"Cancelled banning {user}."
@@ -190,7 +188,9 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
 
         async def attempt_unban():
             try:
-                await interaction.guild.unban(user, reason=wrap_reason(reason, interaction.user))  # type: ignore
+                await interaction.guild.unban(
+                    user, reason=wrap_reason(reason, interaction.user)  # type: ignore
+                )
                 logging.info("%s was successfully unbanned", user)
 
                 try:
@@ -199,17 +199,15 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
                         + f" **{interaction.guild.name}.**"  # type: ignore
                         + "\nReason: {reason}"
                     )
-                    logging.info("Messaged %s successfully", user)
 
                 except AttributeError:
                     await interaction.response.send_message(
                         "User does not exist.", ephemeral=True
                     )
-                    logging.info("User %s does not exist", user)
                     return
 
                 except discord.Forbidden:
-                    logging.info("Could not DM %s; they may have DMs disabled", user)
+                    pass
 
             except discord.Forbidden:
                 await interaction.response.send_message(
@@ -220,7 +218,6 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
                 await interaction.response.send_message(
                     f"User {user} was not found.", ephemeral=True
                 )
-                logging.info("%s was not found", user)
 
         view = ConfirmButton(
             interaction, f"{user} was unbanned successfully.", "Cancelled unban."
@@ -322,7 +319,6 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
             await interaction.response.send_message(
                 f"User {user} was not found.", ephemeral=True
             )
-            logging.info("User %s was not found", user)
 
     @timeout_group.command(
         name="reduce", description="Reduce a user's timeout duration"
@@ -406,7 +402,6 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
             await interaction.response.send_message(
                 f"User {user} was not found.", ephemeral=True
             )
-            logging.info("User %s was not found", user)
 
     @timeout_group.command(name="remove", description="Remove a user's timeout")
     @app_commands.describe(
@@ -470,7 +465,6 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
             await interaction.response.send_message(
                 f"User {user} was not found.", ephemeral=True
             )
-            logging.info("User %s was not found", user)
 
     @app_commands.command(
         name="clear", description="Delete a number of messages from a channel"
@@ -480,6 +474,7 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
         channel="Channel to delete messages from",
         reason="Deletion reason",
     )
+    @app_commands.checks.has_any_role(*MODERATOR_ROLES)
     async def clear(
         self,
         interaction: discord.Interaction,
@@ -570,6 +565,7 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
         user="User to warn",
         reason="Warning reason",
     )
+    @app_commands.checks.has_any_role(*MODERATOR_ROLES)
     async def warn(
         self,
         interaction: discord.Interaction,

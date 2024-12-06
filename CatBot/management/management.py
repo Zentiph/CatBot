@@ -10,6 +10,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+from ..bot_init import MANAGEMENT_ROLES
 from ..confirm_button import ConfirmButton
 from .command_logging import log_command
 
@@ -38,6 +39,7 @@ class ManagementCog(commands.Cog, name="Management Commands"):
     @app_commands.describe(
         message="The message to echo.", channel="The channel to send the message."
     )
+    @app_commands.checks.has_any_role(*MANAGEMENT_ROLES)
     async def echo(
         self,
         interaction: discord.Interaction,
@@ -58,12 +60,12 @@ class ManagementCog(commands.Cog, name="Management Commands"):
 
         logging.info(
             "/echo message=%s channel=%s invoked by %s",
-            message,
+            repr(message),
             channel,
             interaction.user,
         )
         await log_command(
-            "echo", interaction.user, self.bot, message=message, channel=channel
+            "echo", interaction.user, self.bot, message=repr(message), channel=channel
         )
 
         if channel is None:
@@ -87,6 +89,7 @@ class ManagementCog(commands.Cog, name="Management Commands"):
         user="User to send the DM to.",
         message="The message to send.",
     )
+    @app_commands.checks.has_any_role(*MANAGEMENT_ROLES)
     async def dm(
         self, interaction: discord.Interaction, user: discord.User, message: str
     ) -> None:
@@ -104,10 +107,12 @@ class ManagementCog(commands.Cog, name="Management Commands"):
         logging.info(
             "/dm user=%s message=%s invoked by %s",
             user,
-            message,
+            repr(message),
             interaction.user,
         )
-        await log_command("dm", interaction.user, self.bot, user=user, message=message)
+        await log_command(
+            "dm", interaction.user, self.bot, user=user, message=repr(message)
+        )
 
         try:
             await user.send(message)  # type: ignore
@@ -116,9 +121,6 @@ class ManagementCog(commands.Cog, name="Management Commands"):
             await interaction.response.send_message(
                 "I don't have permission to send DMs to this user.", ephemeral=True
             )
-            logging.info(
-                "Failed to send DM to user %s; they likely have DMs disabled", user
-            )
 
     @app_commands.command(name="announce", description="Announce a message.")
     @app_commands.describe(
@@ -126,6 +128,7 @@ class ManagementCog(commands.Cog, name="Management Commands"):
         channel="The channel to send the message.",
         ping="The role to ping.",
     )
+    @app_commands.checks.has_any_role(*MANAGEMENT_ROLES)
     async def announce(
         self,
         interaction: discord.Interaction,
@@ -149,7 +152,7 @@ class ManagementCog(commands.Cog, name="Management Commands"):
 
         logging.info(
             "/announce message=%s channel=%s ping=%s invoked by %s",
-            message,
+            repr(message),
             channel,
             ping,
             interaction.user,
@@ -158,7 +161,7 @@ class ManagementCog(commands.Cog, name="Management Commands"):
             "announce",
             interaction.user,
             self.bot,
-            message=message,
+            message=repr(message),
             channel=channel,
             ping=ping,
         )

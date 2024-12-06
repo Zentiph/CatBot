@@ -181,7 +181,7 @@ class HelpCog(commands.Cog, name="Help Commands"):
         :type cmd: str
         """
 
-        logging.info("/help command cmd=%s invoked by %s", cmd, interaction.user)
+        logging.info("/help command cmd=%s invoked by %s", repr(cmd), interaction.user)
 
         if cmd not in (command.name for command in PUBLIC) and cmd not in (
             f"{command.group} {command.name}" for command in PUBLIC
@@ -308,7 +308,9 @@ class ClassifiedHelpCog(commands.Cog, name="Moderation Help Commands"):
         :type cmd: str
         """
 
-        logging.info("/help-mod command cmd=%s invoked by %s", cmd, interaction.user)
+        logging.info(
+            "/help-mod command cmd=%s invoked by %s", repr(cmd), interaction.user
+        )
 
         if cmd not in (command.name for command in PRIVATE) and cmd not in (
             f"{command.group} {command.name}" for command in PRIVATE

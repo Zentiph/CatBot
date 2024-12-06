@@ -35,6 +35,7 @@
 * Scan and refactor code
 * Modularize repetitive processes
 * Move certain commands with different types (like invert-rgb and invert-hex) into one command (like invert)
+* (EVENTUALLY) make new logging system to be able to use debug without being flooded with discord.py debugs
 
 ## Bug Fixes
 * ...

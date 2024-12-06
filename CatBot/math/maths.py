@@ -76,7 +76,7 @@ class MathCog(commands.Cog, name="Math Commands"):
         :type numbers: str
         """
 
-        logging.info("/sum numbers=%s invoked by %s", numbers, interaction.user)
+        logging.info("/sum numbers=%s invoked by %s", repr(numbers), interaction.user)
 
         numbers_list = numbers.replace(" ", "").split(
             ","
@@ -141,7 +141,7 @@ class MathCog(commands.Cog, name="Math Commands"):
         :type numbers: str
         """
 
-        logging.info("/prod numbers=%s invoked by %s", numbers, interaction.user)
+        logging.info("/prod numbers=%s invoked by %s", repr(numbers), interaction.user)
 
         numbers_list = numbers.replace(" ", "").split(
             ","
@@ -373,7 +373,9 @@ class MathCog(commands.Cog, name="Math Commands"):
         Calculate the greatest common divisor of an arbitrary amount of numbers.
         """
 
-        logging.info("/gcd-bulk numbers=%s invoked by %s", numbers, interaction.user)
+        logging.info(
+            "/gcd-bulk numbers=%s invoked by %s", repr(numbers), interaction.user
+        )
 
         numbers_list = numbers.replace(" ", "").split(
             ","
@@ -430,7 +432,9 @@ class MathCog(commands.Cog, name="Math Commands"):
         Calculate the greatest common divisor of an arbitrary amount of numbers.
         """
 
-        logging.info("/lcm-bulk numbers=%s invoked by %s", numbers, interaction.user)
+        logging.info(
+            "/lcm-bulk numbers=%s invoked by %s", repr(numbers), interaction.user
+        )
 
         numbers_list = numbers.replace(" ", "").split(
             ","

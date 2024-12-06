@@ -200,7 +200,6 @@ class ColorToolsCog(commands.Cog, name="Color Tool Commands"):
             await interaction.response.send_message(
                 "Invalid RGB value provided. Supported range: 0-255", ephemeral=True
             )
-            logging.info("/color-info rgb halted due to invalid value")
             return
 
         hex = rgb2hex(r, g, b)
@@ -237,14 +236,15 @@ class ColorToolsCog(commands.Cog, name="Color Tool Commands"):
         :type hex: str
         """
 
-        logging.info("/color-info hex hex=%s invoked by %s", hex, interaction.user)
+        logging.info(
+            "/color-info hex hex=%s invoked by %s", repr(hex), interaction.user
+        )
 
         if not is_hex_value(hex):
             await interaction.response.send_message(
                 "Invalid hex value provided. Supported range: 000000-ffffff",
                 ephemeral=True,
             )
-            logging.info("/color-info hex halted due to invalid value")
             return
 
         hex = hex.strip("#").lower()
@@ -284,7 +284,9 @@ class ColorToolsCog(commands.Cog, name="Color Tool Commands"):
         :type name: str
         """
 
-        logging.info("/color-info name name=%s invoked by %s", name, interaction.user)
+        logging.info(
+            "/color-info name name=%s invoked by %s", repr(name), interaction.user
+        )
 
         name = name.lower()
 
@@ -293,7 +295,6 @@ class ColorToolsCog(commands.Cog, name="Color Tool Commands"):
                 "Invalid color name provided. Use /colors for a list of supported colors",
                 ephemeral=True,
             )
-            logging.info("/color-info name halted due to invalid value")
             return
 
         hex = COLORS[name]
@@ -335,7 +336,6 @@ class ColorToolsCog(commands.Cog, name="Color Tool Commands"):
             await interaction.response.send_message(
                 "Role was not found in this guild.", ephemeral=True
             )
-            logging.info("/color-info role halted due to invalid role")
             return
 
         r, g, b = role.color.r, role.color.g, role.color.b
@@ -431,7 +431,6 @@ class ColorToolsCog(commands.Cog, name="Color Tool Commands"):
             await interaction.response.send_message(
                 "Invalid RGB value provided. Supported range: 0-255", ephemeral=True
             )
-            logging.info("/invert-color rgb halted due to invalid value")
             return
 
         nr, ng, nb = invert_rgb(r, g, b)
@@ -476,14 +475,15 @@ class ColorToolsCog(commands.Cog, name="Color Tool Commands"):
         :type hex: str
         """
 
-        logging.info("/invert-color hex hex=%s invoked by %s", hex, interaction.user)
+        logging.info(
+            "/invert-color hex hex=%s invoked by %s", repr(hex), interaction.user
+        )
 
         if not is_hex_value(hex):
             await interaction.response.send_message(
                 "Invalid hex value provided. Supported range: 000000-ffffff",
                 ephemeral=True,
             )
-            logging.info("/invert-color hex halted due to invalid value")
             return
 
         hex = hex.strip("#").lower()
@@ -527,7 +527,9 @@ class ColorToolsCog(commands.Cog, name="Color Tool Commands"):
         :type name: str
         """
 
-        logging.info("/invert-color name name=%s invoked by %s", name, interaction.user)
+        logging.info(
+            "/invert-color name name=%s invoked by %s", repr(name), interaction.user
+        )
 
         name = name.lower()
 
@@ -536,7 +538,6 @@ class ColorToolsCog(commands.Cog, name="Color Tool Commands"):
                 "Invalid color name provided. Use /colors for a list of supported colors",
                 ephemeral=True,
             )
-            logging.info("/invert-color name halted due to invalid value")
             return
 
         hex = COLORS[name]
