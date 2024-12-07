@@ -1,6 +1,13 @@
 # CatBot Changelog
 A collective history of all the changes made to CatBot.
 
+## v0.8.0
+* Added random commands to start fun modules
+  * /random integer
+  * /random decimal
+  * /random choice
+  * /shuffle
+
 ## v0.7.1
 * Added total servers to stats command
 
