@@ -37,6 +37,8 @@
 * Move certain commands with different types (like invert-rgb and invert-hex) into one command (like invert)
 * (EVENTUALLY) make new logging system to be able to use debug without being flooded with discord.py debugs
 * Add parents to command groups for better organization
+* Ability to return number calculations in scientific notation
+* Turn math answers into embeds
 
 ## Bug Fixes
 * ...
