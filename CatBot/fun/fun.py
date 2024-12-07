@@ -3,7 +3,6 @@ fun.py
 Fun commands for CatBot.
 """
 
-#  * Random something generator (int, float, etc)
 #  * coin flip
 #  * mini games (tic tac toe, etc)
 #  * /time {timezone}
@@ -21,7 +20,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from ..internal_utils import generate_authored_embed
+from ..internal_utils import generate_authored_embed, generate_image_file
 
 MAX_INT = maxsize
 MIN_INT = -maxsize - 1
@@ -92,6 +91,7 @@ class FunCog(commands.Cog, name="Fun Commands"):
         if seed is not None:
             random.seed(seed)
 
+        icon = generate_image_file("CatBot/images/profile.jpg")
         embed = generate_authored_embed(
             title="Random Integer",
             description="Here's your randomly generated integer.",
@@ -112,7 +112,7 @@ class FunCog(commands.Cog, name="Fun Commands"):
             inline=False,
         )
 
-        await interaction.response.send_message(embed=embed)
+        await interaction.response.send_message(embed=embed, file=icon)
 
     @random_group.command(
         name="decimal", description="Generate a random decimal number (float)"
@@ -163,6 +163,7 @@ class FunCog(commands.Cog, name="Fun Commands"):
         number = random.uniform(a, b)
         numerator, denominator = number.as_integer_ratio()
 
+        icon = generate_image_file("CatBot/images/profile.jpg")
         embed = generate_authored_embed(
             title="Random Decimal",
             description="Here's your randomly generated decimal number.",
@@ -180,7 +181,7 @@ class FunCog(commands.Cog, name="Fun Commands"):
             inline=False,
         )
 
-        await interaction.response.send_message(embed=embed)
+        await interaction.response.send_message(embed=embed, file=icon)
 
     @random_group.command(
         name="choice",
@@ -192,7 +193,7 @@ class FunCog(commands.Cog, name="Fun Commands"):
         duplicates="Whether duplicate choices are allowed",
         seed="Optional seed to use when generating the value",
     )
-    async def random_choice(
+    async def random_choice(  # pylint: disable=too-many-arguments
         self,
         interaction: discord.Interaction,
         values: str,
@@ -241,6 +242,7 @@ class FunCog(commands.Cog, name="Fun Commands"):
         else:
             picked_choices = random.sample(values_list, k=choices)
 
+        icon = generate_image_file("CatBot/images/profile.jpg")
         embed = generate_authored_embed(
             title="Random Choice(s)",
             description="Here's your randomly selected choice(s) from the values you gave.",
@@ -261,7 +263,7 @@ class FunCog(commands.Cog, name="Fun Commands"):
             inline=False,
         )
 
-        await interaction.response.send_message(embed=embed)
+        await interaction.response.send_message(embed=embed, file=icon)
 
     @app_commands.command(
         name="shuffle",
@@ -310,6 +312,7 @@ class FunCog(commands.Cog, name="Fun Commands"):
 
         random.shuffle(values_list)
 
+        icon = generate_image_file("CatBot/images/profile.jpg")
         embed = generate_authored_embed(
             title="Shuffled Values",
             description="Here's your randomly shuffled values from the values you gave.",
@@ -330,7 +333,45 @@ class FunCog(commands.Cog, name="Fun Commands"):
             inline=False,
         )
 
-        await interaction.response.send_message(embed=embed)
+        await interaction.response.send_message(embed=embed, file=icon)
+
+    @app_commands.command(name="flip-coin", description="Flip a coin")
+    async def flip_coin(self, interaction: discord.Interaction) -> None:
+        """
+        Flip a coin.
+
+        :param interaction: Interaction instance
+        :type interaction: discord.Interaction
+        """
+
+        logging.info("/flip-coin invoked by %s", interaction.user)
+
+        heads = bool(random.randint(0, 1))
+
+        icon = generate_image_file("CatBot/images/profile.jpg")
+
+        if heads:
+            embed = generate_authored_embed(
+                title="Coin Flip",
+                description="Here's the result of your coin flip.",
+                color=discord.Color.from_rgb(255, 200, 95),  # Heads coin color
+            )
+            coin = generate_image_file(
+                "CatBot/images/coin_heads.png", filename="coin.png"
+            )
+        else:
+            embed = generate_authored_embed(
+                title="Coin Flip",
+                description="Here's the result of your coin flip.",
+                color=discord.Color.from_rgb(203, 203, 203),  # Tails coin color
+            )
+            coin = generate_image_file(
+                "CatBot/images/coin_tails.png", filename="coin.png"
+            )
+
+        embed.set_image(url="attachment://coin.png")
+
+        await interaction.response.send_message(embed=embed, files=(coin, icon))
 
 
 async def setup(bot: commands.Bot):

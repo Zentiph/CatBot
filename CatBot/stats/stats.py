@@ -15,7 +15,7 @@ from discord.ext import commands
 from psutil import Process
 
 from ..bot_init import VERSION
-from ..internal_utils import START_TIME, generate_authored_embed
+from ..internal_utils import START_TIME, generate_authored_embed, generate_image_file
 
 # A bit redundant, but helps readability.
 SECONDS_PER_HOUR = 3600
@@ -91,6 +91,7 @@ class StatsCog(commands.Cog, name="Bot Stats Commands"):
             + f".{discord.version_info.micro}"
         )
 
+        icon = generate_image_file("CatBot/images/profile.jpg")
         embed = generate_authored_embed(
             title="CatBot Stats", description="Here's some statistics about myself."
         )
@@ -113,7 +114,7 @@ class StatsCog(commands.Cog, name="Bot Stats Commands"):
         embed.add_field(name="Dependencies", value=get_dependencies())
         embed.add_field(name="Host", value=host, inline=False)
 
-        await interaction.response.send_message(embed=embed)
+        await interaction.response.send_message(embed=embed, file=icon)
 
 
 async def setup(bot: commands.Bot):

@@ -285,7 +285,7 @@ class MathCog(commands.Cog, name="Math Commands"):
         """
 
         logging.info("/ceil x=%s invoked by %s", x, interaction.user)
-        await interaction.response.send_message(f"ceil({x}) = {math.ceil(x)})")
+        await interaction.response.send_message(f"ceil({x}) = {math.ceil(x)}")
 
     @app_commands.command(name="floor", description="Calculate the floor of a number")
     @app_commands.describe(x="Number to calculate the floor of")

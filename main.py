@@ -80,6 +80,18 @@ async def on_app_command_error(
             await interaction.followup.send(
                 "I do not have permissions to perform this command.", ephemeral=True
             )
+    elif isinstance(error, OverflowError):
+        logging.info("Overflow error occurred during a calculation")
+        try:
+            await interaction.response.send_message(
+                "This calculation caused an arithmetic overflow. Try using smaller numbers.",
+                ephemeral=True,
+            )
+        except discord.errors.InteractionResponded:
+            await interaction.followup.send(
+                "This calculation caused an arithmetic overflow. Try using smaller numbers.",
+                ephemeral=True,
+            )
     else:
         logging.error("An error occurred: %s", error)
         try:

@@ -1,6 +1,10 @@
 # CatBot Changelog
 A collective history of all the changes made to CatBot.
 
+## v0.8.1
+* Fixed extra parenthesis in /ceil results
+* Added warning message about arithmetic overflow for math commands
+
 ## v0.8.0
 * Added random commands to start fun modules
   * /random integer

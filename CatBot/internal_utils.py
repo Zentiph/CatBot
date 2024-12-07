@@ -20,13 +20,16 @@ TIME_MULTIPLICATION_TABLE = {
 }
 
 
-def generate_image_file(filepath: str) -> discord.File:
+def generate_image_file(
+    filepath: str, /, *, filename: str = "image.png"
+) -> discord.File:
     """
     Generate an image File given `filepath`.
-    The image's name is "image.png".
 
     :param filepath: Path to an image
     :type filepath: str
+    :param filename: Name of the file, defaults to "image.png"
+    :type filename: str, optional
     :return: Discord image File
     :rtype: discord.File
     """
@@ -42,7 +45,7 @@ def generate_image_file(filepath: str) -> discord.File:
     ):
         raise ValueError("Image filepath should be a .jpg or .png file")
 
-    return discord.File(filepath, filename="image.png")
+    return discord.File(filepath, filename=filename)
 
 
 def wrap_reason(reason: str, caller: Union[discord.Member, discord.User]) -> str:
