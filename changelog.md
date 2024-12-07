@@ -1,6 +1,10 @@
 # CatBot Changelog
 A collective history of all the changes made to CatBot.
 
+## v0.8.2
+* Fixed most math answers not being bolded
+* Added rounding option to most math functions
+
 ## v0.8.1
 * Fixed extra parenthesis in /ceil results
 * Added warning message about arithmetic overflow for math commands
