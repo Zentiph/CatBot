@@ -304,10 +304,9 @@ class MathCog(commands.Cog, name="Math Commands"):
             "/sqrt x=%s ndigits=%s invoked by %s", x, ndigits, interaction.user
         )
 
-        try:
+        if x >= 0.0:
             result = round_on_ndigits(math.sqrt(x), ndigits)
-        except ValueError:  # Negative x
-            # Less accurate, but necessary for imaginary
+        else:  # Negative x doesn't work for math.sqrt
             result = round_on_ndigits(x ** (1 / 2), ndigits)
 
         await interaction.response.send_message(f"sqrt({x}) = **{result}**")
