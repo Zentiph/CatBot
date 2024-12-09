@@ -104,13 +104,13 @@ class StatsCog(commands.Cog, name="Bot Stats Commands"):
             + f"{seconds} seconds, {microseconds} microseconds",
             inline=False,
         )
-        embed.add_field(name="Public Commands", value=len(PUBLIC), inline=False)
+        embed.add_field(name="Public Commands", value=len(PUBLIC))
         embed.add_field(name="Private Commands", value=len(PRIVATE))
-        embed.add_field(name="Language", value="Python")
-        embed.add_field(name="Language Version", value=python_version)
         embed.add_field(
             name="Memory Usage", value=f"{round(memory_usage, 2)} MiB", inline=False
         )
+        embed.add_field(name="Language", value="Python")
+        embed.add_field(name="Language Version", value=python_version)
         embed.add_field(name="Package", value="discord.py")
         embed.add_field(name="Package Version", value=discord_py_version)
         embed.add_field(name="Dependencies", value=get_dependencies())
