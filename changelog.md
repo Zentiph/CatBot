@@ -1,6 +1,11 @@
 # CatBot Changelog
 A collective history of all the changes made to CatBot.
 
+## v0.8.3
+* Added /flip-coin to fun module
+* Added help support for fun module
+* Small code refactors
+
 ## v0.8.2
 * Fixed most math answers not being bolded
 * Added rounding option to most math functions

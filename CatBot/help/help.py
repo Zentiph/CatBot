@@ -17,6 +17,7 @@ from ..internal_utils import (
 from .commands import (
     COLOR_ROLES,
     COLOR_TOOLS,
+    FUN,
     HELP,
     MANAGEMENT,
     MATH,
@@ -81,7 +82,6 @@ class HelpCog(commands.Cog, name="Help Commands"):
                 embed = generate_authored_embed(
                     title="Color Roles Commands Help Page",
                     description="Here's a list of color roles commands and how to use them.",
-                    color=DEFAULT_EMBED_COLOR,
                 )
 
                 for command in COLOR_ROLES:
@@ -97,10 +97,24 @@ class HelpCog(commands.Cog, name="Help Commands"):
                 embed = generate_authored_embed(
                     title="Color Tools Commands Help Page",
                     description="Here's a list of color tools commands and how to use them.",
-                    color=DEFAULT_EMBED_COLOR,
                 )
 
                 for command in COLOR_TOOLS:
+                    embed.add_field(
+                        name=generate_field_title(command),
+                        value=generate_field_description(command),
+                        inline=False,
+                    )
+
+                await interaction.response.send_message(embed=embed, file=icon)
+
+            case "fun":
+                embed = generate_authored_embed(
+                    title="Fun Commands Help Page",
+                    description="Here's a list of fun commands and how to use them.",
+                )
+
+                for command in FUN:
                     embed.add_field(
                         name=generate_field_title(command),
                         value=generate_field_description(command),
@@ -113,7 +127,6 @@ class HelpCog(commands.Cog, name="Help Commands"):
                 embed = generate_authored_embed(
                     title="Help Commands Help Page",
                     description="...Seriously? Okay then.",
-                    color=DEFAULT_EMBED_COLOR,
                 )
 
                 for command in HELP:
@@ -129,7 +142,6 @@ class HelpCog(commands.Cog, name="Help Commands"):
                 embed = generate_authored_embed(
                     title="Math Commands Help Page",
                     description="Here's a list of math commands and how to use them.",
-                    color=DEFAULT_EMBED_COLOR,
                 )
 
                 for command in MATH:
@@ -145,7 +157,6 @@ class HelpCog(commands.Cog, name="Help Commands"):
                 embed = generate_authored_embed(
                     title="Stats Commands Help Page",
                     description="Here's a list of stats commands and how to use them.",
-                    color=DEFAULT_EMBED_COLOR,
                 )
 
                 for command in STATS:
@@ -255,7 +266,6 @@ class ClassifiedHelpCog(commands.Cog, name="Moderation Help Commands"):
                 embed = generate_authored_embed(
                     title="Moderation Commands Help Page",
                     description="Here's a list of moderation commands and how to use them.",
-                    color=DEFAULT_EMBED_COLOR,
                 )
 
                 for command in MODERATION:
@@ -272,7 +282,6 @@ class ClassifiedHelpCog(commands.Cog, name="Moderation Help Commands"):
                 embed = generate_authored_embed(
                     title="Management Commands Help Page",
                     description="Here's a list of management commands and how to use them.",
-                    color=DEFAULT_EMBED_COLOR,
                 )
 
                 for command in MANAGEMENT:

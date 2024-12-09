@@ -49,8 +49,8 @@ class FunCog(commands.Cog, name="Fun Commands"):
 
     @random_group.command(name="integer", description="Generate a random integer")
     @app_commands.describe(
-        a="The first endpoint",
-        b="The second endpoint",
+        a="The left endpoint",
+        b="The right endpoint",
         seed="Optional seed to use when generating the value",
     )
     async def random_integer(
@@ -83,7 +83,7 @@ class FunCog(commands.Cog, name="Fun Commands"):
 
         if a > b:
             await interaction.response.send_message(
-                "The first endpoint cannot be greater than the second endpoint!",
+                "The left endpoint cannot be greater than the right endpoint!",
                 ephemeral=True,
             )
             return
@@ -118,8 +118,8 @@ class FunCog(commands.Cog, name="Fun Commands"):
         name="decimal", description="Generate a random decimal number (float)"
     )
     @app_commands.describe(
-        a="The first endpoint",
-        b="The second endpoint",
+        a="The left endpoint",
+        b="The right endpoint",
         seed="Optional seed to use when generating the value",
     )
     async def random_decimal(
@@ -152,7 +152,7 @@ class FunCog(commands.Cog, name="Fun Commands"):
 
         if a > b:
             await interaction.response.send_message(
-                "The first endpoint cannot be greater than the second endpoint!",
+                "The left endpoint cannot be greater than the right endpoint!",
                 ephemeral=True,
             )
             return
@@ -191,7 +191,7 @@ class FunCog(commands.Cog, name="Fun Commands"):
         values="A list of values separated by commas",
         choices="Number of choices to make",
         duplicates="Whether duplicate choices are allowed",
-        seed="Optional seed to use when generating the value",
+        seed="Optional seed to use when generating the value(s)",
     )
     async def random_choice(  # pylint: disable=too-many-arguments
         self,

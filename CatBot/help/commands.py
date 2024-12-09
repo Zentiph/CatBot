@@ -9,32 +9,9 @@ from discord import Member, Role, TextChannel, User
 
 from .representations import Command, Param
 
-HelpCategory = Literal["color roles", "color tools", "help", "math", "stats"]
+HelpCategory = Literal["color roles", "color tools", "fun", "help", "math", "stats"]
 ClassifiedHelpCategory = Literal["management", "moderation"]
 
-# # # # # # #
-# HELP CMDS #
-# # # # # # #
-
-help_category = Command(
-    name="category",
-    description="List information about all the commands in a category",
-    group="help",
-)
-help_category.add_param(
-    Param(
-        name="category",
-        type=HelpCategory,
-        description="Command category to get help for",
-    )
-)
-
-help_command = Command(
-    name="command", description="Get help for a specific command.", group="help"
-)
-help_command.add_param(
-    Param(name="cmd", type=str, description="Command to get help for")
-)
 
 # # # # # # # # # #
 # COLOR ROLE CMDS #
@@ -218,6 +195,156 @@ invert_name.add_param(
     )
 )
 
+# # # # # # # # #
+# FUN/MISC CMDS #
+# # # # # # # # #
+
+random_integer = Command(
+    name="integer",
+    description="Generate a random integer within a specified range, [a, b]",
+    group="random",
+)
+random_integer.add_param(
+    Param(
+        name="a",
+        type=int,
+        description="The left endpoint (inclusive)",
+        optional=True,
+        default=0,
+    )
+)
+random_integer.add_param(
+    Param(
+        name="b",
+        type=int,
+        description="The right endpoint (inclusive)",
+        optional=True,
+        default=10,
+    )
+)
+random_integer.add_param(
+    Param(
+        name="seed",
+        type=str,
+        description="Optional seed to use when generating the value",
+        optional=True,
+    )
+)
+
+random_decimal = Command(
+    name="decimal",
+    description="Generate a random decimal number (float) within a specified range, [a, b]",
+    group="random",
+)
+random_decimal.add_param(
+    Param(
+        name="a",
+        type=float,
+        description="The left endpoint (inclusive)",
+        optional=True,
+        default=0.0,
+    )
+)
+random_decimal.add_param(
+    Param(
+        name="b",
+        type=float,
+        description="The right endpoint (inclusive)",
+        optional=True,
+        default=1.0,
+    )
+)
+random_decimal.add_param(
+    Param(
+        name="seed",
+        type=str,
+        description="Optional seed to use when generating the value",
+        optional=True,
+    )
+)
+
+random_choice = Command(
+    name="choice",
+    description="Randomly choose a value from a list of values",
+    group="random",
+)
+random_choice.add_param(
+    Param(
+        name="values",
+        type=str,
+        description='A list of values separated by commas (e.g. "1,2,3,a,b,c")',
+    )
+)
+random_choice.add_param(
+    Param(
+        name="choices",
+        type=int,
+        description="The number of choices to pick from the given values",
+        optional=True,
+        default=1,
+    )
+)
+random_choice.add_param(
+    Param(
+        name="duplicates",
+        type=bool,
+        description="Whether the same choice can be made multiple times",
+        optional=True,
+        default=True,
+    )
+)
+random_choice.add_param(
+    Param(
+        name="seed",
+        type=str,
+        description="Optional seed to use when generating the value(s)",
+        optional=True,
+    )
+)
+
+shuffle = Command(name="shuffle", description="Shuffle a list of values randomly")
+shuffle.add_param(
+    Param(
+        name="values",
+        type=str,
+        description='A list of values separated by commas (e.g. "1,2,3,a,b,c")',
+    )
+)
+shuffle.add_param(
+    Param(
+        name="seed",
+        type=str,
+        description="Optional seed to use when generating the value",
+        optional=True,
+    )
+)
+
+flip_coin = Command(name="flip-coin", description="Flip a coin")
+
+# # # # # # #
+# HELP CMDS #
+# # # # # # #
+
+help_category = Command(
+    name="category",
+    description="List information about all the commands in a category",
+    group="help",
+)
+help_category.add_param(
+    Param(
+        name="category",
+        type=HelpCategory,
+        description="Command category to get help for",
+    )
+)
+
+help_command = Command(
+    name="command", description="Get help for a specific command.", group="help"
+)
+help_command.add_param(
+    Param(name="cmd", type=str, description="Command to get help for")
+)
+
 # # # # # # # # # #
 # MANAGEMENT CMDS #
 # # # # # # # # # #
@@ -255,6 +382,221 @@ announce.add_param(
         description="Role to ping for the announcement, or no ping if left empty",
         optional=True,
     )
+)
+
+# # # # # # #
+# MATH CMDS #
+# # # # # # #
+
+add = Command(name="add", description="Add two numbers.")
+add.add_param(Param(name="x", type=float, description="First number"))
+add.add_param(Param(name="y", type=float, description="Second number"))
+
+sum_ = Command(
+    name="sum", description="Calculate the sum of an arbitrary amount of numbers."
+)
+sum_.add_param(
+    Param(
+        name="numbers",
+        type=str,
+        description='Numbers to sum, separated by commas (e.g. "1,2,3")',
+    )
+)
+
+sub = Command(name="sub", description="Subtract two numbers.")
+sub.add_param(Param(name="x", type=float, description="First number"))
+sub.add_param(Param(name="y", type=float, description="Second number"))
+
+mul = Command(name="mul", description="Multiply two numbers.")
+mul.add_param(Param(name="x", type=float, description="First number"))
+mul.add_param(Param(name="y", type=float, description="Second number"))
+
+prod = Command(
+    name="prod",
+    description="Calculate the product of an arbitrary amount of numbers.",
+)
+prod.add_param(
+    Param(
+        name="numbers",
+        type=str,
+        description='Numbers to find the product of, separated by commas (e.g. "1,2,3")',
+    )
+)
+
+div = Command(name="div", description="Divide two numbers.")
+div.add_param(Param(name="x", type=float, description="First number"))
+div.add_param(Param(name="y", type=float, description="Second number"))
+
+floordiv = Command(name="floordiv", description="Divide two numbers and floor it.")
+floordiv.add_param(Param(name="x", type=float, description="First number"))
+floordiv.add_param(Param(name="y", type=float, description="Second number"))
+
+pow_ = Command(name="pow", description="Raise a number to the power of another.")
+pow_.add_param(Param(name="x", type=float, description="First number"))
+pow_.add_param(Param(name="y", type=float, description="Second number"))
+
+mod = Command(name="mod", description="Calculate the modulus of two numbers.")
+mod.add_param(Param(name="x", type=float, description="First number"))
+mod.add_param(Param(name="y", type=float, description="Second number"))
+
+sqrt = Command(name="sqrt", description="Calculate the square root of a number.")
+sqrt.add_param(
+    Param(
+        name="x",
+        type=float,
+        description="Number to calculate the square root of",
+    )
+)
+
+cbrt = Command(name="cbrt", description="Calculate the cube root of a number.")
+cbrt.add_param(
+    Param(
+        name="x",
+        type=float,
+        description="Number to calculate the cube root of",
+    )
+)
+
+nroot = Command(name="nroot", description="Calculate the nth root of a number.")
+nroot.add_param(
+    Param(
+        name="x",
+        type=float,
+        description="Number to calculate the nth root of",
+    )
+)
+
+abs_ = Command(name="abs", description="Calculate the absolute value of a number.")
+abs_.add_param(
+    Param(
+        name="x",
+        type=float,
+        description="Number to calculate the absolute value of",
+    )
+)
+
+ceil = Command(name="ceil", description="Calculate the ceiling of a number.")
+ceil.add_param(
+    Param(
+        name="x",
+        type=float,
+        description="Number to calculate the ceiling of",
+    )
+)
+
+floor = Command(name="floor", description="Calculate the floor of a number.")
+floor.add_param(
+    Param(name="x", type=float, description="Number to calculate the floor of")
+)
+
+round_ = Command(
+    name="round", description="Round a number to a specified number of digits."
+)
+round_.add_param(Param(name="x", type=float, description="Number to round"))
+round_.add_param(
+    Param(name="ndigits", type=int, description="Number of digits to round to")
+)
+
+log = Command(name="log", description="Calculate the logarithm of a number.")
+log.add_param(
+    Param(
+        name="x",
+        type=float,
+        description="Number to calculate the logarithm of",
+    )
+)
+log.add_param(
+    Param(
+        name="base",
+        type=Union[float, None],
+        description="Base of the logarithm; if left empty, uses base e",
+    )
+)
+
+gcd = Command(
+    name="gcd",
+    description="Calculate the greatest common divisor/denominator (GDC) of two numbers",
+)
+gcd.add_param(Param(name="x", type=int, description="First number"))
+gcd.add_param(Param(name="y", type=int, description="Second number"))
+
+gcd_bulk = Command(
+    name="gcd-bulk", description="Calculate the GCD of an arbitrary amount of numbers."
+)
+gcd_bulk.add_param(
+    Param(
+        name="numbers",
+        type=str,
+        description='Numbers to find the GCD of, separated by commas (e.g. "1,2,3")',
+    )
+)
+
+lcm = Command(
+    name="lcm",
+    description="Calculate the least common multiplier (LCM) of two numbers.",
+)
+lcm.add_param(Param(name="x", type=int, description="First number"))
+lcm.add_param(Param(name="y", type=int, description="Second number"))
+
+lcm_bulk = Command(
+    name="lcm-bulk",
+    description="Calculate the LCM of an arbitrary amount of numbers.",
+)
+lcm_bulk.add_param(
+    Param(
+        name="numbers",
+        type=str,
+        description='Numbers to find the LCM of, separated by commas (e.g. "1,2,3")',
+    )
+)
+
+distance_cartesian_2d = Command(
+    name="cartesian-2d",
+    description="Calculate the Cartesian distance between two points in 2D space.",
+    group="distance",
+)
+distance_cartesian_2d.add_param(
+    Param(name="x1", type=float, description="First x-coordinate")
+)
+distance_cartesian_2d.add_param(
+    Param(name="y1", type=float, description="First y-coordinate")
+)
+distance_cartesian_2d.add_param(
+    Param(name="x2", type=float, description="Second x-coordinate")
+)
+distance_cartesian_2d.add_param(
+    Param(name="y2", type=float, description="Second y-coordinate")
+)
+
+distance_cartesian_3d = Command(
+    name="cartesian-3d",
+    description="Calculate the Cartesian distance between two points in 3D space.",
+    group="distance",
+)
+distance_cartesian_3d.add_param(
+    Param(name="x1", type=float, description="First x-coordinate")
+)
+distance_cartesian_3d.add_param(
+    Param(name="y1", type=float, description="First y-coordinate")
+)
+distance_cartesian_3d.add_param(
+    Param(name="z1", type=float, description="First z-coordinate")
+)
+distance_cartesian_3d.add_param(
+    Param(name="x2", type=float, description="Second x-coordinate")
+)
+distance_cartesian_3d.add_param(
+    Param(name="y2", type=float, description="Second y-coordinate")
+)
+distance_cartesian_3d.add_param(
+    Param(name="z2", type=float, description="Second z-coordinate")
+)
+
+factorial = Command(
+    name="factorial", description="Calculate the factorial of a number."
+)
+factorial.add_param(
+    Param(name="x", type=int, description="Number to calculate the factorial of")
 )
 
 # # # # # # # # # #
@@ -448,217 +790,6 @@ unmute.add_param(
 )
 
 # # # # # # #
-# MATH CMDS #
-# # # # # # #
-
-add = Command(name="add", description="Add two numbers.")
-add.add_param(Param(name="x", type=float, description="First number"))
-add.add_param(Param(name="y", type=float, description="Second number"))
-
-sum_ = Command(
-    name="sum", description="Calculate the sum of an arbitrary amount of numbers."
-)
-sum_.add_param(
-    Param(name="numbers", type=str, description="Numbers to sum, separated by commas")
-)
-
-sub = Command(name="sub", description="Subtract two numbers.")
-sub.add_param(Param(name="x", type=float, description="First number"))
-sub.add_param(Param(name="y", type=float, description="Second number"))
-
-mul = Command(name="mul", description="Multiply two numbers.")
-mul.add_param(Param(name="x", type=float, description="First number"))
-mul.add_param(Param(name="y", type=float, description="Second number"))
-
-prod = Command(
-    name="prod",
-    description="Calculate the product of an arbitrary amount of numbers.",
-)
-prod.add_param(
-    Param(
-        name="numbers",
-        type=str,
-        description="Numbers to find the product of, separated by commas",
-    )
-)
-
-div = Command(name="div", description="Divide two numbers.")
-div.add_param(Param(name="x", type=float, description="First number"))
-div.add_param(Param(name="y", type=float, description="Second number"))
-
-floordiv = Command(name="floordiv", description="Divide two numbers and floor it.")
-floordiv.add_param(Param(name="x", type=float, description="First number"))
-floordiv.add_param(Param(name="y", type=float, description="Second number"))
-
-pow_ = Command(name="pow", description="Raise a number to the power of another.")
-pow_.add_param(Param(name="x", type=float, description="First number"))
-pow_.add_param(Param(name="y", type=float, description="Second number"))
-
-mod = Command(name="mod", description="Calculate the modulus of two numbers.")
-mod.add_param(Param(name="x", type=float, description="First number"))
-mod.add_param(Param(name="y", type=float, description="Second number"))
-
-sqrt = Command(name="sqrt", description="Calculate the square root of a number.")
-sqrt.add_param(
-    Param(
-        name="x",
-        type=float,
-        description="Number to calculate the square root of",
-    )
-)
-
-cbrt = Command(name="cbrt", description="Calculate the cube root of a number.")
-cbrt.add_param(
-    Param(
-        name="x",
-        type=float,
-        description="Number to calculate the cube root of",
-    )
-)
-
-nroot = Command(name="nroot", description="Calculate the nth root of a number.")
-nroot.add_param(
-    Param(
-        name="x",
-        type=float,
-        description="Number to calculate the nth root of",
-    )
-)
-
-abs_ = Command(name="abs", description="Calculate the absolute value of a number.")
-abs_.add_param(
-    Param(
-        name="x",
-        type=float,
-        description="Number to calculate the absolute value of",
-    )
-)
-
-ceil = Command(name="ceil", description="Calculate the ceiling of a number.")
-ceil.add_param(
-    Param(
-        name="x",
-        type=float,
-        description="Number to calculate the ceiling of",
-    )
-)
-
-floor = Command(name="floor", description="Calculate the floor of a number.")
-floor.add_param(
-    Param(name="x", type=float, description="Number to calculate the floor of")
-)
-
-round_ = Command(
-    name="round", description="Round a number to a specified number of digits."
-)
-round_.add_param(Param(name="x", type=float, description="Number to round"))
-round_.add_param(
-    Param(name="ndigits", type=int, description="Number of digits to round to")
-)
-
-log = Command(name="log", description="Calculate the logarithm of a number.")
-log.add_param(
-    Param(
-        name="x",
-        type=float,
-        description="Number to calculate the logarithm of",
-    )
-)
-log.add_param(
-    Param(
-        name="base",
-        type=Union[float, None],
-        description="Base of the logarithm; if left empty, uses base e",
-    )
-)
-
-gcd = Command(
-    name="gcd",
-    description="Calculate the greatest common divisor/denominator (GDC) of two numbers",
-)
-gcd.add_param(Param(name="x", type=int, description="First number"))
-gcd.add_param(Param(name="y", type=int, description="Second number"))
-
-gcd_bulk = Command(
-    name="gcd-bulk", description="Calculate the GCD of an arbitrary amount of numbers."
-)
-gcd_bulk.add_param(
-    Param(
-        name="numbers",
-        type=str,
-        description="Numbers to find the GCD of, separated by commas",
-    )
-)
-
-lcm = Command(
-    name="lcm",
-    description="Calculate the least common multiplier (LCM) of two numbers.",
-)
-lcm.add_param(Param(name="x", type=int, description="First number"))
-lcm.add_param(Param(name="y", type=int, description="Second number"))
-
-lcm_bulk = Command(
-    name="lcm-bulk",
-    description="Calculate the LCM of an arbitrary amount of numbers.",
-)
-lcm_bulk.add_param(
-    Param(
-        name="numbers",
-        type=str,
-        description="Numbers to find the LCM of, separated by commas",
-    )
-)
-
-distance_cartesian_2d = Command(
-    name="cartesian-2d",
-    description="Calculate the Cartesian distance between two points in 2D space.",
-    group="distance",
-)
-distance_cartesian_2d.add_param(
-    Param(name="x1", type=float, description="First x-coordinate")
-)
-distance_cartesian_2d.add_param(
-    Param(name="y1", type=float, description="First y-coordinate")
-)
-distance_cartesian_2d.add_param(
-    Param(name="x2", type=float, description="Second x-coordinate")
-)
-distance_cartesian_2d.add_param(
-    Param(name="y2", type=float, description="Second y-coordinate")
-)
-
-distance_cartesian_3d = Command(
-    name="cartesian-3d",
-    description="Calculate the Cartesian distance between two points in 3D space.",
-    group="distance",
-)
-distance_cartesian_3d.add_param(
-    Param(name="x1", type=float, description="First x-coordinate")
-)
-distance_cartesian_3d.add_param(
-    Param(name="y1", type=float, description="First y-coordinate")
-)
-distance_cartesian_3d.add_param(
-    Param(name="z1", type=float, description="First z-coordinate")
-)
-distance_cartesian_3d.add_param(
-    Param(name="x2", type=float, description="Second x-coordinate")
-)
-distance_cartesian_3d.add_param(
-    Param(name="y2", type=float, description="Second y-coordinate")
-)
-distance_cartesian_3d.add_param(
-    Param(name="z2", type=float, description="Second z-coordinate")
-)
-
-factorial = Command(
-    name="factorial", description="Calculate the factorial of a number."
-)
-factorial.add_param(
-    Param(name="x", type=int, description="Number to calculate the factorial of")
-)
-
-# # # # # # #
 # STATS CMD #
 # # # # # # #
 
@@ -668,7 +799,6 @@ stats = Command(name="stats", description="Get statistics about CatBot.")
 # CMD LIST INIT #
 # # # # # # # # #
 
-HELP = (help_category, help_command)
 COLOR_ROLES = (
     role_assign_hex,
     role_assign_rgb,
@@ -689,6 +819,10 @@ COLOR_TOOLS = (
     invert_hex,
     invert_name,
 )
+FUN = (random_integer, random_decimal, random_choice, shuffle, flip_coin)
+
+HELP = (help_category, help_command)
+
 MATH = (
     add,
     sum_,
@@ -715,7 +849,6 @@ MATH = (
     distance_cartesian_3d,
     factorial,
 )
-STATS = (stats,)
 
 MANAGEMENT = (echo, dm, announce)
 MODERATION = (
@@ -729,8 +862,9 @@ MODERATION = (
     mute,
     unmute,
 )
+STATS = (stats,)
 
-PUBLIC = HELP + COLOR_ROLES + COLOR_TOOLS + MATH + STATS
+PUBLIC = COLOR_ROLES + COLOR_TOOLS + FUN + HELP + MATH + STATS
 PUBLIC_COMMAND_MAP = {
     "help-category": help_category,
     "help-command": help_command,

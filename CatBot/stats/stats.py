@@ -15,6 +15,7 @@ from discord.ext import commands
 from psutil import Process
 
 from ..bot_init import VERSION
+from ..help import PRIVATE, PUBLIC
 from ..internal_utils import START_TIME, generate_authored_embed, generate_image_file
 
 # A bit redundant, but helps readability.
@@ -103,7 +104,8 @@ class StatsCog(commands.Cog, name="Bot Stats Commands"):
             + f"{seconds} seconds, {microseconds} microseconds",
             inline=False,
         )
-        # We use inline=True here to line up similar fields
+        embed.add_field(name="Public Commands", value=len(PUBLIC), inline=False)
+        embed.add_field(name="Private Commands", value=len(PRIVATE))
         embed.add_field(name="Language", value="Python")
         embed.add_field(name="Language Version", value=python_version)
         embed.add_field(
