@@ -43,11 +43,12 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
 
         logging.info("ModerationCog loaded")
 
+    mod_group = app_commands.Group(name="mod", description="Moderation commands")
     timeout_group = app_commands.Group(
-        name="timeout", description="Tools for timing out users"
+        name="timeout", description="Timeout commands", parent=mod_group
     )
 
-    @app_commands.command(name="ban", description="Ban a user")
+    @mod_group.command(name="ban", description="Ban a user")
     @app_commands.describe(
         user="User to ban",
         delete_message_time="How much of the user's message history to delete",
@@ -79,7 +80,7 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
         """
 
         logging.info(
-            "/ban user=%s delete_message_time=%s time_unit=%s reason=%s invoked by %s",
+            "/mod ban user=%s delete_message_time=%s time_unit=%s reason=%s invoked by %s",
             user,
             delete_message_time,
             time_unit,
@@ -140,7 +141,7 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
             f"Are you sure you want to ban {user}?", view=view, ephemeral=True
         )
 
-    @app_commands.command(name="unban", description="Unban a user from")
+    @mod_group.command(name="unban", description="Unban a user from")
     @app_commands.describe(
         user_id="ID of the user to unban",
         reason="Unban reason",
@@ -164,7 +165,7 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
         """
 
         logging.info(
-            "/unban user_id=%s reason=%s invoked by user %s",
+            "/mod unban user_id=%s reason=%s invoked by user %s",
             user_id,
             repr(reason),
             interaction.user,
@@ -259,7 +260,7 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
         """
 
         logging.info(
-            "/timeout add user=%s time=%s time_unit=%s reason=%s invoked by %s",
+            "/mod timeout add user=%s time=%s time_unit=%s reason=%s invoked by %s",
             user,
             time,
             time_unit,
@@ -354,7 +355,7 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
         """
 
         logging.info(
-            "/timeout reduce user=%s time=%s time_unit=%s reason=%s invoked by %s",
+            "/mod timeout reduce user=%s time=%s time_unit=%s reason=%s invoked by %s",
             user,
             time,
             time_unit,
@@ -427,7 +428,7 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
         """
 
         logging.info(
-            "/timeout remove user=%s reason=%s invoked by %s",
+            "/mod timeout remove user=%s reason=%s invoked by %s",
             user,
             repr(reason),
             interaction.user,
@@ -466,7 +467,7 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
                 f"User {user} was not found.", ephemeral=True
             )
 
-    @app_commands.command(
+    @mod_group.command(
         name="clear", description="Delete a number of messages from a channel"
     )
     @app_commands.describe(
@@ -500,7 +501,7 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
             channel = interaction.channel  # type: ignore
 
         logging.info(
-            "/clear amount=%s channel=%s reason=%s invoked by %s",
+            "/mod clear amount=%s channel=%s reason=%s invoked by %s",
             amount,
             channel,
             repr(reason),
@@ -560,7 +561,7 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
             ephemeral=True,
         )
 
-    @app_commands.command(name="warn", description="Warn a user")
+    @mod_group.command(name="warn", description="Warn a user")
     @app_commands.describe(
         user="User to warn",
         reason="Warning reason",
@@ -588,7 +589,7 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
         """
 
         logging.info(
-            "/warn user=%s channel=%s reason=%s invoked by %s",
+            "/mod warn user=%s channel=%s reason=%s invoked by %s",
             user,
             channel,
             repr(reason),
@@ -616,7 +617,7 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
             f"{user} has been warned.", ephemeral=True
         )
 
-    @app_commands.command(name="kick", description="Kick a user")
+    @mod_group.command(name="kick", description="Kick a user")
     @app_commands.describe(
         user="User to kick",
         reason="Kick reason",
@@ -640,7 +641,7 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
         """
 
         logging.info(
-            "/kick user=%s reason=%s invoked by %s",
+            "/mod kick user=%s reason=%s invoked by %s",
             user,
             repr(reason),
             interaction.user,
@@ -669,7 +670,7 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
             f"Are you sure you want to kick {user}?", view=view, ephemeral=True
         )
 
-    @app_commands.command(name="mute", description="Mute a user")
+    @mod_group.command(name="mute", description="Mute a user")
     @app_commands.describe(
         user="User to mute",
         reason="Mute reason",
@@ -693,7 +694,7 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
         """
 
         logging.info(
-            "/mute user=%s reason=%s invoked by %s",
+            "/mod mute user=%s reason=%s invoked by %s",
             user,
             repr(reason),
             interaction.user,
@@ -723,7 +724,7 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
                 ephemeral=True,
             )
 
-    @app_commands.command(name="unmute", description="Unmute a user")
+    @mod_group.command(name="unmute", description="Unmute a user")
     @app_commands.describe(
         user="User to unmute",
         reason="Unmute reason",
@@ -747,7 +748,7 @@ class ModerationCog(commands.Cog, name="Moderation Commands"):
         """
 
         logging.info(
-            "/unmute user=%s reason=%s invoked by %s",
+            "/mod unmute user=%s reason=%s invoked by %s",
             user,
             repr(reason),
             interaction.user,

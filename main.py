@@ -117,14 +117,14 @@ async def setup() -> None:
     if cli_args.testing:
         await bot.load_extension("CatBot.experiments.experimental")
 
-    await bot.load_extension("CatBot.color.color_roles")
-    await bot.load_extension("CatBot.color.color_tools")
+    await bot.load_extension("CatBot.color.color")
+    await bot.load_extension("CatBot.date_time.date_time")
     await bot.load_extension("CatBot.fun.fun")
     await bot.load_extension("CatBot.help.help")
     await bot.load_extension("CatBot.management.management")
     await bot.load_extension("CatBot.management.moderation")
     await bot.load_extension("CatBot.math.maths")
-    await bot.load_extension("CatBot.stats.stats")
+    await bot.load_extension("CatBot.rand.rand")
 
 
 def main():

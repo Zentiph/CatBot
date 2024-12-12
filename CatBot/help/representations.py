@@ -126,9 +126,7 @@ class Command:
     Represents a slash command.
     """
 
-    def __init__(
-        self, *, name: str, description: str, group: Union[str, None] = None
-    ) -> None:
+    def __init__(self, *, name: str, description: str) -> None:
         """
         Represents a slash command.
 
@@ -136,15 +134,12 @@ class Command:
         :type name: str
         :param description: Command description
         :type description: str
-        :param group: Command group this Command is in, defaults to None
-        :type group: str | None
         """
 
         self.__name = name
         self.__description = description
         self.__params: List[Param] = []
         self.__current = 0
-        self.__group = group
 
     def add_param(self, param: Param) -> None:
         """
@@ -176,15 +171,6 @@ class Command:
         """
 
         return self.__description
-
-    @property
-    def group(self) -> Union[str, None]:
-        """
-        :return: Group of the command, if any
-        :rtype: str, None
-        """
-
-        return self.__group
 
     @property
     def num_params(self) -> int:
@@ -221,8 +207,6 @@ def generate_field_title(command: Command, /) -> str:
     :rtype: str
     """
 
-    if command.group is not None:
-        return f"**/{command.group} {command.name}**"
     return f"**/{command.name}**"
 
 

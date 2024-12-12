@@ -1,6 +1,15 @@
 # CatBot Changelog
 A collective history of all the changes made to CatBot.
 
+## v0.9.0
+* Added datetime module
+  * /datetime
+  *
+* Refactored command names/groups to better organize commands
+* Merged color modules into one module
+* Fixed math module /nroot command complex arithmetic
+* Added --coloredlogs CLI arg
+
 ## v0.8.3
 * Added /flip-coin to fun module
 * Added help support for fun module

@@ -15,18 +15,18 @@ from ..internal_utils import (
     generate_image_file,
 )
 from .commands import (
-    COLOR_ROLES,
-    COLOR_TOOLS,
+    COLOR,
+    DATETIME,
     FUN,
     HELP,
     MANAGEMENT,
     MATH,
     MODERATION,
     PRIVATE,
+    RANDOM,
     PRIVATE_COMMAND_MAP,
     PUBLIC,
     PUBLIC_COMMAND_MAP,
-    STATS,
     ClassifiedHelpCategory,
     HelpCategory,
 )
@@ -78,13 +78,13 @@ class HelpCog(commands.Cog, name="Help Commands"):
         icon = generate_image_file("CatBot/images/profile.jpg")
 
         match category:
-            case "color roles":
+            case "color":
                 embed = generate_authored_embed(
-                    title="Color Roles Commands Help Page",
+                    title="Color Commands Help Page",
                     description="Here's a list of color roles commands and how to use them.",
                 )
 
-                for command in COLOR_ROLES:
+                for command in COLOR:
                     embed.add_field(
                         name=generate_field_title(command),
                         value=generate_field_description(command),
@@ -93,13 +93,13 @@ class HelpCog(commands.Cog, name="Help Commands"):
 
                 await interaction.response.send_message(embed=embed, file=icon)
 
-            case "color tools":
+            case "date-time":
                 embed = generate_authored_embed(
-                    title="Color Tools Commands Help Page",
-                    description="Here's a list of color tools commands and how to use them.",
+                    title="Date-Time Commands Help Page",
+                    description="Here's a list of date-time commands and how to use them.",
                 )
 
-                for command in COLOR_TOOLS:
+                for command in DATETIME:
                     embed.add_field(
                         name=generate_field_title(command),
                         value=generate_field_description(command),
@@ -153,13 +153,13 @@ class HelpCog(commands.Cog, name="Help Commands"):
 
                 await interaction.response.send_message(embed=embed, file=icon)
 
-            case "stats":
+            case "random":
                 embed = generate_authored_embed(
-                    title="Stats Commands Help Page",
-                    description="Here's a list of stats commands and how to use them.",
+                    title="Random Commands Help Page",
+                    description="Here's a list of random commands and how to use them.",
                 )
 
-                for command in STATS:
+                for command in RANDOM:
                     embed.add_field(
                         name=generate_field_title(command),
                         value=generate_field_description(command),
@@ -195,7 +195,7 @@ class HelpCog(commands.Cog, name="Help Commands"):
         logging.info("/help command cmd=%s invoked by %s", repr(cmd), interaction.user)
 
         if cmd not in (command.name for command in PUBLIC) and cmd not in (
-            f"{command.group} {command.name}" for command in PUBLIC
+            f"{command.name}" for command in PUBLIC
         ):
             await interaction.response.send_message(
                 f"I do not have a public command called **{cmd}**!", ephemeral=True
@@ -235,7 +235,7 @@ class ClassifiedHelpCog(commands.Cog, name="Moderation Help Commands"):
         logging.info("ClassifiedHelpCog loaded")
 
     help_group = app_commands.Group(
-        name="help-mod", description="Get help for using the bot's moderation commands"
+        name="mod-help", description="Get help for using the bot's moderation commands"
     )
 
     @help_group.command(
@@ -322,7 +322,7 @@ class ClassifiedHelpCog(commands.Cog, name="Moderation Help Commands"):
         )
 
         if cmd not in (command.name for command in PRIVATE) and cmd not in (
-            f"{command.group} {command.name}" for command in PRIVATE
+            f"{command.name}" for command in PRIVATE
         ):
             await interaction.response.send_message(
                 f"I do not have a private command called **{cmd}**!", ephemeral=True

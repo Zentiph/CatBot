@@ -76,6 +76,11 @@ def initialize_cli_arg_parser() -> ArgumentParser:
     parser.add_argument(
         "--testing", action="store_true", help="Launch the bot in testing mode"
     )
+    parser.add_argument(
+        "--coloredlogs",
+        action="store_true",
+        help="Launch the terminal in colored logging mode",
+    )
 
     return parser
 
@@ -105,6 +110,7 @@ def config_logging(parser: ArgumentParser, /) -> None:
     --logfile {str}
     --testing {store_true}
     --nostreamlogging {store_true}
+    --coloredlogs {store_true}
 
     Defaults are:
     --logfile logs.log
@@ -119,7 +125,8 @@ def config_logging(parser: ArgumentParser, /) -> None:
         handlers = [logging.FileHandler(log_file)]
     else:
         sh = logging.StreamHandler()
-        sh.setFormatter(ColorFormatter())
+        if args.coloredlogs:
+            sh.setFormatter(ColorFormatter())
         handlers = [
             logging.FileHandler(log_file),
             sh,  # type: ignore

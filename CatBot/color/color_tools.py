@@ -1,579 +1,310 @@
 """
-color_tools.py
-Color information cog for CatBot.
+colors.py
+Color constants.
 """
 
 # We disable this globally due to the
 # immense use of variable name 'hex'
 # pylint: disable=redefined-builtin
 
-import logging
-from io import BytesIO
-from typing import Dict, Literal, Union
-
-import discord
-from discord import app_commands
-from discord.ext import commands
-from PIL import Image
-
-from ..internal_utils import generate_authored_embed, generate_image_file
-from .colors import (
-    BLUES,
-    BROWNS,
-    COLORS,
-    GRAYS,
-    GREENS,
-    ORANGES,
-    PINKS,
-    PURPLES,
-    REDS,
-    WHITES,
-    YELLOWS,
-    hex2rgb,
-    invert_rgb,
-    is_hex_value,
-    is_rgb_value,
-    random_rgb,
-    rgb2hex,
-)
+from random import randint
+from random import seed as set_seed
+from re import match
+from typing import Tuple, Union
 
 
-def generate_color_image(hex: str) -> BytesIO:
+REDS = {
+    "indian red": "cd5c5c",
+    "light coral": "f08080",
+    "salmon": "fa9072",
+    "dark salmon": "e9967a",
+    "crimson": "dc143c",
+    "red": "ff0000",
+    "fire brick": "b22222",
+    "dark red": "8b0000",
+}
+
+PINKS = {
+    "pink": "ffc0cb",
+    "light pink": "ffb6c1",
+    "hot pink": "ff69b4",
+    "deep pink": "ff1493",
+    "medium violet red": "c71585",
+    "pale violet red": "db7093",
+}
+
+ORANGES = {
+    "light salmon": "ffa07a",
+    "coral": "ff7f50",
+    "tomato": "ff6347",
+    "orange red": "ff4500",
+    "dark orange": "ff8c00",
+    "orange": "ffa500",
+}
+
+YELLOWS = {
+    "gold": "ffd700",
+    "yellow": "ffff00",
+    "light yellow": "ffffe0",
+    "lemon chiffon": "fffacd",
+    "light goldenrod yellow": "fafad2",
+    "papaya whip": "ffefd2",
+    "moccasin": "ffe4b5",
+    "peach puff": "ffdab9",
+    "pale goldenrod": "eee8aa",
+    "khaki": "f0e68c",
+    "dark khaki": "bdb76b",
+}
+
+PURPLES = {
+    "lavender": "e6e6fa",
+    "thistle": "d8bfd8",
+    "plum": "dda0dd",
+    "violet": "ee82ee",
+    "orchid": "da70d6",
+    "magenta": "ff00ff",
+    "medium orchid": "ba55d3",
+    "medium purple": "9370db",
+    "rebecca purple": "663399",
+    "blue violet": "8a2be2",
+    "dark violet": "9400d3",
+    "dark orchid": "9932cc",
+    "dark magenta": "8b008b",
+    "purple": "800080",
+    "indigo": "4b0082",
+    "slate blue": "6a5acd",
+    "dark slate blue": "483d8b",
+}
+
+GREENS = {
+    "green yellow": "adff2f",
+    "chartreuse": "7fff00",
+    "lawn green": "7cfc00",
+    "lime": "00ff00",
+    "lime green": "32cd32",
+    "pale green": "98fb98",
+    "light green": "90ee90",
+    "medium spring green": "00fa9a",
+    "spring green": "00ff7f",
+    "medium sea green": "3cb371",
+    "sea green": "2e8b57",
+    "forest green": "228b22",
+    "green": "008000",
+    "dark green": "006400",
+    "yellow green": "9acd32",
+    "olive drab": "6b8e23",
+    "olive": "808000",
+    "dark olive green": "556b2f",
+    "medium aquamarine": "66cdaa",
+    "dark sea green": "8fbc8b",
+    "light sea green": "20b2aa",
+    "dark cyan": "008b8b",
+    "teal": "008080",
+}
+
+BLUES = {
+    "cyan": "00ffff",
+    "light cyan": "e0ffff",
+    "pale turquoise": "afeeee",
+    "aquamarine": "7fffd4",
+    "turquoise": "40e0d0",
+    "medium turquoise": "48d1cc",
+    "dark turquoise": "00ced1",
+    "cadet blue": "5f9ea0",
+    "steel blue": "4682b4",
+    "light steel blue": "b0c4de",
+    "powder blue": "b0e0e6",
+    "light blue": "add8e6",
+    "sky blue": "87ceeb",
+    "light sky blue": "87cefa",
+    "deep sky blue": "00bfff",
+    "dodger blue": "1e90ff",
+    "cornflower blue": "6495ed",
+    "royal blue": "4169e1",
+    "blue": "0000ff",
+    "medium blue": "0000cd",
+    "dark blue": "00008b",
+    "navy": "000080",
+    "midnight blue": "191970",
+}
+
+BROWNS = {
+    "cornsilk": "fff8dc",
+    "blanched almond": "ffebcd",
+    "bisque": "ffe4c4",
+    "navajo white": "ffdead",
+    "wheat": "f5deb3",
+    "burly wood": "deb887",
+    "tan": "d2b48c",
+    "rosy brown": "bc8f8f",
+    "sandy brown": "f4a460",
+    "goldenrod": "daa520",
+    "dark goldenrod": "b8860b",
+    "peru": "cd853f",
+    "chocolate": "d2691e",
+    "saddle brown": "8b4513",
+    "sienna": "a0522d",
+    "brown": "a52a2a",
+    "maroon": "800000",
+}
+
+WHITES = {
+    "white": "ffffff",
+    "snow": "fffafa",
+    "honey dew": "f0fff0",
+    "mint cream": "f5fffa",
+    "azure": "f0ffff",
+    "alice blue": "f0f8ff",
+    "ghost white": "f8f8ff",
+    "white smoke": "f5f5f5",
+    "sea shell": "fff5ee",
+    "beige": "f5f5dc",
+    "old lace": "fdf5e6",
+    "floral white": "fffaf0",
+    "ivory": "fffff0",
+    "antique white": "faebd7",
+    "linen": "faf0e6",
+    "lavender blush": "fff0f5",
+    "misty rose": "ffe4e1",
+}
+
+GRAYS = {
+    "gainsboro": "dcdcdc",
+    "light gray": "d3d3d3",
+    "silver": "c0c0c0",
+    "dark gray": "a9a9a9",
+    "gray": "808080",
+    "dim gray": "696969",
+    "light slate gray": "778899",
+    "slate gray": "708090",
+    "dark slate gray": "2f4f4f",
+    "black": "000001",  # Has to be #000001 since discord reserves #000000 for no color
+}
+
+COLORS = {}
+COLORS.update(REDS)
+COLORS.update(ORANGES)
+COLORS.update(YELLOWS)
+COLORS.update(GREENS)
+COLORS.update(BLUES)
+COLORS.update(PURPLES)
+COLORS.update(PINKS)
+COLORS.update(BROWNS)
+COLORS.update(WHITES)
+COLORS.update(GRAYS)
+
+
+def is_hex_value(hex: str) -> bool:
     """
-    Generate a color image based on the value(s) provided.
+    Determine if `hex` is a valid hex value.
 
-    :param hex: Hex code
+    :param hex: Hex value to check.
     :type hex: str
-    :return: The color image
-    :rtype: BytesIO
+    :return: Whether `hex` is valid.
+    :rtype: bool
     """
 
-    rgb = hex2rgb(hex)  # type: ignore
-
-    # Create a 100x100 pixel image with the specified RGB color
-    img = Image.new("RGB", (100, 100), (rgb[0], rgb[1], rgb[2]))
-    img_byte_arr = BytesIO()
-    img.save(img_byte_arr, format="PNG")
-    img_byte_arr.seek(0)
-    return img_byte_arr
+    return bool(match(r"^[A-Fa-f0-9]{6}$", hex.strip("#")))
 
 
-def get_color_key(hex: str) -> Union[str, None]:
+def is_rgb_value(value: int) -> bool:
     """
-    Get the color key corresponding to `hex`, if it exists.
+    Determine if `value` is a valid RGB value.
 
-    :param hex: Hex to check for the color name of
+    :param value: Value to check.
+    :type value: int
+    :return: Whether `value` is valid.
+    :rtype: bool
+    """
+
+    return 0 <= value <= 255
+
+
+def random_rgb(*, seed: Union[str, None] = None) -> Tuple[int, int, int]:
+    """
+    Generate a random RGB value.
+
+    :param seed: Optional seed, defaults to None
+    :type seed: str | None, optional
+    :return: Random RGB value.
+    :rtype: tuple[int, int, int]
+    """
+
+    if seed:
+        set_seed(seed)
+    return randint(0, 255), randint(0, 255), randint(0, 255)
+
+
+def invert_rgb(r: int, g: int, b: int) -> Tuple[int, int, int]:
+    """
+    Invert `r`, `g`, and `b`.
+
+    :param r: Red value
+    :type r: int
+    :param g: Blue value
+    :type g: int
+    :param b: Blue value
+    :type b: int
+    :return: Inverted RGB
+    :rtype: tuple[int, int, int]
+    """
+
+    return abs(255 - r), abs(255 - g), abs(255 - b)
+
+
+def invert_hex(hex: str) -> str:
+    """
+    Invert the `hex`.
+
+    :param hex: Hex value
     :type hex: str
-    :return: Color key if it was found, otherwise None
-    :rtype: Union[str, None]
+    :return: Inverted hex value
+    :rtype: tuple[int, int, int]
     """
 
-    if hex in COLORS.values():
-        return [k for k, v in COLORS.items() if v == hex][0]
-    return None
+    r, g, b = hex2rgb(hex)
+    ir, ig, ib = invert_rgb(r, g, b)
+    return rgb2hex(ir, ig, ib)
 
 
-class ColorToolsCog(commands.Cog, name="Color Tool Commands"):
+def hex2rgb(hex: str) -> Tuple[int, int, int]:
     """
-    Cog containing color tool commands such as color preview generation.
-    """
-
-    def __init__(self, bot: commands.Bot) -> None:
-        self.bot = bot
-
-    @commands.Cog.listener()
-    async def on_ready(self):
-        """
-        Run when the cog is ready to be used.
-        """
-
-        logging.info("ColorToolsCog loaded")
-
-    invert_group = app_commands.Group(name="invert-color", description="Invert a color")
-    info_group = app_commands.Group(
-        name="color-info", description="Get information about a color"
-    )
-
-    @app_commands.command(
-        name="colors", description="Get a list of all supported predefined color names"
-    )
-    @app_commands.describe(group="Group of colors to get the allowed names of")
-    async def colors(
-        self,
-        interaction: discord.Interaction,
-        group: Literal[
-            "red",
-            "orange",
-            "yellow",
-            "green",
-            "blue",
-            "purple",
-            "pink",
-            "brown",
-            "white",
-            "gray",
-            "grey",
-        ],
-    ) -> None:
-        """
-        Provide a list of supported color names.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
-        :param group: Group of colors to get info about
-        :type group: Literal["red", "orange", "yellow", "green",
-        "blue", "purple", "pink", "brown", "white", "gray", "grey"]
-        """
-
-        group_map = {
-            "red": REDS,
-            "orange": ORANGES,
-            "yellow": YELLOWS,
-            "green": GREENS,
-            "blue": BLUES,
-            "purple": PURPLES,
-            "pink": PINKS,
-            "brown": BROWNS,
-            "white": WHITES,
-            "gray": GRAYS,
-            "grey": GRAYS,
-        }
-
-        logging.info("/colors group=%s invoked by %s", group, interaction.user)
-
-        def generate_embed(name: str, group: Dict[str, str]) -> discord.Embed:
-            """
-            Generate a color embed with the given group info.
-
-            :param name: Group name
-            :type name: str
-            :param group: Group dict
-            :type group: Dict[str, str]
-            :return: Color embed
-            :rtype: discord.Embed
-            """
-
-            color = group[name]
-
-            embed = generate_authored_embed(
-                title=name.title() + " Colors",
-                description=f"Here's a list of supported {name} color names.",
-                color=discord.Color(int(color, 16)),
-            )
-
-            colors = ""
-            for name_, value in group.items():
-                colors += f"{name_.title()}  -  #{value}\n"
-
-            embed.add_field(name=f"{name.title()} Colors", value=colors)
-            return embed
-
-        embed = generate_embed(group, group_map[group])
-        icon = generate_image_file("CatBot/images/profile.jpg")
-        await interaction.response.send_message(embed=embed, file=icon)
-
-    @info_group.command(name="rgb", description="Get info about an RGB color")
-    @app_commands.describe(
-        r="Red value (0-255)", g="Green value (0-255)", b="Blue value (0-255)"
-    )
-    async def rgb_info(
-        self, interaction: discord.Interaction, r: int, g: int, b: int
-    ) -> None:
-        """
-        Get info about the RGB value.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
-        :param r: R value
-        :type r: int
-        :param g: G value
-        :type g: int
-        :param b: B value
-        :type b: int
-        """
-
-        logging.info(
-            "/color-info rgb r=%s g=%s b=%s invoked by %s", r, g, b, interaction.user
-        )
-
-        if not all(is_rgb_value(v) for v in (r, g, b)):
-            await interaction.response.send_message(
-                "Invalid RGB value provided. Supported range: 0-255", ephemeral=True
-            )
-            return
-
-        hex = rgb2hex(r, g, b)
-        image = generate_color_image(hex)
-        filename = f"{hex}.png"
-        file = discord.File(fp=image, filename=filename)
-
-        icon = generate_image_file("CatBot/images/profile.jpg")
-        embed = generate_authored_embed(
-            title=f"{(r, g, b)} Info",
-            description="Here's some information about your color.",
-            color=discord.Color.from_rgb(r, g, b),
-        )
-
-        embed.add_field(name="Hex", value=f"#{hex}")
-
-        key = get_color_key(hex)
-        if key:
-            embed.add_field(name="Color Name", value=key)
-
-        embed.set_image(url=f"attachment://{filename}")
-
-        await interaction.response.send_message(embed=embed, files=(file, icon))
-
-    @info_group.command(name="hex", description="Get info about a hex color")
-    @app_commands.describe(hex="Hex value (#000000-#ffffff)")
-    async def hex_info(self, interaction: discord.Interaction, hex: str) -> None:
-        """
-        Get info about the hex value.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
-        :param hex: Hex value
-        :type hex: str
-        """
-
-        logging.info(
-            "/color-info hex hex=%s invoked by %s", repr(hex), interaction.user
-        )
-
-        if not is_hex_value(hex):
-            await interaction.response.send_message(
-                "Invalid hex value provided. Supported range: 000000-ffffff",
-                ephemeral=True,
-            )
-            return
-
-        hex = hex.strip("#").lower()
-        r, g, b = hex2rgb(hex)
-        image = generate_color_image(hex)
-        filename = f"{hex}.png"
-        file = discord.File(fp=image, filename=filename)
-
-        icon = generate_image_file("CatBot/images/profile.jpg")
-        embed = generate_authored_embed(
-            title=f"#{hex} Info",
-            description="Here's some information about your color.",
-            color=discord.Color.from_rgb(r, g, b),
-        )
-
-        embed.add_field(name="RGB", value=f"{(r, g, b)}")
-
-        key = get_color_key(hex)
-        if key:
-            embed.add_field(name="Color Name", value=key)
-
-        embed.set_image(url=f"attachment://{filename}")
-
-        await interaction.response.send_message(embed=embed, files=(file, icon))
-
-    @info_group.command(name="name", description="Get info about a color name")
-    @app_commands.describe(
-        name="Color name (use /colors for a list of supported colors)"
-    )
-    async def name_info(self, interaction: discord.Interaction, name: str) -> None:
-        """
-        Get info about the hex value.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
-        :param name: Color name
-        :type name: str
-        """
-
-        logging.info(
-            "/color-info name name=%s invoked by %s", repr(name), interaction.user
-        )
-
-        name = name.lower()
-
-        if name not in COLORS:
-            await interaction.response.send_message(
-                "Invalid color name provided. Use /colors for a list of supported colors",
-                ephemeral=True,
-            )
-            return
-
-        hex = COLORS[name]
-        r, g, b = hex2rgb(hex)
-        image = generate_color_image(hex)
-        filename = f"{hex}.png"
-        file = discord.File(fp=image, filename=filename)
-
-        icon = generate_image_file("CatBot/images/profile.jpg")
-        embed = generate_authored_embed(
-            title=f"{name.title()} Info",
-            description="Here's some information about your color.",
-            color=discord.Color.from_rgb(r, g, b),
-        )
-
-        embed.add_field(name="Hex", value=f"#{hex}")
-        embed.add_field(name="RGB", value=f"{(r, g, b)}")
-        embed.set_image(url=f"attachment://{filename}")
-
-        await interaction.response.send_message(embed=embed, files=(file, icon))
-
-    @info_group.command(name="role", description="Get info about a role's color")
-    @app_commands.describe(role="Role to get the color info of")
-    async def role_info(
-        self, interaction: discord.Interaction, role: discord.Role
-    ) -> None:
-        """
-        Get info about `role`'s color.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
-        :param role: Role to get color info of
-        :type role: discord.Role
-        """
-
-        logging.info("/color-info role role=%s invoked by %s", role, interaction.user)
-
-        if role not in interaction.guild.roles:  # type: ignore
-            await interaction.response.send_message(
-                "Role was not found in this guild.", ephemeral=True
-            )
-            return
-
-        r, g, b = role.color.r, role.color.g, role.color.b
-        hex = rgb2hex(r, g, b)
-        image = generate_color_image(hex)
-        filename = f"{hex}.png"
-        file = discord.File(fp=image, filename=filename)
-
-        icon = generate_image_file("CatBot/images/profile.jpg")
-        embed = generate_authored_embed(
-            title=f"{role.name} Color Info",
-            description="Here's some information about your role's color.",
-            color=role.color,
-        )
-
-        embed.add_field(name="Hex", value=f"#{hex}")
-        embed.add_field(name="RGB", value=f"{(r, g, b)}")
-
-        key = get_color_key(hex)
-        if key:
-            embed.add_field(name="Color Name", value=key)
-
-        embed.set_image(url=f"attachment://{filename}")
-
-        await interaction.response.send_message(embed=embed, files=(file, icon))
-
-    @app_commands.command(name="random-color", description="Generate a random color.")
-    @app_commands.describe(seed="Optional seed to use when generating the color")
-    async def random_color(
-        self, interaction: discord.Interaction, seed: Union[str, None] = None
-    ) -> None:
-        """
-        Generate a random color.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
-        :param seed: Optional seed, defaults to None
-        :type seed: str | None, optional
-        """
-
-        logging.info("/random-color invoked by %s", interaction.user)
-
-        r, g, b = random_rgb(seed=seed)
-        hex = rgb2hex(r, g, b)
-
-        image = generate_color_image(hex)
-        filename = f"{hex}.png"
-        file = discord.File(fp=image, filename=filename)
-
-        icon = generate_image_file("CatBot/images/profile.jpg")
-        embed = generate_authored_embed(
-            title="Random Color",
-            description="Here's your randomly generated color.",
-            color=discord.Color.from_rgb(r, g, b),
-        )
-
-        embed.add_field(name="RGB", value=f"{(r, g, b)}")
-        embed.add_field(name="Hex", value=f"#{hex}")
-
-        key = get_color_key(hex)
-        if key:
-            embed.add_field(name="Color Name", value=key)
-
-        embed.set_image(url=f"attachment://{filename}")
-
-        await interaction.response.send_message(embed=embed, files=(file, icon))
-
-    @invert_group.command(name="rgb", description="Invert the RGB color")
-    @app_commands.describe(
-        r="Red value (0-255)", g="Green value (0-255)", b="Blue value (0-255)"
-    )
-    async def invert_rgb(
-        self, interaction: discord.Interaction, r: int, g: int, b: int
-    ) -> None:
-        """
-        Invert the RGB value.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
-        :param r: R value
-        :type r: int
-        :param g: G value
-        :type g: int
-        :param b: B value
-        :type b: int
-        """
-
-        logging.info(
-            "/invert-color rgb r=%s g=%s b=%s invoked by %s", r, g, b, interaction.user
-        )
-
-        if not all(is_rgb_value(v) for v in (r, g, b)):
-            await interaction.response.send_message(
-                "Invalid RGB value provided. Supported range: 0-255", ephemeral=True
-            )
-            return
-
-        nr, ng, nb = invert_rgb(r, g, b)
-        hex = rgb2hex(nr, ng, nb)
-
-        image = generate_color_image(hex)
-        filename = f"{hex}.png"
-        file = discord.File(fp=image, filename=filename)
-
-        embed = discord.Embed(
-            title=f"Inverted color of ({r}, {g}, {b})",
-            description="Here's your inverted color.",
-            color=discord.Color.from_rgb(nr, ng, nb),
-        )
-        icon = generate_image_file("CatBot/images/profile.jpg")
-        embed = generate_authored_embed(
-            title=f"Inverted color of ({r}, {g}, {b})",
-            description="Here's your inverted color.",
-            color=discord.Color.from_rgb(nr, ng, nb),
-        )
-
-        embed.add_field(name="RGB", value=f"{(nr, ng, nb)}")
-        embed.add_field(name="Hex", value=f"#{hex}")
-
-        key = get_color_key(hex)
-        if key:
-            embed.add_field(name="Color Name", value=key)
-
-        embed.set_image(url=f"attachment://{filename}")
-
-        await interaction.response.send_message(embed=embed, files=(file, icon))
-
-    @invert_group.command(name="hex", description="Invert the hex color")
-    @app_commands.describe(hex="Hex color")
-    async def invert_hex(self, interaction: discord.Interaction, hex: str) -> None:
-        """
-        Invert `hex`.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
-        :param hex: Hex value
-        :type hex: str
-        """
-
-        logging.info(
-            "/invert-color hex hex=%s invoked by %s", repr(hex), interaction.user
-        )
-
-        if not is_hex_value(hex):
-            await interaction.response.send_message(
-                "Invalid hex value provided. Supported range: 000000-ffffff",
-                ephemeral=True,
-            )
-            return
-
-        hex = hex.strip("#").lower()
-        rgb = hex2rgb(hex)
-        nr, ng, nb = invert_rgb(*rgb)
-        new_hex = rgb2hex(nr, ng, nb)
-
-        image = generate_color_image(new_hex)
-        filename = f"{new_hex}.png"
-        file = discord.File(fp=image, filename=filename)
-
-        icon = generate_image_file("CatBot/images/profile.jpg")
-        embed = generate_authored_embed(
-            title=f"Inverted color of #{hex}",
-            description="Here's your inverted color.",
-            color=discord.Color.from_rgb(nr, ng, nb),
-        )
-
-        embed.add_field(name="Hex", value=f"#{hex}")
-        embed.add_field(name="RGB", value=f"{(nr, ng, nb)}")
-
-        key = get_color_key(hex)
-        if key:
-            embed.add_field(name="Color Name", value=key)
-
-        embed.set_image(url=f"attachment://{filename}")
-
-        await interaction.response.send_message(embed=embed, files=(file, icon))
-
-    @invert_group.command(name="name", description="Invert the color name")
-    @app_commands.describe(name="Color name (use /colors for a list of colors)")
-    async def invert_color_name(
-        self, interaction: discord.Interaction, name: str
-    ) -> None:
-        """
-        Invert the color name.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
-        :param name: Color name
-        :type name: str
-        """
-
-        logging.info(
-            "/invert-color name name=%s invoked by %s", repr(name), interaction.user
-        )
-
-        name = name.lower()
-
-        if name not in COLORS:
-            await interaction.response.send_message(
-                "Invalid color name provided. Use /colors for a list of supported colors",
-                ephemeral=True,
-            )
-            return
-
-        hex = COLORS[name]
-        rgb = hex2rgb(hex)
-        nr, ng, nb = invert_rgb(*rgb)
-        new_hex = rgb2hex(nr, ng, nb)
-
-        image = generate_color_image(new_hex)
-        filename = f"{new_hex}.png"
-        file = discord.File(fp=image, filename=filename)
-
-        icon = generate_image_file("CatBot/images/profile.jpg")
-        embed = generate_authored_embed(
-            title=f"Inverted color of #{hex}",
-            description="Here's your inverted color.",
-            color=discord.Color.from_rgb(nr, ng, nb),
-        )
-
-        embed.add_field(name="Hex", value=f"#{hex}")
-        embed.add_field(name="RGB", value=f"{(nr, ng, nb)}")
-
-        key = get_color_key(new_hex)
-        if key:
-            embed.add_field(name="Color Name", value=key)
-
-        embed.set_image(url=f"attachment://{filename}")
-
-        await interaction.response.send_message(embed=embed, files=(file, icon))
-
-
-async def setup(bot: commands.Bot):
-    """
-    Set up the ColorToolsCog.
-
-    :param bot: Bot to add the cog to.
-    :type bot: commands.Bot
+    Translate `hex` into RGB.
+
+    :param hex: Hex value
+    :type hex: str
+    :return: Converted RGB value
+    :rtype: tuple[int, int, int]
     """
 
-    await bot.add_cog(ColorToolsCog(bot))
+    hex = hex.strip("#")
+    return tuple(int(hex[i : i + 2], 16) for i in (0, 2, 4))  # type: ignore
+
+
+def rgb2hex(r: int, g: int, b: int) -> str:
+    """
+    Translate `r`, `g`, and `b` to hex.
+
+    :param r: Red value
+    :type r: int
+    :param g: Green value
+    :type g: int
+    :param b: Blue value
+    :type b: int
+    :return: Converted hex value
+    :rtype: str
+    """
+
+    return f"{r:02x}{g:02x}{b:02x}".lower()
+
+
+def random_hex() -> str:
+    """
+    Generate a random hex value.
+
+    :return: The hex value
+    :rtype: str
+    """
+
+    r, g, b = random_rgb()
+    return rgb2hex(r, g, b)

@@ -35,7 +35,11 @@ class ManagementCog(commands.Cog, name="Management Commands"):
 
         logging.info("ModerationCog loaded")
 
-    @app_commands.command(name="echo", description="Echo a message.")
+    management_group = app_commands.Group(
+        name="mgmt", description="Server management commands"
+    )
+
+    @management_group.command(name="echo", description="Echo a message.")
     @app_commands.describe(
         message="The message to echo.", channel="The channel to send the message."
     )
@@ -59,7 +63,7 @@ class ManagementCog(commands.Cog, name="Management Commands"):
         """
 
         logging.info(
-            "/echo message=%s channel=%s invoked by %s",
+            "/mgmt echo message=%s channel=%s invoked by %s",
             repr(message),
             channel,
             interaction.user,
@@ -84,7 +88,7 @@ class ManagementCog(commands.Cog, name="Management Commands"):
                 channel,
             )
 
-    @app_commands.command(name="dm", description="Send a DM to a user.")
+    @management_group.command(name="dm", description="Send a DM to a user.")
     @app_commands.describe(
         user="User to send the DM to.",
         message="The message to send.",
@@ -105,7 +109,7 @@ class ManagementCog(commands.Cog, name="Management Commands"):
         """
 
         logging.info(
-            "/dm user=%s message=%s invoked by %s",
+            "/mgmt dm user=%s message=%s invoked by %s",
             user,
             repr(message),
             interaction.user,
@@ -122,7 +126,7 @@ class ManagementCog(commands.Cog, name="Management Commands"):
                 "I don't have permission to send DMs to this user.", ephemeral=True
             )
 
-    @app_commands.command(name="announce", description="Announce a message.")
+    @management_group.command(name="announce", description="Announce a message.")
     @app_commands.describe(
         message="The message to announce.",
         channel="The channel to send the message.",
@@ -151,7 +155,7 @@ class ManagementCog(commands.Cog, name="Management Commands"):
         """
 
         logging.info(
-            "/announce message=%s channel=%s ping=%s invoked by %s",
+            "/mgmt announce message=%s channel=%s ping=%s invoked by %s",
             repr(message),
             channel,
             ping,

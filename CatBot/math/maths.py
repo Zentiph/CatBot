@@ -3,6 +3,7 @@ maths.py
 Code for mathematical operations/functions to be used for CatBot's math-related commands.
 """
 
+import cmath
 import logging
 import math
 from re import match as re_match
@@ -61,12 +62,14 @@ class MathCog(commands.Cog, name="Math Commands"):
 
         logging.info("MathCog loaded")
 
+    math_group = app_commands.Group(name="math", description="Math commands")
     dist_group = app_commands.Group(
         name="distance",
-        description="Calculate the distance between two points.",
+        description="Calculate the distance between two points",
+        parent=math_group,
     )
 
-    @app_commands.command(name="add", description="Add two numbers")
+    @math_group.command(name="add", description="Add two numbers")
     @app_commands.describe(x="First number", y="Second number")
     async def add(
         self,
@@ -78,13 +81,11 @@ class MathCog(commands.Cog, name="Math Commands"):
         Add `x` and `y`.
         """
 
-        logging.info("/add x=%s y=%s invoked by %s", x, y, interaction.user)
+        logging.info("/math add x=%s y=%s invoked by %s", x, y, interaction.user)
 
         await interaction.response.send_message(f"{x} + {y} = **{x + y}**")
 
-    @app_commands.command(
-        name="sum", description="Sum up an arbitrary amount of numbers"
-    )
+    @math_group.command(name="sum", description="Sum up an arbitrary amount of numbers")
     @app_commands.describe(numbers="An arbitrary amount of numbers separated by commas")
     async def sum(
         self,
@@ -95,7 +96,9 @@ class MathCog(commands.Cog, name="Math Commands"):
         Sum up the provided numbers.
         """
 
-        logging.info("/sum numbers=%s invoked by %s", repr(numbers), interaction.user)
+        logging.info(
+            "/math sum numbers=%s invoked by %s", repr(numbers), interaction.user
+        )
 
         numbers_list = numbers.replace(" ", "").split(
             ","
@@ -112,7 +115,7 @@ class MathCog(commands.Cog, name="Math Commands"):
             f"{" + ".join(numbers_list)} = **{total}**"
         )
 
-    @app_commands.command(name="sub", description="Subtract two numbers")
+    @math_group.command(name="sub", description="Subtract two numbers")
     @app_commands.describe(x="First number", y="Second number")
     async def sub(
         self,
@@ -124,11 +127,11 @@ class MathCog(commands.Cog, name="Math Commands"):
         Subtract `x` and `y`.
         """
 
-        logging.info("/sub x=%s y=%s invoked by %s", x, y, interaction.user)
+        logging.info("/math sub x=%s y=%s invoked by %s", x, y, interaction.user)
 
         await interaction.response.send_message(f"{x} - {y} = **{x - y}**")
 
-    @app_commands.command(name="mul", description="Multiply two numbers")
+    @math_group.command(name="mul", description="Multiply two numbers")
     @app_commands.describe(
         x="First number",
         y="Second number",
@@ -146,14 +149,18 @@ class MathCog(commands.Cog, name="Math Commands"):
         """
 
         logging.info(
-            "/mul x=%s y=%s ndigits=%s invoked by %s", x, y, ndigits, interaction.user
+            "/math mul x=%s y=%s ndigits=%s invoked by %s",
+            x,
+            y,
+            ndigits,
+            interaction.user,
         )
 
         result = round_on_ndigits(x + y, ndigits)
 
         await interaction.response.send_message(f"{x} * {y} = **{result}**")
 
-    @app_commands.command(
+    @math_group.command(
         name="prod", description="Find the product of an arbitrary amount of numbers"
     )
     @app_commands.describe(
@@ -171,7 +178,7 @@ class MathCog(commands.Cog, name="Math Commands"):
         """
 
         logging.info(
-            "/prod numbers=%s ndigits=%s invoked by %s",
+            "/math prod numbers=%s ndigits=%s invoked by %s",
             repr(numbers),
             ndigits,
             interaction.user,
@@ -195,7 +202,7 @@ class MathCog(commands.Cog, name="Math Commands"):
             f"{" * ".join(numbers_list)} = **{result}**"
         )
 
-    @app_commands.command(name="div", description="Divide two numbers")
+    @math_group.command(name="div", description="Divide two numbers")
     @app_commands.describe(
         x="First number",
         y="Second number",
@@ -213,14 +220,18 @@ class MathCog(commands.Cog, name="Math Commands"):
         """
 
         logging.info(
-            "/div x=%s y=%s ndigits=%s invoked by %s", x, y, ndigits, interaction.user
+            "/math div x=%s y=%s ndigits=%s invoked by %s",
+            x,
+            y,
+            ndigits,
+            interaction.user,
         )
 
         result = round_on_ndigits(x / y, ndigits)
 
         await interaction.response.send_message(f"{x} / {y} = **{result}**")
 
-    @app_commands.command(
+    @math_group.command(
         name="floordiv", description="Divide two numbers and floor the result"
     )
     @app_commands.describe(x="First number", y="Second number")
@@ -234,11 +245,11 @@ class MathCog(commands.Cog, name="Math Commands"):
         Divide `x` and `y` and floor the result.
         """
 
-        logging.info("/floordiv x=%s y=%s invoked by %s", x, y, interaction.user)
+        logging.info("/math floordiv x=%s y=%s invoked by %s", x, y, interaction.user)
 
         await interaction.response.send_message(f"{x} // {y} = **{x // y}**")
 
-    @app_commands.command(
+    @math_group.command(
         name="pow", description="Raise a number to the power of another"
     )
     @app_commands.describe(
@@ -258,16 +269,18 @@ class MathCog(commands.Cog, name="Math Commands"):
         """
 
         logging.info(
-            "/pow x=%s y=%s ndigits=%s invoked by %s", x, y, ndigits, interaction.user
+            "/math pow x=%s y=%s ndigits=%s invoked by %s",
+            x,
+            y,
+            ndigits,
+            interaction.user,
         )
 
         result = round_on_ndigits(x**y, ndigits)
 
         await interaction.response.send_message(f"{x} ^ {y} = **{result}**")
 
-    @app_commands.command(
-        name="mod", description="Calculate the modulus of two numbers"
-    )
+    @math_group.command(name="mod", description="Calculate the modulus of two numbers")
     @app_commands.describe(x="First number", y="Second number")
     async def mod(
         self,
@@ -279,11 +292,11 @@ class MathCog(commands.Cog, name="Math Commands"):
         Calculate the modulus of `x` and `y`.
         """
 
-        logging.info("/mod x=%s y=%s invoked by %s", x, y, interaction.user)
+        logging.info("/math mod x=%s y=%s invoked by %s", x, y, interaction.user)
 
         await interaction.response.send_message(f"{x} % {y} = **{x % y}**")
 
-    @app_commands.command(
+    @math_group.command(
         name="sqrt", description="Calculate the square root of a number"
     )
     @app_commands.describe(
@@ -301,7 +314,7 @@ class MathCog(commands.Cog, name="Math Commands"):
         """
 
         logging.info(
-            "/sqrt x=%s ndigits=%s invoked by %s", x, ndigits, interaction.user
+            "/math sqrt x=%s ndigits=%s invoked by %s", x, ndigits, interaction.user
         )
 
         if x >= 0.0:
@@ -311,9 +324,7 @@ class MathCog(commands.Cog, name="Math Commands"):
 
         await interaction.response.send_message(f"sqrt({x}) = **{result}**")
 
-    @app_commands.command(
-        name="cbrt", description="Calculate the cube root of a number"
-    )
+    @math_group.command(name="cbrt", description="Calculate the cube root of a number")
     @app_commands.describe(
         x="Number to calculate the cube root of",
         ndigits="Number of digits to round the result by",
@@ -329,16 +340,14 @@ class MathCog(commands.Cog, name="Math Commands"):
         """
 
         logging.info(
-            "/cbrt x=%s ndigits=%s invoked by %s", x, ndigits, interaction.user
+            "/math cbrt x=%s ndigits=%s invoked by %s", x, ndigits, interaction.user
         )
 
         result = round_on_ndigits(math.cbrt(x), ndigits)
 
         await interaction.response.send_message(f"cbrt({x}) = **{result}**")
 
-    @app_commands.command(
-        name="nroot", description="Calculate the nth root of a number"
-    )
+    @math_group.command(name="nroot", description="Calculate the nth root of a number")
     @app_commands.describe(
         x="Number to calculate the nth root of",
         n="Root number",
@@ -356,18 +365,33 @@ class MathCog(commands.Cog, name="Math Commands"):
         """
 
         logging.info(
-            "/nroot x=%s n=%s ndigits=%s, invoked by %s",
+            "/math nroot x=%s n=%s ndigits=%s, invoked by %s",
             x,
             n,
             ndigits,
             interaction.user,
         )
 
-        result = round_on_ndigits(x ** (1 / n), ndigits)
+        if n == 0:
+            await interaction.response.send_message(
+                "The root degree (n) must be non-zero.", ephemeral=True
+            )
+            return
+
+        # Negative base, even root; complex result
+        if x < 0 and n % 2 == 0:
+            base_result = cmath.exp(cmath.log(x) / n)
+        # Negative base, odd root; real result
+        elif x < 0:
+            base_result = -abs(x) ** (1 / n)
+        else:
+            base_result = x ** (1 / n)
+
+        result = round_on_ndigits(base_result, ndigits)
 
         await interaction.response.send_message(f"{n}-root({x}) = **{result}**")
 
-    @app_commands.command(
+    @math_group.command(
         name="abs", description="Calculate the absolute value of a number"
     )
     @app_commands.describe(x="Number to calculate the absolute value of")
@@ -376,33 +400,33 @@ class MathCog(commands.Cog, name="Math Commands"):
         Calculate the absolute value of `x`.
         """
 
-        logging.info("/abs x=%s invoked by %s", x, interaction.user)
+        logging.info("/math abs x=%s invoked by %s", x, interaction.user)
 
         await interaction.response.send_message(f"abs({x}) = **{abs(x)}**")
 
-    @app_commands.command(name="ceil", description="Calculate the ceiling of a number")
+    @math_group.command(name="ceil", description="Calculate the ceiling of a number")
     @app_commands.describe(x="Number to calculate the ceiling of")
     async def ceil(self, interaction: discord.Interaction, x: float) -> None:
         """
         Calculate the ceiling of `x`.
         """
 
-        logging.info("/ceil x=%s invoked by %s", x, interaction.user)
+        logging.info("/math ceil x=%s invoked by %s", x, interaction.user)
 
         await interaction.response.send_message(f"ceil({x}) = **{math.ceil(x)}**")
 
-    @app_commands.command(name="floor", description="Calculate the floor of a number")
+    @math_group.command(name="floor", description="Calculate the floor of a number")
     @app_commands.describe(x="Number to calculate the floor of")
     async def floor(self, interaction: discord.Interaction, x: float) -> None:
         """
         Calculate the floor of `x`.
         """
 
-        logging.info("/floor x=%s invoked by %s", x, interaction.user)
+        logging.info("/math floor x=%s invoked by %s", x, interaction.user)
 
         await interaction.response.send_message(f"floor({x}) = **{math.floor(x)}**")
 
-    @app_commands.command(
+    @math_group.command(
         name="round", description="Round a number to the specified number of digits"
     )
     @app_commands.describe(x="Number to round", ndigits="Number of digits to round to")
@@ -414,14 +438,14 @@ class MathCog(commands.Cog, name="Math Commands"):
         """
 
         logging.info(
-            "/round x=%s ndigits=%s invoked by %s", x, ndigits, interaction.user
+            "/math round x=%s ndigits=%s invoked by %s", x, ndigits, interaction.user
         )
 
         await interaction.response.send_message(
             f"{x} rounded to {ndigits} decimal places: **{round(x, ndigits)}**)"
         )
 
-    @app_commands.command(name="log", description="Calculate the logarithm of a number")
+    @math_group.command(name="log", description="Calculate the logarithm of a number")
     @app_commands.describe(
         x="Number to calculate the logarithm of",
         base="Base of the logarithm; if empty, defaults to base e (natural logarithm)",
@@ -439,7 +463,7 @@ class MathCog(commands.Cog, name="Math Commands"):
         """
 
         logging.info(
-            "/log x=%s base=%s ndigits=%s invoked by %s",
+            "/math log x=%s base=%s ndigits=%s invoked by %s",
             x,
             base,
             ndigits,
@@ -456,7 +480,7 @@ class MathCog(commands.Cog, name="Math Commands"):
 
         await interaction.response.send_message(f"log{base}({x}) = **{result}**")
 
-    @app_commands.command(
+    @math_group.command(
         name="gcd",
         description="Calculate the greatest common divisor/denominator (GCD) of two numbers",
     )
@@ -471,11 +495,11 @@ class MathCog(commands.Cog, name="Math Commands"):
         Calculate the greatest common divisor of `x` and `y`.
         """
 
-        logging.info("/gcd x=%s y=%s invoked by %s", x, y, interaction.user)
+        logging.info("/math gcd x=%s y=%s invoked by %s", x, y, interaction.user)
 
         await interaction.response.send_message(f"gcd({x}, {y}) = **{math.gcd(x, y)}**")
 
-    @app_commands.command(
+    @math_group.command(
         name="gcd-bulk",
         description="Calculate the greatest common divisor/denominator "
         + "(GCD) of an arbitrary amount of numbers",
@@ -491,7 +515,7 @@ class MathCog(commands.Cog, name="Math Commands"):
         """
 
         logging.info(
-            "/gcd-bulk numbers=%s invoked by %s", repr(numbers), interaction.user
+            "/math gcd-bulk numbers=%s invoked by %s", repr(numbers), interaction.user
         )
 
         numbers_list = numbers.replace(" ", "").split(
@@ -517,7 +541,7 @@ class MathCog(commands.Cog, name="Math Commands"):
             f"gcd({", ".join(numbers_list)}) = **{gcd}**"
         )
 
-    @app_commands.command(
+    @math_group.command(
         name="lcm",
         description="Calculate the least common multiple (LCM) of two numbers",
     )
@@ -532,10 +556,10 @@ class MathCog(commands.Cog, name="Math Commands"):
         Calculate the least common multiple of `x` and `y`.
         """
 
-        logging.info("/lcm x=%s y=%s invoked by %s", x, y, interaction.user)
+        logging.info("/math lcm x=%s y=%s invoked by %s", x, y, interaction.user)
         await interaction.response.send_message(f"lcm({x}, {y}) = **{math.lcm(x, y)}**")
 
-    @app_commands.command(
+    @math_group.command(
         name="lcm-bulk",
         description="Calculate the least common multiple (LCM) of an arbitrary amount of numbers",
     )
@@ -550,7 +574,7 @@ class MathCog(commands.Cog, name="Math Commands"):
         """
 
         logging.info(
-            "/lcm-bulk numbers=%s invoked by %s", repr(numbers), interaction.user
+            "/math lcm-bulk numbers=%s invoked by %s", repr(numbers), interaction.user
         )
 
         numbers_list = numbers.replace(" ", "").split(
@@ -601,7 +625,7 @@ class MathCog(commands.Cog, name="Math Commands"):
         """
 
         logging.info(
-            "/distance cartesian-2d x1=%s y1=%s x2=%s y2=%s ndigits=%s invoked by %s",
+            "/math distance cartesian-2d x1=%s y1=%s x2=%s y2=%s ndigits=%s invoked by %s",
             x1,
             y1,
             x2,
@@ -645,7 +669,7 @@ class MathCog(commands.Cog, name="Math Commands"):
         """
 
         logging.info(
-            "/distance cartesian-3d x1=%s y1=%s z1=%s x2=%s y2=%s z2=%s ndigits=%s invoked by %s",
+            "/math distance cartesian-3d x1=%s y1=%s z1=%s x2=%s y2=%s z2=%s ndigits=%s invoked by %s",
             x1,
             y1,
             z1,
@@ -664,7 +688,7 @@ class MathCog(commands.Cog, name="Math Commands"):
             f"distance(({x1}, {y1}, {z1}), ({x2}, {y2}, {z2})) = **{result}**"
         )
 
-    @app_commands.command(
+    @math_group.command(
         name="factorial", description="Calculate the factorial of a number"
     )
     @app_commands.describe(x="Number to calculate the factorial of")
@@ -673,7 +697,7 @@ class MathCog(commands.Cog, name="Math Commands"):
         Calculate the factorial of a number.
         """
 
-        logging.info("/factorial x=%s invoked by %s", x, interaction.user)
+        logging.info("/math factorial x=%s invoked by %s", x, interaction.user)
 
         if x < 0:
             await interaction.response.send_message(

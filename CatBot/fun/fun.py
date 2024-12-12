@@ -3,7 +3,6 @@ fun.py
 Fun commands for CatBot.
 """
 
-#  * coin flip
 #  * mini games (tic tac toe, etc)
 #  * /time {timezone}
 #  * /cat-pic
@@ -12,18 +11,41 @@ Fun commands for CatBot.
 
 import logging
 import random
-
-from sys import maxsize
-from typing import Optional
+from datetime import datetime
+from platform import platform
+from sys import version_info
+from typing import List
 
 import discord
 from discord import app_commands
 from discord.ext import commands
+from psutil import Process
 
-from ..internal_utils import generate_authored_embed, generate_image_file
+from ..bot_init import VERSION
+from ..help import PRIVATE, PUBLIC
+from ..internal_utils import START_TIME, generate_authored_embed, generate_image_file
 
-MAX_INT = maxsize
-MIN_INT = -maxsize - 1
+# A bit redundant, but helps readability.
+SECONDS_PER_HOUR = 3600
+SECONDS_PER_MINUTE = 60
+HOURS_PER_DAY = 24
+MINUTES_PER_HOUR = 60
+MICROSECONDS_PER_SECOND = 1000000
+
+
+def get_dependencies() -> str:
+    """
+    Get the dependencies used by CatBot.
+
+    :return: A string representation of the dependencies used by CatBot
+    :rtype: str
+    """
+
+    dependencies: List[str] = []
+    with open("requirements.txt", encoding="utf8") as file:
+        for line in file:
+            dependencies.append(line.strip())
+    return ", ".join(dependencies)
 
 
 # pylint: disable=too-many-public-methods
@@ -43,310 +65,79 @@ class FunCog(commands.Cog, name="Fun Commands"):
 
         logging.info("FunCog loaded")
 
-    random_group = app_commands.Group(
-        name="random", description="Generate random values"
-    )
-
-    @random_group.command(name="integer", description="Generate a random integer")
-    @app_commands.describe(
-        a="The left endpoint",
-        b="The right endpoint",
-        seed="Optional seed to use when generating the value",
-    )
-    async def random_integer(
-        self,
-        interaction: discord.Interaction,
-        a: int = 0,
-        b: int = 10,
-        seed: Optional[str] = None,
-    ) -> None:
+    @app_commands.command(name="stats", description="Get stats about the bot")
+    async def stats(self, interaction: discord.Interaction) -> None:
         """
-        Generate a random integer in [`a`, `b`].
+        Report general stats about the bot.
 
         :param interaction: Interaction instance
         :type interaction: discord.Interaction
-        :param a: First endpoint, defaults to 0
-        :type a: int, optional
-        :param b: Second endpoint, defaults to 10
-        :type b: int, optional
-        :param seed: Optional seed to use when generating the value, defaults to None
-        :type seed: Optional[str], optional
         """
 
-        logging.info(
-            "/random integer a=%s b=%s seed=%s invoked by %s",
-            a,
-            b,
-            seed,
-            interaction.user,
+        logging.info("/stats invoked by %s", interaction.user)
+
+        servers = str(len(self.bot.guilds))
+        uptime = datetime.now() - START_TIME
+        days = uptime.days
+        # We use modulo here to make sure the number of hours is less than 24,
+        # essentially ignoring all hours except for the ones left over after the days.
+        hours = (uptime.seconds // SECONDS_PER_HOUR) % HOURS_PER_DAY
+        # We do the same thing here with minutes as well.
+        minutes = (uptime.seconds // SECONDS_PER_MINUTE) % MINUTES_PER_HOUR
+        # And seconds.
+        seconds = uptime.seconds % SECONDS_PER_MINUTE
+        # And microseconds.
+        microseconds = uptime.microseconds % MICROSECONDS_PER_SECOND
+
+        memory_usage = Process().memory_info().rss / 1024**2  # bytes -> MiB
+        host = platform()
+        python_version = (
+            f"{version_info.major}.{version_info.minor}.{version_info.micro}"
         )
-
-        if a > b:
-            await interaction.response.send_message(
-                "The left endpoint cannot be greater than the right endpoint!",
-                ephemeral=True,
-            )
-            return
-
-        if seed is not None:
-            random.seed(seed)
+        discord_py_version = (
+            f"{discord.version_info.major}.{discord.version_info.minor}"
+            + f".{discord.version_info.micro}"
+        )
 
         icon = generate_image_file("CatBot/images/profile.jpg")
         embed = generate_authored_embed(
-            title="Random Integer",
-            description="Here's your randomly generated integer.",
+            title="CatBot Stats", description="Here's some statistics about myself."
         )
+        embed.add_field(name="Version", value=VERSION)
+        embed.add_field(name="Servers", value=servers)
         embed.add_field(
-            name="Random Value",
-            value=random.randint(a, b),
+            name="Uptime",
+            value=f"{days} days, {hours} hours, {minutes} minutes, "
+            + f"{seconds} seconds, {microseconds} microseconds",
             inline=False,
         )
+        embed.add_field(name="Public Commands", value=len(PUBLIC))
+        embed.add_field(name="Private Commands", value=len(PRIVATE))
         embed.add_field(
-            name="Interval",
-            value=f"[{a}, {b}]",
-            inline=False,
+            name="Memory Usage", value=f"{round(memory_usage, 2)} MiB", inline=False
         )
-        embed.add_field(
-            name="Seed",
-            value=seed,
-            inline=False,
-        )
+        embed.add_field(name="Language", value="Python")
+        embed.add_field(name="Language Version", value=python_version)
+        embed.add_field(name="Package", value="discord.py")
+        embed.add_field(name="Package Version", value=discord_py_version)
+        embed.add_field(name="Dependencies", value=get_dependencies())
+        embed.add_field(name="Host", value=host, inline=False)
 
         await interaction.response.send_message(embed=embed, file=icon)
 
-    @random_group.command(
-        name="decimal", description="Generate a random decimal number (float)"
-    )
-    @app_commands.describe(
-        a="The left endpoint",
-        b="The right endpoint",
-        seed="Optional seed to use when generating the value",
-    )
-    async def random_decimal(
-        self,
-        interaction: discord.Interaction,
-        a: float = 0.0,
-        b: float = 1.0,
-        seed: Optional[str] = None,
-    ) -> None:
-        """
-        Generate a random decimal in [`a`, `b`].
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
-        :param a: First endpoint, defaults to None
-        :type a: float, optional
-        :param b: Second endpoint, defaults to None
-        :type b: float, optional
-        :param seed: Optional seed to use when generating the value, defaults to None
-        :type seed: Optional[str], optional
-        """
-
-        logging.info(
-            "/random decimal a=%s b=%s seed=%s invoked by %s",
-            a,
-            b,
-            seed,
-            interaction.user,
-        )
-
-        if a > b:
-            await interaction.response.send_message(
-                "The left endpoint cannot be greater than the right endpoint!",
-                ephemeral=True,
-            )
-            return
-
-        if seed is not None:
-            random.seed(seed)
-
-        number = random.uniform(a, b)
-        numerator, denominator = number.as_integer_ratio()
-
-        icon = generate_image_file("CatBot/images/profile.jpg")
-        embed = generate_authored_embed(
-            title="Random Decimal",
-            description="Here's your randomly generated decimal number.",
-        )
-        embed.add_field(name="Random Value", value=number)
-        embed.add_field(name="As Fraction", value=f"{numerator} / {denominator}")
-        embed.add_field(
-            name="Interval",
-            value=f"[{a}, {b}]",
-            inline=False,
-        )
-        embed.add_field(
-            name="Seed",
-            value=seed,
-            inline=False,
-        )
-
-        await interaction.response.send_message(embed=embed, file=icon)
-
-    @random_group.command(
-        name="choice",
-        description="Choose a value from a list of values separated by commas",
-    )
-    @app_commands.describe(
-        values="A list of values separated by commas",
-        choices="Number of choices to make",
-        duplicates="Whether duplicate choices are allowed",
-        seed="Optional seed to use when generating the value(s)",
-    )
-    async def random_choice(  # pylint: disable=too-many-arguments
-        self,
-        interaction: discord.Interaction,
-        values: str,
-        choices: int = 1,
-        duplicates: bool = True,
-        seed: Optional[str] = None,
-    ) -> None:
-        """
-        Pick `choices` random items from `values`.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
-        :param values: A list of values separated by commas
-        :type values: str
-        :param choices: The number of choices to make, defaults to 1
-        :type choices: int
-        :param duplicates: Whether duplicate choices are allowed, defaults to True
-        :type duplicates: bool, optional
-        :param seed: Optional seed to use when generating the value, defaults to None
-        :type seed: Optional[str], optional
-        """
-
-        logging.info(
-            "/random choice values=%s choices=%s duplicates=%s seed=%s invoked by %s",
-            repr(values),
-            choices,
-            duplicates,
-            seed,
-            interaction.user,
-        )
-
-        values_list = values.split(",")
-
-        if any(s == "" for s in values_list):
-            await interaction.response.send_message(
-                "Invalid input. Please provide a list of values separated by commas.",
-                ephemeral=True,
-            )
-            return
-
-        if seed is not None:
-            random.seed(seed)
-
-        if duplicates:
-            picked_choices = random.choices(values_list, k=choices)
-        else:
-            picked_choices = random.sample(values_list, k=choices)
-
-        icon = generate_image_file("CatBot/images/profile.jpg")
-        embed = generate_authored_embed(
-            title="Random Choice(s)",
-            description="Here's your randomly selected choice(s) from the values you gave.",
-        )
-        embed.add_field(
-            name="Random Choice(s)",
-            value=", ".join(picked_choices),
-            inline=False,
-        )
-        embed.add_field(
-            name="Original Values",
-            value=", ".join(values_list),
-            inline=False,
-        )
-        embed.add_field(
-            name="Seed",
-            value=seed,
-            inline=False,
-        )
-
-        await interaction.response.send_message(embed=embed, file=icon)
-
-    @app_commands.command(
-        name="shuffle",
-        description="Shuffle a list of values separated by commas",
-    )
-    @app_commands.describe(
-        values="A list of values separated by commas",
-        seed="Optional seed to use when generating the value",
-    )
-    async def shuffle(
-        self,
-        interaction: discord.Interaction,
-        values: str,
-        seed: Optional[str] = None,
-    ) -> None:
-        """
-        Shuffle `values`.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
-        :param values: A list of values separated by commas
-        :type values: str
-        :param seed: Optional seed to use when generating the value, defaults to None
-        :type seed: Optional[str], optional
-        """
-
-        logging.info(
-            "/shuffle values=%s seed=%s invoked by %s",
-            repr(values),
-            seed,
-            interaction.user,
-        )
-
-        values_list = values.split(",")
-        original_values = values.split(",")
-
-        if any(s == "" for s in values_list):
-            await interaction.response.send_message(
-                "Invalid input. Please provide a list of values separated by commas.",
-                ephemeral=True,
-            )
-            return
-
-        if seed is not None:
-            random.seed(seed)
-
-        random.shuffle(values_list)
-
-        icon = generate_image_file("CatBot/images/profile.jpg")
-        embed = generate_authored_embed(
-            title="Shuffled Values",
-            description="Here's your randomly shuffled values from the values you gave.",
-        )
-        embed.add_field(
-            name="Shuffled Values",
-            value=", ".join(values_list),
-            inline=False,
-        )
-        embed.add_field(
-            name="Original Values",
-            value=", ".join(original_values),
-            inline=False,
-        )
-        embed.add_field(
-            name="Seed",
-            value=seed,
-            inline=False,
-        )
-
-        await interaction.response.send_message(embed=embed, file=icon)
-
+    # While this is a random command, it's more fun as it uses
+    # custom images and is more generally used.
+    # Also, since most fun commands aren't grouped,
+    # this is easier to find which is ideal.
     @app_commands.command(name="flip-coin", description="Flip a coin")
     async def flip_coin(self, interaction: discord.Interaction) -> None:
         """
         Flip a coin.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
         """
 
         logging.info("/flip-coin invoked by %s", interaction.user)
 
-        heads = bool(random.randint(0, 1))
+        heads = random.randint(0, 1)
 
         icon = generate_image_file("CatBot/images/profile.jpg")
 
