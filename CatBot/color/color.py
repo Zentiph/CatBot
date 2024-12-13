@@ -8,14 +8,14 @@ Color assignment cog for CatBot.
 
 import logging
 from io import BytesIO
-from typing import Dict, Literal, Union
+from typing import Dict, Literal, Tuple, Union
 
 import discord
 from discord import app_commands
 from discord.ext import commands
 from PIL import Image
 
-from ..internal_utils import generate_authored_embed, generate_image_file
+from ..internal_utils import generate_authored_embed_with_icon
 from .color_tools import (
     BLUES,
     BROWNS,
@@ -518,7 +518,9 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             "/color color-list group=%s invoked by %s", group, interaction.user
         )
 
-        def generate_embed(name: str, group: Dict[str, str]) -> discord.Embed:
+        def generate_embed(
+            name: str, group: Dict[str, str]
+        ) -> Tuple[discord.Embed, discord.File]:
             """
             Generate a color embed with the given group info.
 
@@ -526,16 +528,16 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             :type name: str
             :param group: Group dict
             :type group: Dict[str, str]
-            :return: Color embed
-            :rtype: discord.Embed
+            :return: Color embed and icon
+            :rtype: Tuple[discord.Embed, discord.File]
             """
 
             color = group[name]
 
-            embed = generate_authored_embed(
-                title=name.title() + " Colors",
-                description=f"Here's a list of supported {name} color names.",
-                color=discord.Color(int(color, 16)),
+            embed, icon = generate_authored_embed_with_icon(
+                embed_title=name.title() + " Colors",
+                embed_description=f"Here's a list of supported {name} color names.",
+                embed_color=discord.Color(int(color, 16)),
             )
 
             colors = ""
@@ -543,10 +545,9 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
                 colors += f"{name_.title()}  -  #{value}\n"
 
             embed.add_field(name=f"{name.title()} Colors", value=colors)
-            return embed
+            return embed, icon
 
-        embed = generate_embed(group, group_map[group])
-        icon = generate_image_file("CatBot/images/profile.jpg")
+        embed, icon = generate_embed(group, group_map[group])
         await interaction.response.send_message(embed=embed, file=icon)
 
     @info_group.command(name="rgb", description="Get info about an RGB color")
@@ -584,11 +585,10 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         filename = f"{hex}.png"
         file = discord.File(fp=image, filename=filename)
 
-        icon = generate_image_file("CatBot/images/profile.jpg")
-        embed = generate_authored_embed(
-            title=f"{(r, g, b)} Info",
-            description="Here's some information about your color.",
-            color=discord.Color.from_rgb(r, g, b),
+        embed, icon = generate_authored_embed_with_icon(
+            embed_title=f"{(r, g, b)} Info",
+            embed_description="Here's some information about your color.",
+            embed_color=discord.Color.from_rgb(r, g, b),
         )
 
         embed.add_field(name="Hex", value=f"#{hex}")
@@ -630,11 +630,10 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         filename = f"{hex}.png"
         file = discord.File(fp=image, filename=filename)
 
-        icon = generate_image_file("CatBot/images/profile.jpg")
-        embed = generate_authored_embed(
-            title=f"#{hex} Info",
-            description="Here's some information about your color.",
-            color=discord.Color.from_rgb(r, g, b),
+        embed, icon = generate_authored_embed_with_icon(
+            embed_title=f"#{hex} Info",
+            embed_description="Here's some information about your color.",
+            embed_color=discord.Color.from_rgb(r, g, b),
         )
 
         embed.add_field(name="RGB", value=f"{(r, g, b)}")
@@ -680,11 +679,10 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         filename = f"{hex}.png"
         file = discord.File(fp=image, filename=filename)
 
-        icon = generate_image_file("CatBot/images/profile.jpg")
-        embed = generate_authored_embed(
-            title=f"{name.title()} Info",
-            description="Here's some information about your color.",
-            color=discord.Color.from_rgb(r, g, b),
+        embed, icon = generate_authored_embed_with_icon(
+            embed_title=f"{name.title()} Info",
+            embed_description="Here's some information about your color.",
+            embed_color=discord.Color.from_rgb(r, g, b),
         )
 
         embed.add_field(name="Hex", value=f"#{hex}")
@@ -721,11 +719,10 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         filename = f"{hex}.png"
         file = discord.File(fp=image, filename=filename)
 
-        icon = generate_image_file("CatBot/images/profile.jpg")
-        embed = generate_authored_embed(
-            title=f"{role.name} Color Info",
-            description="Here's some information about your role's color.",
-            color=role.color,
+        embed, icon = generate_authored_embed_with_icon(
+            embed_title=f"{role.name} Color Info",
+            embed_description="Here's some information about your role's color.",
+            embed_color=role.color,
         )
 
         embed.add_field(name="Hex", value=f"#{hex}")
@@ -762,11 +759,10 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         filename = f"{hex}.png"
         file = discord.File(fp=image, filename=filename)
 
-        icon = generate_image_file("CatBot/images/profile.jpg")
-        embed = generate_authored_embed(
-            title="Random Color",
-            description="Here's your randomly generated color.",
-            color=discord.Color.from_rgb(r, g, b),
+        embed, icon = generate_authored_embed_with_icon(
+            embed_title="Random Color",
+            embed_description="Here's your randomly generated color.",
+            embed_color=discord.Color.from_rgb(r, g, b),
         )
 
         embed.add_field(name="RGB", value=f"{(r, g, b)}")
@@ -817,16 +813,10 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         filename = f"{hex}.png"
         file = discord.File(fp=image, filename=filename)
 
-        embed = discord.Embed(
-            title=f"Inverted color of ({r}, {g}, {b})",
-            description="Here's your inverted color.",
-            color=discord.Color.from_rgb(nr, ng, nb),
-        )
-        icon = generate_image_file("CatBot/images/profile.jpg")
-        embed = generate_authored_embed(
-            title=f"Inverted color of ({r}, {g}, {b})",
-            description="Here's your inverted color.",
-            color=discord.Color.from_rgb(nr, ng, nb),
+        embed, icon = generate_authored_embed_with_icon(
+            embed_title=f"Inverted color of ({r}, {g}, {b})",
+            embed_description="Here's your inverted color.",
+            embed_color=discord.Color.from_rgb(nr, ng, nb),
         )
 
         embed.add_field(name="RGB", value=f"{(nr, ng, nb)}")
@@ -872,11 +862,10 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         filename = f"{new_hex}.png"
         file = discord.File(fp=image, filename=filename)
 
-        icon = generate_image_file("CatBot/images/profile.jpg")
-        embed = generate_authored_embed(
-            title=f"Inverted color of #{hex}",
-            description="Here's your inverted color.",
-            color=discord.Color.from_rgb(nr, ng, nb),
+        embed, icon = generate_authored_embed_with_icon(
+            embed_title=f"Inverted color of #{hex}",
+            embed_description="Here's your inverted color.",
+            embed_color=discord.Color.from_rgb(nr, ng, nb),
         )
 
         embed.add_field(name="Hex", value=f"#{hex}")
@@ -926,11 +915,10 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         filename = f"{new_hex}.png"
         file = discord.File(fp=image, filename=filename)
 
-        icon = generate_image_file("CatBot/images/profile.jpg")
-        embed = generate_authored_embed(
-            title=f"Inverted color of #{hex}",
-            description="Here's your inverted color.",
-            color=discord.Color.from_rgb(nr, ng, nb),
+        embed, icon = generate_authored_embed_with_icon(
+            embed_title=f"Inverted color of #{hex}",
+            embed_description="Here's your inverted color.",
+            embed_color=discord.Color.from_rgb(nr, ng, nb),
         )
 
         embed.add_field(name="Hex", value=f"#{hex}")

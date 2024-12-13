@@ -3,9 +3,13 @@ A collective history of all the changes made to CatBot.
 
 ## v0.9.0
 * Added datetime module
-  * /datetime
-  *
+  * /date-time date-time
+  * /date-time date
+  * /date-time time
+  * /date-time weekday
+  * /date-time days-until
 * Refactored command names/groups to better organize commands
+* Grouped icon and authored embed generation into one function
 * Merged color modules into one module
 * Fixed math module /nroot command complex arithmetic
 * Added --coloredlogs CLI arg

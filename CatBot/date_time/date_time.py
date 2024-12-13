@@ -5,14 +5,43 @@ Date and time related commands.
 
 import datetime
 import logging
+from typing import Literal
 
 import discord
 import pytz
 from discord import app_commands
 from discord.ext import commands
 
-from ..internal_utils import generate_authored_embed, generate_image_file
-from .dt_formatting import format_date, format_datetime, format_time
+from ..internal_utils import generate_authored_embed_with_icon
+from .dt_formatting import (
+    NUMBER_TO_DAY,
+    NUMBER_TO_MONTH,
+    format_date,
+    format_datetime,
+    format_time,
+)
+
+INVALID_TIMEZONE_MESSAGE = (
+    "You have entered an invalid timezone.\n"
+    + "A list of valid timezones can be found here: "
+    + "https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568",
+)
+
+Month = Literal[
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+]
+Meridiem = Literal["AM", "PM"]
 
 
 # pylint: disable=too-many-public-methods
@@ -74,18 +103,10 @@ class DateTimeCog(commands.Cog, name="Date & Time Commands"):
         timezone = timezone.strip()
         if timezone.lower() not in (tz.lower() for tz in pytz.all_timezones):
             await interaction.response.send_message(
-                "You have entered an invalid timezone.\n"
-                + "A list of valid timezones can be found here: "
-                + "https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568",
+                INVALID_TIMEZONE_MESSAGE,
                 ephemeral=True,
             )
             return
-
-        icon = generate_image_file("CatBot/images/profile.jpg")
-        embed = generate_authored_embed(
-            title="Date & Time",
-            description="Here's the current date & time info you requested.",
-        )
 
         timezone_location = [tz.lower() for tz in pytz.all_timezones].index(
             timezone.lower()
@@ -93,12 +114,16 @@ class DateTimeCog(commands.Cog, name="Date & Time Commands"):
         correct_spelling = pytz.all_timezones[timezone_location]
 
         found_datetime = datetime.datetime.now(pytz.timezone(correct_spelling))
+        local_datetime = datetime.datetime.now()
+
+        embed, icon = generate_authored_embed_with_icon(
+            embed_title="Date & Time",
+            embed_description="Here's the current date & time info you requested.",
+        )
         embed.add_field(
             name=f"Given Time Zone Date & Time\n({correct_spelling})",
             value=format_datetime(found_datetime, military_time, seconds, microseconds),
         )
-
-        local_datetime = datetime.datetime.now()
         embed.add_field(
             name=f"Bot Local Date & Time\n({local_datetime.astimezone().tzname()})",
             value=format_datetime(local_datetime, military_time, seconds, microseconds),
@@ -139,18 +164,10 @@ class DateTimeCog(commands.Cog, name="Date & Time Commands"):
         timezone = timezone.strip()
         if timezone.lower() not in (tz.lower() for tz in pytz.all_timezones):
             await interaction.response.send_message(
-                "You have entered an invalid timezone.\n"
-                + "A list of valid timezones can be found here: "
-                + "https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568",
+                INVALID_TIMEZONE_MESSAGE,
                 ephemeral=True,
             )
             return
-
-        icon = generate_image_file("CatBot/images/profile.jpg")
-        embed = generate_authored_embed(
-            title="Date & Time",
-            description="Here's the current date & time info you requested.",
-        )
 
         timezone_location = [tz.lower() for tz in pytz.all_timezones].index(
             timezone.lower()
@@ -158,13 +175,17 @@ class DateTimeCog(commands.Cog, name="Date & Time Commands"):
         correct_spelling = pytz.all_timezones[timezone_location]
 
         found_date = datetime.datetime.now(pytz.timezone(correct_spelling)).date()
+        local_datetime = datetime.datetime.now()
+        local_date = local_datetime.date()
+
+        embed, icon = generate_authored_embed_with_icon(
+            embed_title="Date & Time",
+            embed_description="Here's the current date & time info you requested.",
+        )
         embed.add_field(
             name=f"Given Time Zone Date\n({correct_spelling})",
             value=format_date(found_date),
         )
-
-        local_datetime = datetime.datetime.now()
-        local_date = local_datetime.date()
         embed.add_field(
             name=f"Bot Local Date\n({local_datetime.astimezone().tzname()})",
             value=format_date(local_date),
@@ -208,18 +229,10 @@ class DateTimeCog(commands.Cog, name="Date & Time Commands"):
         timezone = timezone.strip()
         if timezone.lower() not in (tz.lower() for tz in pytz.all_timezones):
             await interaction.response.send_message(
-                "You have entered an invalid timezone.\n"
-                + "A list of valid timezones can be found here: "
-                + "https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568",
+                INVALID_TIMEZONE_MESSAGE,
                 ephemeral=True,
             )
             return
-
-        icon = generate_image_file("CatBot/images/profile.jpg")
-        embed = generate_authored_embed(
-            title="Date & Time",
-            description="Here's the current date & time info you requested.",
-        )
 
         timezone_location = [tz.lower() for tz in pytz.all_timezones].index(
             timezone.lower()
@@ -227,13 +240,17 @@ class DateTimeCog(commands.Cog, name="Date & Time Commands"):
         correct_spelling = pytz.all_timezones[timezone_location]
 
         found_time = datetime.datetime.now(pytz.timezone(correct_spelling)).time()
+        local_datetime = datetime.datetime.now()
+        local_time = local_datetime.time()
+
+        embed, icon = generate_authored_embed_with_icon(
+            embed_title="Date & Time",
+            embed_description="Here's the current date & time info you requested.",
+        )
         embed.add_field(
             name=f"Given Time Zone Time\n({correct_spelling})",
             value=format_time(found_time, military_time, seconds, microseconds),
         )
-
-        local_datetime = datetime.datetime.now()
-        local_time = local_datetime.time()
         embed.add_field(
             name=f"Bot Local Time\n({local_datetime.astimezone().tzname()})",
             value=format_time(local_time, military_time, seconds, microseconds),
@@ -243,6 +260,90 @@ class DateTimeCog(commands.Cog, name="Date & Time Commands"):
             value=f"24-Hour Time: {military_time}\nSeconds Included: "
             + f"{seconds or microseconds}\nMicroseconds Included: {microseconds}",
             inline=False,
+        )
+
+        await interaction.followup.send(embed=embed, file=icon)
+
+    @datetime_group.command(name="weekday", description="Get the weekday of a date")
+    @app_commands.describe(
+        month="Month of the year", day="Day of the month", year="Year"
+    )
+    async def weekday(
+        self, interaction: discord.Interaction, month: Month, day: int, year: int
+    ) -> None:
+        """
+        Get the weekday based on the date given.
+        """
+
+        logging.info(
+            "/date-time weekday month=%s day=%s year=%s invoked by %s",
+            month,
+            day,
+            year,
+            interaction.user,
+        )
+
+        try:
+            date = datetime.date(year, NUMBER_TO_MONTH.index(month), day)
+        except ValueError:  # Date creation failed due to invalid values
+            await interaction.response.send_message(
+                "Invalid date entered.", ephemeral=True
+            )
+            return
+
+        embed, icon = generate_authored_embed_with_icon(
+            embed_title=f"Weekday on {month} {day}, {year}",
+            embed_description="Here's the weekday on the date you provided.",
+        )
+        embed.add_field(name="Weekday", value=NUMBER_TO_DAY[date.weekday()])
+
+        await interaction.response.send_message(embed=embed, file=icon)
+
+    @datetime_group.command(
+        name="days-until",
+        description="Find how many days are left until a certain date",
+    )
+    @app_commands.describe(
+        month="Month of the year", day="Day of the month", year="Year"
+    )
+    async def days_until(
+        self,
+        interaction: discord.Interaction,
+        month: Month,
+        day: int,
+        year: int,
+    ) -> None:
+        """
+        Calculate the number of days until the specified date.
+        """
+
+        logging.info(
+            "/date-time days-until month=%s day=%s year=%s invoked by %s",
+            month,
+            day,
+            year,
+            interaction.user,
+        )
+
+        await interaction.response.defer(thinking=True)
+
+        try:
+            date = datetime.date(year, NUMBER_TO_MONTH.index(month), day)
+        except ValueError:  # Datetime creation failed due to invalid values
+            await interaction.response.send_message(
+                "Invalid date entered.", ephemeral=True
+            )
+            return
+
+        now = datetime.datetime.now().date()
+        delta = date - now
+
+        embed, icon = generate_authored_embed_with_icon(
+            embed_title="Day Difference",
+            embed_description="Here's the number of days until the date you requested.",
+        )
+        embed.add_field(
+            name=f"Days Until {month} {day}, {year}", value=f"{delta.days} days"
         )
 
         await interaction.followup.send(embed=embed, file=icon)

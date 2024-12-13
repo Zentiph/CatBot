@@ -18,7 +18,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from ..internal_utils import generate_authored_embed, generate_image_file
+from ..internal_utils import generate_authored_embed_with_icon
 
 MAX_INT = maxsize
 MIN_INT = -maxsize - 1
@@ -80,10 +80,9 @@ class RandomCog(commands.Cog, name="Random Commands"):
         if seed is not None:
             random.seed(seed)
 
-        icon = generate_image_file("CatBot/images/profile.jpg")
-        embed = generate_authored_embed(
-            title="Random Integer",
-            description="Here's your randomly generated integer.",
+        embed, icon = generate_authored_embed_with_icon(
+            embed_title="Random Integer",
+            embed_description="Here's your randomly generated integer.",
         )
         embed.add_field(
             name="Random Value",
@@ -143,10 +142,9 @@ class RandomCog(commands.Cog, name="Random Commands"):
         number = random.uniform(a, b)
         numerator, denominator = number.as_integer_ratio()
 
-        icon = generate_image_file("CatBot/images/profile.jpg")
-        embed = generate_authored_embed(
-            title="Random Decimal",
-            description="Here's your randomly generated decimal number.",
+        embed, icon = generate_authored_embed_with_icon(
+            embed_title="Random Decimal",
+            embed_description="Here's your randomly generated decimal number.",
         )
         embed.add_field(name="Random Value", value=number)
         embed.add_field(name="As Fraction", value=f"{numerator} / {denominator}")
@@ -211,10 +209,9 @@ class RandomCog(commands.Cog, name="Random Commands"):
         else:
             picked_choices = random.sample(values_list, k=choices)
 
-        icon = generate_image_file("CatBot/images/profile.jpg")
-        embed = generate_authored_embed(
-            title="Random Choice(s)",
-            description="Here's your randomly selected choice(s) from the values you gave.",
+        embed, icon = generate_authored_embed_with_icon(
+            embed_title="Random Choice(s)",
+            embed_description="Here's your randomly selected choice(s) from the values you gave.",
         )
         embed.add_field(
             name="Random Choice(s)",
@@ -274,10 +271,9 @@ class RandomCog(commands.Cog, name="Random Commands"):
 
         random.shuffle(values_list)
 
-        icon = generate_image_file("CatBot/images/profile.jpg")
-        embed = generate_authored_embed(
-            title="Shuffled Values",
-            description="Here's your randomly shuffled values from the values you gave.",
+        embed, icon = generate_authored_embed_with_icon(
+            embed_title="Shuffled Values",
+            embed_description="Here's your randomly shuffled values from the values you gave.",
         )
         embed.add_field(
             name="Shuffled Values",

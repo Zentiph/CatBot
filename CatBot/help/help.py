@@ -4,6 +4,7 @@ Help cog for CatBot.
 """
 
 import logging
+from typing import Union, Tuple
 
 import discord
 from discord import app_commands
@@ -11,8 +12,7 @@ from discord.ext import commands
 
 from ..internal_utils import (
     DEFAULT_EMBED_COLOR,
-    generate_authored_embed,
-    generate_image_file,
+    generate_authored_embed_with_icon,
 )
 from .commands import (
     COLOR,
@@ -22,15 +22,51 @@ from .commands import (
     MANAGEMENT,
     MATH,
     MODERATION,
-    PRIVATE,
     RANDOM,
     PRIVATE_COMMAND_MAP,
-    PUBLIC,
     PUBLIC_COMMAND_MAP,
     ClassifiedHelpCategory,
     HelpCategory,
 )
 from .representations import generate_field_description, generate_field_title
+
+CATEGORY_MAP = {
+    "color": COLOR,
+    "date-time": DATETIME,
+    "fun": FUN,
+    "help": HELP,
+    "math": MATH,
+    "random": RANDOM,
+    "management": MANAGEMENT,
+    "moderation": MODERATION,
+}
+
+
+def generate_help_embed(
+    category: Union[HelpCategory, ClassifiedHelpCategory]
+) -> Tuple[discord.Embed, discord.File]:
+    """
+    Generate a help embed with the given category.
+
+    :param category: Help category
+    :type category: HelpCategory | ClassifiedHelpCategory
+    :return: Tuple containing the embed and icon file
+    :rtype: Tuple[discord.Embed, discord.File]
+    """
+
+    embed, icon = generate_authored_embed_with_icon(
+        embed_title=f"{category.title()} Commands Help Page",
+        embed_description=f"Here's a list of {category} commands and how to use them.",
+    )
+
+    for command in CATEGORY_MAP[category]:
+        embed.add_field(
+            name=generate_field_title(command),
+            value=generate_field_description(command),
+            inline=False,
+        )
+
+    return embed, icon
 
 
 class HelpCog(commands.Cog, name="Help Commands"):
@@ -75,108 +111,8 @@ class HelpCog(commands.Cog, name="Help Commands"):
             "/help category category=%s invoked by %s", category, interaction.user
         )
 
-        icon = generate_image_file("CatBot/images/profile.jpg")
-
-        match category:
-            case "color":
-                embed = generate_authored_embed(
-                    title="Color Commands Help Page",
-                    description="Here's a list of color roles commands and how to use them.",
-                )
-
-                for command in COLOR:
-                    embed.add_field(
-                        name=generate_field_title(command),
-                        value=generate_field_description(command),
-                        inline=False,
-                    )
-
-                await interaction.response.send_message(embed=embed, file=icon)
-
-            case "date-time":
-                embed = generate_authored_embed(
-                    title="Date-Time Commands Help Page",
-                    description="Here's a list of date-time commands and how to use them.",
-                )
-
-                for command in DATETIME:
-                    embed.add_field(
-                        name=generate_field_title(command),
-                        value=generate_field_description(command),
-                        inline=False,
-                    )
-
-                await interaction.response.send_message(embed=embed, file=icon)
-
-            case "fun":
-                embed = generate_authored_embed(
-                    title="Fun Commands Help Page",
-                    description="Here's a list of fun commands and how to use them.",
-                )
-
-                for command in FUN:
-                    embed.add_field(
-                        name=generate_field_title(command),
-                        value=generate_field_description(command),
-                        inline=False,
-                    )
-
-                await interaction.response.send_message(embed=embed, file=icon)
-
-            case "help":
-                embed = generate_authored_embed(
-                    title="Help Commands Help Page",
-                    description="...Seriously? Okay then.",
-                )
-
-                for command in HELP:
-                    embed.add_field(
-                        name=generate_field_title(command),
-                        value=generate_field_description(command),
-                        inline=False,
-                    )
-
-                await interaction.response.send_message(embed=embed, file=icon)
-
-            case "math":
-                embed = generate_authored_embed(
-                    title="Math Commands Help Page",
-                    description="Here's a list of math commands and how to use them.",
-                )
-
-                for command in MATH:
-                    embed.add_field(
-                        name=generate_field_title(command),
-                        value=generate_field_description(command),
-                        inline=False,
-                    )
-
-                await interaction.response.send_message(embed=embed, file=icon)
-
-            case "random":
-                embed = generate_authored_embed(
-                    title="Random Commands Help Page",
-                    description="Here's a list of random commands and how to use them.",
-                )
-
-                for command in RANDOM:
-                    embed.add_field(
-                        name=generate_field_title(command),
-                        value=generate_field_description(command),
-                        inline=False,
-                    )
-
-                await interaction.response.send_message(embed=embed, file=icon)
-
-            case _:
-                await interaction.response.send_message(
-                    "You have entered an incorrect category.", ephemeral=True
-                )
-                # This shouldn't be possible
-                logging.error(
-                    "/help category category=%s was not stopped by Discord type-checking",
-                    category,
-                )
+        embed, icon = generate_help_embed(category)
+        await interaction.response.send_message(embed=embed, file=icon)
 
     @help_group.command(
         name="command", description="Get help regarding a specific command"
@@ -194,20 +130,17 @@ class HelpCog(commands.Cog, name="Help Commands"):
 
         logging.info("/help command cmd=%s invoked by %s", repr(cmd), interaction.user)
 
-        if cmd not in (command.name for command in PUBLIC) and cmd not in (
-            f"{command.name}" for command in PUBLIC
-        ):
+        command = PUBLIC_COMMAND_MAP.get(cmd, None)
+        if command is None:
             await interaction.response.send_message(
-                f"I do not have a public command called **{cmd}**!", ephemeral=True
+                f"I do not have a command called **{cmd}**.", ephemeral=True
             )
             return
 
-        command = PUBLIC_COMMAND_MAP[cmd]
-        icon = generate_image_file("CatBot/images/profile.jpg")
-        embed = generate_authored_embed(
-            title=f"{cmd} Help Page",
-            description=f"Here's how to use **{cmd}**.",
-            color=DEFAULT_EMBED_COLOR,
+        embed, icon = generate_authored_embed_with_icon(
+            embed_title=f"{cmd} Help Page",
+            embed_description=f"Here's how to use **{cmd}**.",
+            embed_color=DEFAULT_EMBED_COLOR,
         )
 
         embed.add_field(
@@ -260,48 +193,8 @@ class ClassifiedHelpCog(commands.Cog, name="Moderation Help Commands"):
             "/help-mod category category=%s invoked by %s", category, interaction.user
         )
 
-        match category:
-            case "moderation":
-                icon = generate_image_file("CatBot/images/profile.jpg")
-                embed = generate_authored_embed(
-                    title="Moderation Commands Help Page",
-                    description="Here's a list of moderation commands and how to use them.",
-                )
-
-                for command in MODERATION:
-                    embed.add_field(
-                        name=generate_field_title(command),
-                        value=generate_field_description(command),
-                        inline=False,
-                    )
-
-                await interaction.response.send_message(embed=embed, file=icon)
-
-            case "management":
-                icon = generate_image_file("CatBot/images/profile.jpg")
-                embed = generate_authored_embed(
-                    title="Management Commands Help Page",
-                    description="Here's a list of management commands and how to use them.",
-                )
-
-                for command in MANAGEMENT:
-                    embed.add_field(
-                        name=generate_field_title(command),
-                        value=generate_field_description(command),
-                        inline=False,
-                    )
-
-                await interaction.response.send_message(embed=embed, file=icon)
-
-            case _:
-                await interaction.response.send_message(
-                    "You have entered an incorrect category.", ephemeral=True
-                )
-                # This shouldn't be possible
-                logging.error(
-                    "/help-mod category category=%s was not stopped by Discord type-checking",
-                    category,
-                )
+        embed, icon = generate_help_embed(category)
+        await interaction.response.send_message(embed=embed, file=icon)
 
     @help_group.command(
         name="command", description="Get help regarding a specific command"
@@ -321,20 +214,17 @@ class ClassifiedHelpCog(commands.Cog, name="Moderation Help Commands"):
             "/help-mod command cmd=%s invoked by %s", repr(cmd), interaction.user
         )
 
-        if cmd not in (command.name for command in PRIVATE) and cmd not in (
-            f"{command.name}" for command in PRIVATE
-        ):
+        command = PRIVATE_COMMAND_MAP.get(cmd, None)
+        if command is None:
             await interaction.response.send_message(
-                f"I do not have a private command called **{cmd}**!", ephemeral=True
+                f"I do not have a private command called **{cmd}**.", ephemeral=True
             )
             return
 
-        command = PRIVATE_COMMAND_MAP[cmd]
-        icon = generate_image_file("CatBot/images/profile.jpg")
-        embed = generate_authored_embed(
-            title=f"{cmd} Help Page",
-            description=f"Here's how to use **{cmd}**.",
-            color=DEFAULT_EMBED_COLOR,
+        embed, icon = generate_authored_embed_with_icon(
+            embed_title=f"{cmd} Help Page",
+            embed_description=f"Here's how to use **{cmd}**.",
+            embed_color=DEFAULT_EMBED_COLOR,
         )
 
         embed.add_field(

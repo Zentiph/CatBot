@@ -23,7 +23,7 @@ from psutil import Process
 
 from ..bot_init import VERSION
 from ..help import PRIVATE, PUBLIC
-from ..internal_utils import START_TIME, generate_authored_embed, generate_image_file
+from ..internal_utils import START_TIME, generate_authored_embed_with_icon
 
 # A bit redundant, but helps readability.
 SECONDS_PER_HOUR = 3600
@@ -76,6 +76,8 @@ class FunCog(commands.Cog, name="Fun Commands"):
 
         logging.info("/stats invoked by %s", interaction.user)
 
+        await interaction.response.defer(thinking=True)
+
         servers = str(len(self.bot.guilds))
         uptime = datetime.now() - START_TIME
         days = uptime.days
@@ -99,9 +101,9 @@ class FunCog(commands.Cog, name="Fun Commands"):
             + f".{discord.version_info.micro}"
         )
 
-        icon = generate_image_file("CatBot/images/profile.jpg")
-        embed = generate_authored_embed(
-            title="CatBot Stats", description="Here's some statistics about myself."
+        embed, icon = generate_authored_embed_with_icon(
+            embed_title="CatBot Stats",
+            embed_description="Here's some statistics about myself.",
         )
         embed.add_field(name="Version", value=VERSION)
         embed.add_field(name="Servers", value=servers)
@@ -123,7 +125,7 @@ class FunCog(commands.Cog, name="Fun Commands"):
         embed.add_field(name="Dependencies", value=get_dependencies())
         embed.add_field(name="Host", value=host, inline=False)
 
-        await interaction.response.send_message(embed=embed, file=icon)
+        await interaction.followup.send(embed=embed, file=icon)
 
     # While this is a random command, it's more fun as it uses
     # custom images and is more generally used.
@@ -139,26 +141,20 @@ class FunCog(commands.Cog, name="Fun Commands"):
 
         heads = random.randint(0, 1)
 
-        icon = generate_image_file("CatBot/images/profile.jpg")
-
         if heads:
-            embed = generate_authored_embed(
-                title="Coin Flip",
-                description="Here's the result of your coin flip.",
-                color=discord.Color.from_rgb(255, 200, 95),  # Heads coin color
+            embed, icon = generate_authored_embed_with_icon(
+                embed_title="Coin Flip",
+                embed_description="Here's the result of your coin flip.",
+                embed_color=discord.Color.from_rgb(255, 200, 95),  # Heads coin color
             )
-            coin = generate_image_file(
-                "CatBot/images/coin_heads.png", filename="coin.png"
-            )
+            coin = discord.File(fp="CatBot/images/coin_heads.png", filename="coin.png")
         else:
-            embed = generate_authored_embed(
-                title="Coin Flip",
-                description="Here's the result of your coin flip.",
-                color=discord.Color.from_rgb(203, 203, 203),  # Tails coin color
+            embed, icon = generate_authored_embed_with_icon(
+                embed_title="Coin Flip",
+                embed_description="Here's the result of your coin flip.",
+                embed_color=discord.Color.from_rgb(203, 203, 203),  # Tails coin color
             )
-            coin = generate_image_file(
-                "CatBot/images/coin_tails.png", filename="coin.png"
-            )
+            coin = discord.File(fp="CatBot/images/coin_tails.png", filename="coin.png")
 
         embed.set_image(url="attachment://coin.png")
 

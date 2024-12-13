@@ -4,7 +4,7 @@ Utilities for internal functions such as embed creation.
 """
 
 from datetime import datetime
-from typing import Any, Literal, Optional, Union
+from typing import Any, Literal, Optional, Union, Tuple
 
 import discord
 
@@ -18,34 +18,6 @@ TIME_MULTIPLICATION_TABLE = {
     "hours": 3600,
     "days": 86400,
 }
-
-
-def generate_image_file(
-    filepath: str, /, *, filename: str = "image.png"
-) -> discord.File:
-    """
-    Generate an image File given `filepath`.
-
-    :param filepath: Path to an image
-    :type filepath: str
-    :param filename: Name of the file, defaults to "image.png"
-    :type filename: str, optional
-    :return: Discord image File
-    :rtype: discord.File
-    """
-
-    if not any(
-        (
-            (
-                filepath.endswith(".jpg"),
-                filepath.endswith(".jpeg"),
-                filepath.endswith(".png"),
-            )
-        )
-    ):
-        raise ValueError("Image filepath should be a .jpg or .png file")
-
-    return discord.File(filepath, filename=filename)
 
 
 def wrap_reason(reason: str, caller: Union[discord.Member, discord.User]) -> str:
@@ -63,40 +35,52 @@ def wrap_reason(reason: str, caller: Union[discord.Member, discord.User]) -> str
     return f"@{caller.name} (ID={caller.id}): {reason}"
 
 
-# pylint: disable=too-many-arguments
-def generate_authored_embed(
+def generate_authored_embed_with_icon(
     *,
-    title: Optional[Any] = None,
-    description: Optional[Any] = None,
-    color: Optional[Union[int, discord.Color]] = DEFAULT_EMBED_COLOR,
-    author_name: Optional[Any] = "CatBot",
-    url: Optional[Any] = None,
-    icon_url: Optional[Any] = "attachment://image.png",
-) -> discord.Embed:
+    embed_title: Optional[Any] = None,
+    embed_description: Optional[Any] = None,
+    embed_color: Optional[Union[int, discord.Color]] = DEFAULT_EMBED_COLOR,
+    embed_author_name: Optional[Any] = "CatBot",
+    icon_filepath: str = "CatBot/images/profile.jpg",
+    icon_filename: str = "image.png",
+) -> Tuple[discord.Embed, discord.File]:
     """
-    Generate an embed with provided title, description, color, and author information.
+    Generate an authored embed and the icon file required.
 
-    :param title: Embed title, defaults to None
-    :type title: Optional[Any], optional
-    :param description: Embed description, defaults to None
-    :type description: Optional[Any], optional
-    :param color: Embed color, defaults to DEFAULT_EMBED_COLOR
-    :type color: Optional[Union[int, discord.Color]], optional
-    :param author_name: Author name, defaults to "CatBot"
-    :type author_name: Optional[Any], optional
-    :param url: Author URL, defaults to None
-    :type url: Optional[Any], optional
-    :param icon_url: Author icon URL, defaults to "CatBot/images/profile.jpg"
-    :type icon_url: Optional[Any], optional
-    :return: Authored embed
-    :rtype: discord.Embed
+    :param embed_title: Title of the embed, defaults to None
+    :type embed_title: Optional[Any], optional
+    :param embed_description: Description of the embed, defaults to None
+    :type embed_description: Optional[Any], optional
+    :param embed_color: Color of the embed, defaults to DEFAULT_EMBED_COLOR
+    :type embed_color: Optional[Union[int, discord.Color]], optional
+    :param embed_author_name: Author of the embed, defaults to "CatBot"
+    :type embed_author_name: Optional[Any], optional
+    :param icon_filepath: Filepath to the icon, defaults to "CatBot/images/profile.jpg"
+    :type icon_filepath: str, optional
+    :param icon_filename: Filename of the icon, defaults to "image.png"
+    :type icon_filename: str, optional
+    :return: The embed and icon file in a tuple
+    :rtype: Tuple[discord.Embed, discord.File]
     """
+
+    if not any(
+        (
+            (
+                icon_filepath.endswith(".jpg"),
+                icon_filepath.endswith(".jpeg"),
+                icon_filepath.endswith(".png"),
+            )
+        )
+    ):
+        raise ValueError("Image filepath should be a .jpg or .png file")
+
+    file = discord.File(icon_filepath, filename=icon_filename)
 
     embed = discord.Embed(
-        title=title,
-        description=description,
-        color=color,
+        title=embed_title,
+        description=embed_description,
+        color=embed_color,
     )
-    embed.set_author(name=author_name, url=url, icon_url=icon_url)
+    embed.set_author(name=embed_author_name, icon_url=f"attachment://{icon_filename}")
 
-    return embed
+    return embed, file

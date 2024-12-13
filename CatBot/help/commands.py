@@ -9,6 +9,8 @@ from typing import Literal, Union
 
 from discord import Member, Role, TextChannel, User
 
+from ..internal_utils import TimeUnit
+from ..date_time import Month
 from .representations import Command, Param
 
 HelpCategory = Literal["color", "date-time", "fun", "help", "math", "random"]
@@ -258,6 +260,26 @@ datetime_time.add_param(
         default=False,
     )
 )
+
+datetime_weekday = Command(
+    name="date-time weekday", description="Get the weekday of a given date"
+)
+datetime_weekday.add_param(
+    Param(name="month", type=Month, description="Month of the year")
+)
+datetime_weekday.add_param(Param(name="day", type=int, description="Day of the month"))
+datetime_weekday.add_param(Param(name="year", type=int, description="Year"))
+
+datetime_days_until = Command(
+    name="date-time days-until", description="Find how many days are until a given date"
+)
+datetime_days_until.add_param(
+    Param(name="month", type=Month, description="Month of the year")
+)
+datetime_days_until.add_param(
+    Param(name="day", type=int, description="Day of the month")
+)
+datetime_days_until.add_param(Param(name="year", type=int, description="Year"))
 
 # # # # # # # # #
 # FUN/MISC CMDS #
@@ -559,7 +581,7 @@ ban.add_param(
 ban.add_param(
     Param(
         name="time_unit",
-        type=Literal["seconds", "minutes", "hours", "days"],
+        type=TimeUnit,
         description="Unit of time",
         optional=True,
         default="seconds",
@@ -604,7 +626,7 @@ timeout_add.add_param(Param(name="time", type=int, description="Timeout addition
 timeout_add.add_param(
     Param(
         name="time_unit",
-        type=Literal["seconds", "minutes", "hours", "days"],
+        type=TimeUnit,
         description="Unit of time",
         optional=True,
         default="seconds",
@@ -631,7 +653,7 @@ timeout_reduce.add_param(
 timeout_reduce.add_param(
     Param(
         name="time_unit",
-        type=Literal["seconds", "minutes", "hours", "days"],
+        type=TimeUnit,
         description="Unit of time",
         optional=True,
         default="seconds",
@@ -884,7 +906,13 @@ COLOR = (
     color_invert_hex,
     color_invert_name,
 )
-DATETIME = (datetime_datetime, datetime_date, datetime_time)
+DATETIME = (
+    datetime_datetime,
+    datetime_date,
+    datetime_time,
+    datetime_weekday,
+    datetime_days_until,
+)
 FUN = (flip_coin, stats)
 HELP = (help_category, help_command)
 MATH = (
@@ -952,6 +980,8 @@ PUBLIC_COMMAND_MAP = {
     "date-time date-time": datetime_datetime,
     "date-time date": datetime_date,
     "date-time time": datetime_time,
+    "date-time weekday": datetime_weekday,
+    "date-time days-until": datetime_days_until,
     # FUN CMDS
     "flip-coin": flip_coin,
     "stats": stats,
