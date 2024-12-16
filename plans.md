@@ -10,9 +10,6 @@ The more exclamation points, the more urgent/desired a change is.
   * /create-channel {name} etc
 * Fun commands
   * mini games (tic tac toe, etc)
-  * /cat-pic !
-  * /avatar {user} !
-  * /banner {user} !
 * Server stats
   * /user-count !
   * /bot-count !

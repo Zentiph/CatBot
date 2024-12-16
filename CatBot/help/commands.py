@@ -265,10 +265,12 @@ datetime_weekday = Command(
     name="date-time weekday", description="Get the weekday of a given date"
 )
 datetime_weekday.add_param(
-    Param(name="month", type=Month, description="Month of the year")
+    Param(name="month", type=Month, description="The month of the year")
 )
-datetime_weekday.add_param(Param(name="day", type=int, description="Day of the month"))
-datetime_weekday.add_param(Param(name="year", type=int, description="Year"))
+datetime_weekday.add_param(
+    Param(name="day", type=int, description="The day of the month")
+)
+datetime_weekday.add_param(Param(name="year", type=int, description="The year"))
 
 datetime_days_until = Command(
     name="date-time days-until", description="Find how many days are until a given date"
@@ -286,6 +288,33 @@ datetime_days_until.add_param(Param(name="year", type=int, description="Year"))
 # # # # # # # # #
 
 flip_coin = Command(name="flip-coin", description="Flip a coin")
+
+stats = Command(name="stats", description="Get statistics about CatBot.")
+
+profile_picture = Command(
+    name="profile-picture", description="Get a user's profile picture"
+)
+profile_picture.add_param(
+    Param(
+        name="user",
+        type=User,
+        description="The user to get the profile picture of (gets yours if left empty)",
+        optional=True,
+    )
+)
+
+banner = Command(name="banner", description="Get a user's profile banner")
+banner.add_param(
+    Param(
+        name="user",
+        type=User,
+        description="The user to get the profile banner of (gets yours if left empty)",
+        optional=True,
+    )
+)
+
+cat_pic = Command(name="cat-pic", description="Get a random cat picture")
+
 
 # # # # # # #
 # HELP CMDS #
@@ -878,11 +907,6 @@ random_shuffle.add_param(
     )
 )
 
-# # # # # # #
-# STATS CMD #
-# # # # # # #
-
-stats = Command(name="stats", description="Get statistics about CatBot.")
 
 # # # # # # # # #
 # CMD LIST INIT #
@@ -913,7 +937,7 @@ DATETIME = (
     datetime_weekday,
     datetime_days_until,
 )
-FUN = (flip_coin, stats)
+FUN = (flip_coin, stats, profile_picture, banner, cat_pic)
 HELP = (help_category, help_command)
 MATH = (
     add,
@@ -985,6 +1009,9 @@ PUBLIC_COMMAND_MAP = {
     # FUN CMDS
     "flip-coin": flip_coin,
     "stats": stats,
+    "profile-picture": profile_picture,
+    "banner": banner,
+    "cat-pic": cat_pic,
     # HELP CMDS
     "help category": help_category,
     "help command": help_command,

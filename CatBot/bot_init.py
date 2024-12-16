@@ -16,6 +16,7 @@ DEFAULT_EMBED_COLOR = discord.Color(int("ffffff", 16))
 LOGGING_CHANNEL = 1306045987319451718
 MANAGEMENT_ROLES = ("Owner", "Management")
 MODERATOR_ROLES = ("Owner", "Management", "Mod")
+CAT_API_SEARCH_LINK = "https://api.thecatapi.com/v1/images/search"
 
 
 def get_version() -> str:
@@ -96,6 +97,23 @@ def get_token_from_env() -> str:
     with open(".env", encoding="utf8") as file:
         line = file.readline()
         while not line.startswith("TOKEN="):
+            line = file.readline()
+        index = line.find("=")
+
+    return line[index + 1 :].strip().strip('"')
+
+
+def get_cat_api_key_from_env() -> str:
+    """
+    Get CatBot's Cat API key from the .env file.
+
+    :return: Cat API key
+    :rtype: str
+    """
+
+    with open(".env", encoding="utf8") as file:
+        line = file.readline()
+        while not line.startswith("CAT_API_KEY="):
             line = file.readline()
         index = line.find("=")
 

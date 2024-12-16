@@ -5,6 +5,7 @@ Main file.
 
 import logging
 from asyncio import run
+from requests.exceptions import Timeout
 
 import discord
 from discord import app_commands
@@ -90,6 +91,18 @@ async def on_app_command_error(
         except discord.errors.InteractionResponded:
             await interaction.followup.send(
                 "This calculation caused an arithmetic overflow. Try using smaller numbers.",
+                ephemeral=True,
+            )
+    elif isinstance(error, Timeout):
+        logging.warning("Timeout error occurred during HTTP request")
+        try:
+            await interaction.response.send_message(
+                "An attempt to communicate with an external API has taken too long, and has been canceled.",
+                ephemeral=True,
+            )
+        except discord.errors.InteractionResponded:
+            await interaction.followup.send(
+                "An attempt to communicate with an external API has taken too long, and has been canceled.",
                 ephemeral=True,
             )
     else:

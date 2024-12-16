@@ -4,24 +4,23 @@ Fun commands for CatBot.
 """
 
 #  * mini games (tic tac toe, etc)
-#  * /time {timezone}
 #  * /cat-pic
-#  * /avatar {user}
-#  * /banner {user}
 
 import logging
 import random
 from datetime import datetime
+from io import BytesIO
 from platform import platform
 from sys import version_info
-from typing import List
+from typing import List, Optional
 
 import discord
+import requests
 from discord import app_commands
 from discord.ext import commands
 from psutil import Process
 
-from ..bot_init import VERSION
+from ..bot_init import CAT_API_SEARCH_LINK, VERSION, get_cat_api_key_from_env
 from ..help import PRIVATE, PUBLIC
 from ..internal_utils import START_TIME, generate_authored_embed_with_icon
 
@@ -31,6 +30,8 @@ SECONDS_PER_MINUTE = 60
 HOURS_PER_DAY = 24
 MINUTES_PER_HOUR = 60
 MICROSECONDS_PER_SECOND = 1000000
+
+CAT_API_KEY = get_cat_api_key_from_env()
 
 
 def get_dependencies() -> str:
@@ -159,6 +160,118 @@ class FunCog(commands.Cog, name="Fun Commands"):
         embed.set_image(url="attachment://coin.png")
 
         await interaction.response.send_message(embed=embed, files=(coin, icon))
+
+    @app_commands.command(
+        name="profile-picture", description="Get a user's profile picture"
+    )
+    @app_commands.describe(user="User to get the profile picture of")
+    async def profile_picture(
+        self, interaction: discord.Interaction, user: Optional[discord.User] = None
+    ) -> None:
+        """
+        Get a user's profile picture.
+        """
+
+        logging.info("/profile-picture user=%s invoked by %s", user, interaction.user)
+
+        if user is None:
+            user = interaction.user  # type: ignore
+
+        embed, icon = generate_authored_embed_with_icon(
+            embed_title=f"{user.display_name}'s Profile Picture",  # type: ignore
+            embed_description=f"Here's {user.display_name}'s profile picture.",  # type: ignore
+        )
+        embed.set_image(url=user.display_avatar.url)  # type: ignore
+
+        await interaction.response.send_message(embed=embed, file=icon)
+
+    @app_commands.command(name="banner", description="Get a user's profile banner")
+    @app_commands.describe(user="User to get the profile banner of")
+    async def banner(
+        self, interaction: discord.Interaction, user: Optional[discord.User] = None
+    ) -> None:
+        """
+        Get a user's profile banner.
+        """
+
+        logging.info("/banner user=%s invoked by %s", user, interaction.user)
+
+        if user is None:
+            user = interaction.user  # type: ignore
+
+        if user.banner is None:  # type: ignore
+            await interaction.response.send_message(
+                f"{user.display_name} does not have a banner.", ephemeral=True  # type: ignore
+            )
+            return
+
+        embed, icon = generate_authored_embed_with_icon(
+            embed_title=f"{user.display_name}'s Profile Banner",  # type: ignore
+            embed_description=f"Here's {user.display_name}'s profile banner.",  # type: ignore
+        )
+        embed.set_image(url=user.banner.url)  # type: ignore
+
+        await interaction.response.send_message(embed=embed, file=icon)
+
+    @app_commands.command(name="cat-pic", description="Get a random cat picture")
+    async def cat_pic(self, interaction: discord.Interaction) -> None:
+        """
+        Get a random cat picture from the Cat API.
+        """
+
+        logging.info("/cat-pic invoked by %s", interaction.user)
+
+        await interaction.response.defer(thinking=True)
+
+        response = requests.get(
+            CAT_API_SEARCH_LINK, headers={"x-api-key": CAT_API_KEY}, timeout=10
+        )
+
+        if response.status_code != 200:
+            logging.warning(
+                "Failed to fetch site data: status code %s", response.status_code
+            )
+            await interaction.followup.send(
+                "Failed to fetch site data. "
+                + "Please contact @zentiph to report this if the issue persists.",
+                ephemeral=True,
+            )
+            return
+
+        data = response.json()
+        if not data:
+            logging.warning("No images found in the response")
+            await interaction.followup.send(
+                "No images were found. Please contact @zentiph if this issue persists.",
+                ephemeral=True,
+            )
+            return
+
+        image_url = data[0]["url"]
+        image_response = requests.get(image_url, timeout=10)
+
+        if image_response.status_code != 200:
+            logging.warning(
+                "Failed to fetch image data: status code %s", response.status_code
+            )
+            await interaction.followup.send(
+                "Failed to fetch image data. "
+                + "Please contact @zentiph to report this if the issue persists.",
+                ephemeral=True,
+            )
+            return
+
+        image_bytes = BytesIO(image_response.content)
+        filename = "cat.png"
+        file = discord.File(fp=image_bytes, filename=filename)
+
+        embed, icon = generate_authored_embed_with_icon(
+            embed_title="Random Cat Picture",
+            embed_description="Here's your random cat picture.",
+        )
+        embed.set_image(url=f"attachment://{filename}")
+
+        await interaction.followup.send(embed=embed, files=(file, icon))
 
 
 async def setup(bot: commands.Bot):
