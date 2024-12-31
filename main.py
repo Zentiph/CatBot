@@ -5,15 +5,14 @@ Main file.
 
 import logging
 from asyncio import run
-from requests.exceptions import Timeout
 
 import discord
-from discord import app_commands
 
 from CatBot.bot_init import (
     LOG_FILE,
     config_logging,
     get_token,
+    handle_app_command_error,
     initialize_bot,
     initialize_cli_arg_parser,
 )
@@ -45,7 +44,7 @@ async def on_ready() -> None:
 
 @bot.tree.error
 async def on_app_command_error(
-    interaction: discord.Interaction, error: app_commands.AppCommandError
+    interaction: discord.Interaction, error: Exception
 ) -> None:
     """
     Command error handler.
@@ -53,70 +52,10 @@ async def on_app_command_error(
     :param interaction: Interaction instance
     :type interaction: discord.Interaction
     :param error: Error that occurred
-    :type error: app_commands.AppCommandError
+    :type error: Exception
     """
 
-    if isinstance(error, app_commands.errors.CheckFailure):  # Restricted command
-        logging.info(
-            "Unauthorized user %s attempted to use a restricted command",
-            interaction.user,
-        )
-        try:
-            await interaction.response.send_message(
-                "You do not have permission to use this command.", ephemeral=True
-            )
-        except discord.errors.InteractionResponded:
-            await interaction.followup.send(
-                "You do not have permission to use this command.", ephemeral=True
-            )
-    elif isinstance(error, discord.Forbidden):
-        logging.warning(
-            "Attempted to perform a command with inadequate permissions allotted to the bot"
-        )
-        try:
-            await interaction.response.send_message(
-                "I do not have permissions to perform this command.", ephemeral=True
-            )
-        except discord.errors.InteractionResponded:
-            await interaction.followup.send(
-                "I do not have permissions to perform this command.", ephemeral=True
-            )
-    elif isinstance(error, OverflowError):
-        logging.info("Overflow error occurred during a calculation")
-        try:
-            await interaction.response.send_message(
-                "This calculation caused an arithmetic overflow. Try using smaller numbers.",
-                ephemeral=True,
-            )
-        except discord.errors.InteractionResponded:
-            await interaction.followup.send(
-                "This calculation caused an arithmetic overflow. Try using smaller numbers.",
-                ephemeral=True,
-            )
-    elif isinstance(error, Timeout):
-        logging.warning("Timeout error occurred during HTTP request")
-        try:
-            await interaction.response.send_message(
-                "An attempt to communicate with an external API has taken too long, and has been canceled.",
-                ephemeral=True,
-            )
-        except discord.errors.InteractionResponded:
-            await interaction.followup.send(
-                "An attempt to communicate with an external API has taken too long, and has been canceled.",
-                ephemeral=True,
-            )
-    else:
-        logging.error("An error occurred: %s", error)
-        try:
-            await interaction.response.send_message(
-                "An unknown error occurred. Contact @zentiph to report this please!",
-                ephemeral=True,
-            )
-        except discord.errors.InteractionResponded:
-            await interaction.followup.send(
-                "An unknown error occurred. Contact @zentiph to report this please!",
-                ephemeral=True,
-            )
+    await handle_app_command_error(interaction, error)
 
 
 async def setup() -> None:

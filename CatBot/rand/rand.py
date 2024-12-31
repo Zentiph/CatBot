@@ -3,25 +3,16 @@ rand.py
 Random commands for CatBot.
 """
 
-#  * mini games (tic tac toe, etc)
-#  * /time {timezone}
-#  * /cat-pic
-#  * /avatar {user}
-#  * /banner {user}
-
 import logging
 import random
-from sys import maxsize
 from typing import Optional
 
 import discord
 from discord import app_commands
 from discord.ext import commands
 
+from .. import emojis
 from ..internal_utils import generate_authored_embed_with_icon
-
-MAX_INT = maxsize
-MIN_INT = -maxsize - 1
 
 
 # pylint: disable=too-many-public-methods
@@ -72,7 +63,7 @@ class RandomCog(commands.Cog, name="Random Commands"):
 
         if a > b:
             await interaction.response.send_message(
-                "The left endpoint cannot be greater than the right endpoint!",
+                f"{emojis.X} The left endpoint cannot be greater than the right endpoint!",
                 ephemeral=True,
             )
             return
@@ -81,7 +72,7 @@ class RandomCog(commands.Cog, name="Random Commands"):
             random.seed(seed)
 
         embed, icon = generate_authored_embed_with_icon(
-            embed_title="Random Integer",
+            embed_title=f"{emojis.RANDOM} Random Integer",
             embed_description="Here's your randomly generated integer.",
         )
         embed.add_field(
@@ -131,7 +122,7 @@ class RandomCog(commands.Cog, name="Random Commands"):
 
         if a > b:
             await interaction.response.send_message(
-                "The left endpoint cannot be greater than the right endpoint!",
+                f"{emojis.X} The left endpoint cannot be greater than the right endpoint!",
                 ephemeral=True,
             )
             return
@@ -143,7 +134,7 @@ class RandomCog(commands.Cog, name="Random Commands"):
         numerator, denominator = number.as_integer_ratio()
 
         embed, icon = generate_authored_embed_with_icon(
-            embed_title="Random Decimal",
+            embed_title=f"{emojis.RANDOM} Random Decimal",
             embed_description="Here's your randomly generated decimal number.",
         )
         embed.add_field(name="Random Value", value=number)
@@ -196,7 +187,7 @@ class RandomCog(commands.Cog, name="Random Commands"):
 
         if any(s == "" for s in values_list):
             await interaction.response.send_message(
-                "Invalid input. Please provide a list of values separated by commas.",
+                f"{emojis.X} Invalid input. Please provide a list of values separated by commas.",
                 ephemeral=True,
             )
             return
@@ -210,7 +201,7 @@ class RandomCog(commands.Cog, name="Random Commands"):
             picked_choices = random.sample(values_list, k=choices)
 
         embed, icon = generate_authored_embed_with_icon(
-            embed_title="Random Choice(s)",
+            embed_title=f"{emojis.RANDOM} Random Choice(s)",
             embed_description="Here's your randomly selected choice(s) from the values you gave.",
         )
         embed.add_field(
@@ -261,7 +252,7 @@ class RandomCog(commands.Cog, name="Random Commands"):
 
         if any(s == "" for s in values_list):
             await interaction.response.send_message(
-                "Invalid input. Please provide a list of values separated by commas.",
+                f"{emojis.X} Invalid input. Please provide a list of values separated by commas.",
                 ephemeral=True,
             )
             return
@@ -272,7 +263,7 @@ class RandomCog(commands.Cog, name="Random Commands"):
         random.shuffle(values_list)
 
         embed, icon = generate_authored_embed_with_icon(
-            embed_title="Shuffled Values",
+            embed_title=f"{emojis.RANDOM} Shuffled Values",
             embed_description="Here's your randomly shuffled values from the values you gave.",
         )
         embed.add_field(

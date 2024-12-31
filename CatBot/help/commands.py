@@ -62,11 +62,11 @@ color_role_random.add_param(
     )
 )
 
-color_role_copy = Command(
+color_role_copy_color = Command(
     name="color role copy-color",
     description="Assign yourself a custom color role by copying another role's color.",
 )
-color_role_copy.add_param(
+color_role_copy_color.add_param(
     Param(name="role", type=Role, description="Role to copy the color of")
 )
 
@@ -81,11 +81,11 @@ color_role_reassign = Command(
     + "and reassign it if so and the role exists.",
 )
 
-color_list = Command(
+color_color_list = Command(
     name="color color-list",
     description="Provides a list of all allowed color names used with CatBot.",
 )
-color_list.add_param(
+color_color_list.add_param(
     Param(
         name="group",
         type=Literal[
@@ -184,17 +184,17 @@ color_invert_name.add_param(
 # DATETIME CMDS #
 # # # # # # # # #
 
-datetime_datetime = Command(
+date_time_date_time = Command(
     name="date-time date-time", description="Get the date and time in a timezone"
 )
-datetime_datetime.add_param(
+date_time_date_time.add_param(
     Param(
         name="timezone",
         type=str,
         description="The timezone to get the date and time in",
     )
 )
-datetime_datetime.add_param(
+date_time_date_time.add_param(
     Param(
         name="military_time",
         type=bool,
@@ -203,7 +203,7 @@ datetime_datetime.add_param(
         default=False,
     )
 )
-datetime_datetime.add_param(
+date_time_date_time.add_param(
     Param(
         name="seconds",
         type=bool,
@@ -212,7 +212,7 @@ datetime_datetime.add_param(
         default=False,
     )
 )
-datetime_datetime.add_param(
+date_time_date_time.add_param(
     Param(
         name="microseconds",
         type=bool,
@@ -223,16 +223,20 @@ datetime_datetime.add_param(
     )
 )
 
-datetime_date = Command(name="date-time date", description="Get the date in a timezone")
-datetime_date.add_param(
+date_time_date = Command(
+    name="date-time date", description="Get the date in a timezone"
+)
+date_time_date.add_param(
     Param(name="timezone", type=str, description="The timezone to get the date in")
 )
 
-datetime_time = Command(name="date-time time", description="Get the time in a timezone")
-datetime_time.add_param(
+date_time_time = Command(
+    name="date-time time", description="Get the time in a timezone"
+)
+date_time_time.add_param(
     Param(name="timezone", type=str, description="The timezone to get the time in")
 )
-datetime_time.add_param(
+date_time_time.add_param(
     Param(
         name="military_time",
         type=bool,
@@ -241,7 +245,7 @@ datetime_time.add_param(
         default=False,
     )
 )
-datetime_time.add_param(
+date_time_time.add_param(
     Param(
         name="seconds",
         type=bool,
@@ -250,7 +254,7 @@ datetime_time.add_param(
         default=False,
     )
 )
-datetime_time.add_param(
+date_time_time.add_param(
     Param(
         name="microseconds",
         type=bool,
@@ -261,27 +265,27 @@ datetime_time.add_param(
     )
 )
 
-datetime_weekday = Command(
+date_time_weekday = Command(
     name="date-time weekday", description="Get the weekday of a given date"
 )
-datetime_weekday.add_param(
+date_time_weekday.add_param(
     Param(name="month", type=Month, description="The month of the year")
 )
-datetime_weekday.add_param(
+date_time_weekday.add_param(
     Param(name="day", type=int, description="The day of the month")
 )
-datetime_weekday.add_param(Param(name="year", type=int, description="The year"))
+date_time_weekday.add_param(Param(name="year", type=int, description="The year"))
 
-datetime_days_until = Command(
+date_time_days_until = Command(
     name="date-time days-until", description="Find how many days are until a given date"
 )
-datetime_days_until.add_param(
+date_time_days_until.add_param(
     Param(name="month", type=Month, description="Month of the year")
 )
-datetime_days_until.add_param(
+date_time_days_until.add_param(
     Param(name="day", type=int, description="Day of the month")
 )
-datetime_days_until.add_param(Param(name="year", type=int, description="Year"))
+date_time_days_until.add_param(Param(name="year", type=int, description="Year"))
 
 # # # # # # # # #
 # FUN/MISC CMDS #
@@ -315,6 +319,10 @@ banner.add_param(
 
 cat_pic = Command(name="cat-pic", description="Get a random cat picture")
 
+member_count = Command(
+    name="member-count", description="Get a count of the members in this server"
+)
+
 
 # # # # # # #
 # HELP CMDS #
@@ -343,9 +351,9 @@ help_command.add_param(
 # MANAGEMENT CMDS #
 # # # # # # # # # #
 
-echo = Command(name="mgmt echo", description="Echo a message back to a channel.")
-echo.add_param(Param(name="message", type=str, description="Message to echo"))
-echo.add_param(
+mgmt_echo = Command(name="mgmt echo", description="Echo a message back to a channel.")
+mgmt_echo.add_param(Param(name="message", type=str, description="Message to echo"))
+mgmt_echo.add_param(
     Param(
         name="channel",
         type=Union[TextChannel, None],
@@ -353,15 +361,21 @@ echo.add_param(
     )
 )
 
-dm = Command(name="mgmt dm", description="Send a direct message to a user.")
-dm.add_param(
+mgmt_dm = Command(name="mgmt dm", description="Send a direct message to a user.")
+mgmt_dm.add_param(
     Param(name="user", type=User, description="User to send the direct message to")
 )
-dm.add_param(Param(name="message", type=str, description="Message to send to the user"))
+mgmt_dm.add_param(
+    Param(name="message", type=str, description="Message to send to the user")
+)
 
-announce = Command(name="mgmt announce", description="Announce a message to a channel.")
-announce.add_param(Param(name="message", type=str, description="Message to announce"))
-announce.add_param(
+mgmt_announce = Command(
+    name="mgmt announce", description="Announce a message to a channel."
+)
+mgmt_announce.add_param(
+    Param(name="message", type=str, description="Message to announce")
+)
+mgmt_announce.add_param(
     Param(
         name="channel",
         type=Union[TextChannel, None],
@@ -369,7 +383,7 @@ announce.add_param(
         + "defaults to current channel if empty",
     )
 )
-announce.add_param(
+mgmt_announce.add_param(
     Param(
         name="ping",
         type=Role,
@@ -382,86 +396,188 @@ announce.add_param(
 # MATH CMDS #
 # # # # # # #
 
-add = Command(name="math add", description="Add two numbers.")
-add.add_param(Param(name="x", type=float, description="First number"))
-add.add_param(Param(name="y", type=float, description="Second number"))
+math_add = Command(name="math add", description="Add two numbers.")
+math_add.add_param(Param(name="x", type=float, description="First number"))
+math_add.add_param(Param(name="y", type=float, description="Second number"))
+math_add.add_param(
+    Param(
+        name="ndigits",
+        type=int,
+        description="Number of digits to round the result to",
+        optional=False,
+        default=10,
+    )
+)
 
-sum_ = Command(
+math_sum = Command(
     name="math sum", description="Calculate the sum of an arbitrary amount of numbers."
 )
-sum_.add_param(
+math_sum.add_param(
     Param(
         name="numbers",
         type=str,
         description='Numbers to sum, separated by commas (e.g. "1,2,3")',
     )
 )
+math_sum.add_param(
+    Param(
+        name="ndigits",
+        type=int,
+        description="Number of digits to round the result to",
+        optional=False,
+        default=10,
+    )
+)
 
-sub = Command(name="math sub", description="Subtract two numbers.")
-sub.add_param(Param(name="x", type=float, description="First number"))
-sub.add_param(Param(name="y", type=float, description="Second number"))
+math_sub = Command(name="math sub", description="Subtract two numbers.")
+math_sub.add_param(Param(name="x", type=float, description="First number"))
+math_sub.add_param(Param(name="y", type=float, description="Second number"))
+math_sub.add_param(
+    Param(
+        name="ndigits",
+        type=int,
+        description="Number of digits to round the result to",
+        optional=False,
+        default=10,
+    )
+)
 
-mul = Command(name="math mul", description="Multiply two numbers.")
-mul.add_param(Param(name="x", type=float, description="First number"))
-mul.add_param(Param(name="y", type=float, description="Second number"))
+math_mul = Command(name="math mul", description="Multiply two numbers.")
+math_mul.add_param(Param(name="x", type=float, description="First number"))
+math_mul.add_param(Param(name="y", type=float, description="Second number"))
+math_mul.add_param(
+    Param(
+        name="ndigits",
+        type=int,
+        description="Number of digits to round the result to",
+        optional=False,
+        default=10,
+    )
+)
 
-prod = Command(
+math_prod = Command(
     name="math prod",
     description="Calculate the product of an arbitrary amount of numbers.",
 )
-prod.add_param(
+math_prod.add_param(
     Param(
         name="numbers",
         type=str,
         description='Numbers to find the product of, separated by commas (e.g. "1,2,3")',
     )
 )
+math_prod.add_param(
+    Param(
+        name="ndigits",
+        type=int,
+        description="Number of digits to round the result to",
+        optional=False,
+        default=10,
+    )
+)
 
-div = Command(name="math div", description="Divide two numbers.")
-div.add_param(Param(name="x", type=float, description="First number"))
-div.add_param(Param(name="y", type=float, description="Second number"))
+math_div = Command(name="math div", description="Divide two numbers.")
+math_div.add_param(Param(name="x", type=float, description="First number"))
+math_div.add_param(Param(name="y", type=float, description="Second number"))
+math_div.add_param(
+    Param(
+        name="ndigits",
+        type=int,
+        description="Number of digits to round the result to",
+        optional=False,
+        default=10,
+    )
+)
 
-floordiv = Command(name="math floordiv", description="Divide two numbers and floor it.")
-floordiv.add_param(Param(name="x", type=float, description="First number"))
-floordiv.add_param(Param(name="y", type=float, description="Second number"))
+math_floordiv = Command(
+    name="math floordiv", description="Divide two numbers and floor it."
+)
+math_floordiv.add_param(Param(name="x", type=float, description="First number"))
+math_floordiv.add_param(Param(name="y", type=float, description="Second number"))
 
-pow_ = Command(name="math pow", description="Raise a number to the power of another.")
-pow_.add_param(Param(name="x", type=float, description="First number"))
-pow_.add_param(Param(name="y", type=float, description="Second number"))
+math_pow = Command(
+    name="math pow", description="Raise a number to the power of another."
+)
+math_pow.add_param(Param(name="x", type=float, description="First number"))
+math_pow.add_param(Param(name="y", type=float, description="Second number"))
+math_pow.add_param(
+    Param(
+        name="ndigits",
+        type=int,
+        description="Number of digits to round the result to",
+        optional=False,
+        default=10,
+    )
+)
 
-mod = Command(name="math mod", description="Calculate the modulus of two numbers.")
-mod.add_param(Param(name="x", type=float, description="First number"))
-mod.add_param(Param(name="y", type=float, description="Second number"))
+math_mod = Command(name="math mod", description="Calculate the modulus of two numbers.")
+math_mod.add_param(Param(name="x", type=float, description="First number"))
+math_mod.add_param(Param(name="y", type=float, description="Second number"))
 
-sqrt = Command(name="math sqrt", description="Calculate the square root of a number.")
-sqrt.add_param(
+math_sqrt = Command(
+    name="math sqrt", description="Calculate the square root of a number."
+)
+math_sqrt.add_param(
     Param(
         name="x",
         type=float,
         description="Number to calculate the square root of",
     )
 )
+math_sqrt.add_param(
+    Param(
+        name="ndigits",
+        type=int,
+        description="Number of digits to round the result to",
+        optional=False,
+        default=10,
+    )
+)
 
-cbrt = Command(name="math cbrt", description="Calculate the cube root of a number.")
-cbrt.add_param(
+math_cbrt = Command(
+    name="math cbrt", description="Calculate the cube root of a number."
+)
+math_cbrt.add_param(
     Param(
         name="x",
         type=float,
         description="Number to calculate the cube root of",
     )
 )
+math_cbrt.add_param(
+    Param(
+        name="ndigits",
+        type=int,
+        description="Number of digits to round the result to",
+        optional=False,
+        default=10,
+    )
+)
 
-nroot = Command(name="math nroot", description="Calculate the nth root of a number.")
-nroot.add_param(
+math_nroot = Command(
+    name="math nroot", description="Calculate the nth root of a number."
+)
+math_nroot.add_param(
     Param(
         name="x",
         type=float,
         description="Number to calculate the nth root of",
     )
 )
+math_nroot.add_param(
+    Param(
+        name="ndigits",
+        type=int,
+        description="Number of digits to round the result to",
+        optional=False,
+        default=10,
+    )
+)
 
-abs_ = Command(name="math abs", description="Calculate the absolute value of a number.")
-abs_.add_param(
+math_abs = Command(
+    name="math abs", description="Calculate the absolute value of a number."
+)
+math_abs.add_param(
     Param(
         name="x",
         type=float,
@@ -469,8 +585,8 @@ abs_.add_param(
     )
 )
 
-ceil = Command(name="math ceil", description="Calculate the ceiling of a number.")
-ceil.add_param(
+math_ceil = Command(name="math ceil", description="Calculate the ceiling of a number.")
+math_ceil.add_param(
     Param(
         name="x",
         type=float,
@@ -478,47 +594,76 @@ ceil.add_param(
     )
 )
 
-floor = Command(name="math floor", description="Calculate the floor of a number.")
-floor.add_param(
+math_floor = Command(name="math floor", description="Calculate the floor of a number.")
+math_floor.add_param(
     Param(name="x", type=float, description="Number to calculate the floor of")
 )
 
-round_ = Command(
+math_round = Command(
     name="math round", description="Round a number to a specified number of digits."
 )
-round_.add_param(Param(name="x", type=float, description="Number to round"))
-round_.add_param(
+math_round.add_param(Param(name="x", type=float, description="Number to round"))
+math_round.add_param(
     Param(name="ndigits", type=int, description="Number of digits to round to")
 )
 
-log = Command(name="math log", description="Calculate the logarithm of a number.")
-log.add_param(
+math_log = Command(name="math log", description="Calculate the logarithm of a number.")
+math_log.add_param(
     Param(
         name="x",
         type=float,
         description="Number to calculate the logarithm of",
     )
 )
-log.add_param(
+math_log.add_param(
     Param(
         name="base",
         type=Union[float, None],
-        description="Base of the logarithm; if left empty, uses base e",
+        description="Base of the logarithm",
+        optional=True,
+        default=10,
+    )
+)
+math_log.add_param(
+    Param(
+        name="ndigits",
+        type=int,
+        description="Number of digits to round the result to",
+        optional=False,
+        default=10,
     )
 )
 
-gcd = Command(
+math_ln = Command(
+    name="math ln", description="Calculate the natural logarithm of a number."
+)
+math_ln.add_param(
+    Param(
+        name="x", type=float, description="Number to calculate the natural logarithm of"
+    )
+)
+math_ln.add_param(
+    Param(
+        name="ndigits",
+        type=int,
+        description="Number of digits to round the result to",
+        optional=False,
+        default=10,
+    )
+)
+
+math_gcd = Command(
     name="math gcd",
     description="Calculate the greatest common divisor/denominator (GDC) of two numbers",
 )
-gcd.add_param(Param(name="x", type=int, description="First number"))
-gcd.add_param(Param(name="y", type=int, description="Second number"))
+math_gcd.add_param(Param(name="x", type=int, description="First number"))
+math_gcd.add_param(Param(name="y", type=int, description="Second number"))
 
-gcd_bulk = Command(
+math_gcd_bulk = Command(
     name="math gcd-bulk",
     description="Calculate the GCD of an arbitrary amount of numbers.",
 )
-gcd_bulk.add_param(
+math_gcd_bulk.add_param(
     Param(
         name="numbers",
         type=str,
@@ -526,18 +671,18 @@ gcd_bulk.add_param(
     )
 )
 
-lcm = Command(
+math_lcm = Command(
     name="math lcm",
     description="Calculate the least common multiplier (LCM) of two numbers.",
 )
-lcm.add_param(Param(name="x", type=int, description="First number"))
-lcm.add_param(Param(name="y", type=int, description="Second number"))
+math_lcm.add_param(Param(name="x", type=int, description="First number"))
+math_lcm.add_param(Param(name="y", type=int, description="Second number"))
 
-lcm_bulk = Command(
+math_lcm_bulk = Command(
     name="math lcm-bulk",
     description="Calculate the LCM of an arbitrary amount of numbers.",
 )
-lcm_bulk.add_param(
+math_lcm_bulk.add_param(
     Param(
         name="numbers",
         type=str,
@@ -545,50 +690,68 @@ lcm_bulk.add_param(
     )
 )
 
-distance_cartesian_2d = Command(
+math_distance_cartesian_2d = Command(
     name="math distance cartesian-2d",
     description="Calculate the Cartesian distance between two points in 2D space.",
 )
-distance_cartesian_2d.add_param(
+math_distance_cartesian_2d.add_param(
     Param(name="x1", type=float, description="First x-coordinate")
 )
-distance_cartesian_2d.add_param(
+math_distance_cartesian_2d.add_param(
     Param(name="y1", type=float, description="First y-coordinate")
 )
-distance_cartesian_2d.add_param(
+math_distance_cartesian_2d.add_param(
     Param(name="x2", type=float, description="Second x-coordinate")
 )
-distance_cartesian_2d.add_param(
+math_distance_cartesian_2d.add_param(
     Param(name="y2", type=float, description="Second y-coordinate")
 )
+math_distance_cartesian_2d.add_param(
+    Param(
+        name="ndigits",
+        type=int,
+        description="Number of digits to round the result to",
+        optional=False,
+        default=10,
+    )
+)
 
-distance_cartesian_3d = Command(
+math_distance_cartesian_3d = Command(
     name="math distance cartesian-3d",
     description="Calculate the Cartesian distance between two points in 3D space.",
 )
-distance_cartesian_3d.add_param(
+math_distance_cartesian_3d.add_param(
     Param(name="x1", type=float, description="First x-coordinate")
 )
-distance_cartesian_3d.add_param(
+math_distance_cartesian_3d.add_param(
     Param(name="y1", type=float, description="First y-coordinate")
 )
-distance_cartesian_3d.add_param(
+math_distance_cartesian_3d.add_param(
     Param(name="z1", type=float, description="First z-coordinate")
 )
-distance_cartesian_3d.add_param(
+math_distance_cartesian_3d.add_param(
     Param(name="x2", type=float, description="Second x-coordinate")
 )
-distance_cartesian_3d.add_param(
+math_distance_cartesian_3d.add_param(
     Param(name="y2", type=float, description="Second y-coordinate")
 )
-distance_cartesian_3d.add_param(
+math_distance_cartesian_3d.add_param(
     Param(name="z2", type=float, description="Second z-coordinate")
 )
+math_distance_cartesian_3d.add_param(
+    Param(
+        name="ndigits",
+        type=int,
+        description="Number of digits to round the result to",
+        optional=False,
+        default=10,
+    )
+)
 
-factorial = Command(
+math_factorial = Command(
     name="math factorial", description="Calculate the factorial of a number."
 )
-factorial.add_param(
+math_factorial.add_param(
     Param(name="x", type=int, description="Number to calculate the factorial of")
 )
 
@@ -596,9 +759,9 @@ factorial.add_param(
 # MODERATION CMDS #
 # # # # # # # # # #
 
-ban = Command(name="mod ban", description="Ban a user.")
-ban.add_param(Param(name="user", type=User, description="User to ban"))
-ban.add_param(
+mod_ban = Command(name="mod ban", description="Ban a user.")
+mod_ban.add_param(Param(name="user", type=User, description="User to ban"))
+mod_ban.add_param(
     Param(
         name="delete_message_time",
         type=int,
@@ -607,7 +770,7 @@ ban.add_param(
         default=0,
     )
 )
-ban.add_param(
+mod_ban.add_param(
     Param(
         name="time_unit",
         type=TimeUnit,
@@ -616,7 +779,7 @@ ban.add_param(
         default="seconds",
     )
 )
-ban.add_param(
+mod_ban.add_param(
     Param(
         name="reason",
         type=Union[str, None],
@@ -624,7 +787,7 @@ ban.add_param(
         optional=True,
     )
 )
-ban.add_param(
+mod_ban.add_param(
     Param(
         name="ghost",
         type=bool,
@@ -634,9 +797,11 @@ ban.add_param(
     )
 )
 
-unban = Command(name="mod unban", description="Unban a user.")
-unban.add_param(Param(name="user_id", type=str, description="ID of the user to unban"))
-unban.add_param(
+mod_unban = Command(name="mod unban", description="Unban a user.")
+mod_unban.add_param(
+    Param(name="user_id", type=str, description="ID of the user to unban")
+)
+mod_unban.add_param(
     Param(
         name="reason",
         type=Union[str, None],
@@ -645,14 +810,16 @@ unban.add_param(
     )
 )
 
-timeout_add = Command(
+mod_timeout_add = Command(
     name="mod timeout add", description="Add time to a user's timeout."
 )
-timeout_add.add_param(
+mod_timeout_add.add_param(
     Param(name="user", type=Member, description="User to add timeout time to")
 )
-timeout_add.add_param(Param(name="time", type=int, description="Timeout addition time"))
-timeout_add.add_param(
+mod_timeout_add.add_param(
+    Param(name="time", type=int, description="Timeout addition time")
+)
+mod_timeout_add.add_param(
     Param(
         name="time_unit",
         type=TimeUnit,
@@ -661,7 +828,7 @@ timeout_add.add_param(
         default="seconds",
     )
 )
-timeout_add.add_param(
+mod_timeout_add.add_param(
     Param(
         name="reason",
         type=Union[str, None],
@@ -670,16 +837,16 @@ timeout_add.add_param(
     )
 )
 
-timeout_reduce = Command(
+mod_timeout_reduce = Command(
     name="mod timeout reduce", description="Reduce time from a user's timeout."
 )
-timeout_reduce.add_param(
+mod_timeout_reduce.add_param(
     Param(name="user", type=Member, description="User to reduce timeout time from")
 )
-timeout_reduce.add_param(
+mod_timeout_reduce.add_param(
     Param(name="time", type=int, description="Timeout reduction time")
 )
-timeout_reduce.add_param(
+mod_timeout_reduce.add_param(
     Param(
         name="time_unit",
         type=TimeUnit,
@@ -688,7 +855,7 @@ timeout_reduce.add_param(
         default="seconds",
     )
 )
-timeout_reduce.add_param(
+mod_timeout_reduce.add_param(
     Param(
         name="reason",
         type=Union[str, None],
@@ -697,13 +864,13 @@ timeout_reduce.add_param(
     )
 )
 
-timeout_remove = Command(
+mod_timeout_remove = Command(
     name="mod timeout remove", description="Remove a user's timeout."
 )
-timeout_remove.add_param(
+mod_timeout_remove.add_param(
     Param(name="user", type=Member, description="User to remove timeout from")
 )
-timeout_remove.add_param(
+mod_timeout_remove.add_param(
     Param(
         name="reason",
         type=Union[str, None],
@@ -712,13 +879,13 @@ timeout_remove.add_param(
     )
 )
 
-clear = Command(
+mod_clear = Command(
     name="mod clear", description="Delete a number of messages from a channel."
 )
-clear.add_param(
+mod_clear.add_param(
     Param(name="amount", type=int, description="Number of messages to delete")
 )
-clear.add_param(
+mod_clear.add_param(
     Param(
         name="channel",
         type=Union[TextChannel, None],
@@ -726,7 +893,7 @@ clear.add_param(
         optional=True,
     )
 )
-clear.add_param(
+mod_clear.add_param(
     Param(
         name="reason",
         type=Union[str, None],
@@ -735,14 +902,14 @@ clear.add_param(
     )
 )
 
-warn = Command(name="mod warn", description="Warn a user.")
-warn.add_param(Param(name="user", type=Member, description="User to warn"))
-warn.add_param(
+mod_warn = Command(name="mod warn", description="Warn a user.")
+mod_warn.add_param(Param(name="user", type=Member, description="User to warn"))
+mod_warn.add_param(
     Param(
         name="channel", type=TextChannel, description="Channel to send the warning in"
     )
 )
-warn.add_param(
+mod_warn.add_param(
     Param(
         name="reason",
         type=Union[str, None],
@@ -751,9 +918,9 @@ warn.add_param(
     )
 )
 
-kick = Command(name="mod kick", description="Kick a user.")
-kick.add_param(Param(name="user", type=Member, description="User to kick"))
-kick.add_param(
+mod_kick = Command(name="mod kick", description="Kick a user.")
+mod_kick.add_param(Param(name="user", type=Member, description="User to kick"))
+mod_kick.add_param(
     Param(
         name="reason",
         type=Union[str, None],
@@ -762,9 +929,9 @@ kick.add_param(
     )
 )
 
-mute = Command(name="mod mute", description="Mute a user.")
-mute.add_param(Param(name="user", type=Member, description="User to mute"))
-mute.add_param(
+mod_mute = Command(name="mod mute", description="Mute a user.")
+mod_mute.add_param(Param(name="user", type=Member, description="User to mute"))
+mod_mute.add_param(
     Param(
         name="reason",
         type=Union[str, None],
@@ -773,9 +940,9 @@ mute.add_param(
     )
 )
 
-unmute = Command(name="mod unmute", description="Unmute a user.")
-unmute.add_param(Param(name="user", type=Member, description="User to unmute"))
-unmute.add_param(
+mod_unmute = Command(name="mod unmute", description="Unmute a user.")
+mod_unmute.add_param(Param(name="user", type=Member, description="User to unmute"))
+mod_unmute.add_param(
     Param(
         name="reason",
         type=Union[str, None],
@@ -917,10 +1084,10 @@ COLOR = (
     color_role_rgb,
     color_role_name,
     color_role_random,
-    color_role_copy,
+    color_role_copy_color,
     color_role_reset,
     color_role_reassign,
-    color_list,
+    color_color_list,
     color_info_rgb,
     color_info_hex,
     color_info_name,
@@ -931,53 +1098,54 @@ COLOR = (
     color_invert_name,
 )
 DATETIME = (
-    datetime_datetime,
-    datetime_date,
-    datetime_time,
-    datetime_weekday,
-    datetime_days_until,
+    date_time_date_time,
+    date_time_date,
+    date_time_time,
+    date_time_weekday,
+    date_time_days_until,
 )
-FUN = (flip_coin, stats, profile_picture, banner, cat_pic)
+FUN = (flip_coin, stats, profile_picture, banner, cat_pic, member_count)
 HELP = (help_category, help_command)
 MATH = (
-    add,
-    sum_,
-    sub,
-    mul,
-    prod,
-    div,
-    floordiv,
-    pow_,
-    mod,
-    sqrt,
-    cbrt,
-    nroot,
-    abs_,
-    ceil,
-    floor,
-    round_,
-    log,
-    gcd,
-    gcd_bulk,
-    lcm,
-    lcm_bulk,
-    distance_cartesian_2d,
-    distance_cartesian_3d,
-    factorial,
+    math_add,
+    math_sum,
+    math_sub,
+    math_mul,
+    math_prod,
+    math_div,
+    math_floordiv,
+    math_pow,
+    math_mod,
+    math_sqrt,
+    math_cbrt,
+    math_nroot,
+    math_abs,
+    math_ceil,
+    math_floor,
+    math_round,
+    math_log,
+    math_ln,
+    math_gcd,
+    math_gcd_bulk,
+    math_lcm,
+    math_lcm_bulk,
+    math_distance_cartesian_2d,
+    math_distance_cartesian_3d,
+    math_factorial,
 )
 RANDOM = (random_integer, random_decimal, random_choice, random_shuffle)
 
-MANAGEMENT = (echo, dm, announce)
+MANAGEMENT = (mgmt_echo, mgmt_dm, mgmt_announce)
 MODERATION = (
-    ban,
-    timeout_add,
-    timeout_reduce,
-    timeout_remove,
-    clear,
-    warn,
-    kick,
-    mute,
-    unmute,
+    mod_ban,
+    mod_timeout_add,
+    mod_timeout_reduce,
+    mod_timeout_remove,
+    mod_clear,
+    mod_warn,
+    mod_kick,
+    mod_mute,
+    mod_unmute,
 )
 
 
@@ -988,10 +1156,10 @@ PUBLIC_COMMAND_MAP = {
     "color role rgb": color_role_rgb,
     "color role name": color_role_name,
     "color role random": color_role_random,
-    "color role copy": color_role_copy,
+    "color role copy-color": color_role_copy_color,
     "color role reset": color_role_reset,
     "color role reassign": color_role_reassign,
-    "color color-list": color_list,
+    "color color-list": color_color_list,
     "color info rgb": color_info_rgb,
     "color info hex": color_info_hex,
     "color info name": color_info_name,
@@ -1001,45 +1169,47 @@ PUBLIC_COMMAND_MAP = {
     "color invert hex": color_invert_hex,
     "color invert name": color_invert_name,
     # DATETIME CMDS
-    "date-time date-time": datetime_datetime,
-    "date-time date": datetime_date,
-    "date-time time": datetime_time,
-    "date-time weekday": datetime_weekday,
-    "date-time days-until": datetime_days_until,
+    "date-time date-time": date_time_date_time,
+    "date-time date": date_time_date,
+    "date-time time": date_time_time,
+    "date-time weekday": date_time_weekday,
+    "date-time days-until": date_time_days_until,
     # FUN CMDS
     "flip-coin": flip_coin,
     "stats": stats,
     "profile-picture": profile_picture,
     "banner": banner,
     "cat-pic": cat_pic,
+    "member-count": member_count,
     # HELP CMDS
     "help category": help_category,
     "help command": help_command,
     # MATH CMDS
-    "math add": add,
-    "math sum": sum_,
-    "math sub": sub,
-    "math mul": mul,
-    "math prod": prod,
-    "math div": div,
-    "math floordiv": floordiv,
-    "math pow": pow_,
-    "math mod": mod,
-    "math sqrt": sqrt,
-    "math cbrt": cbrt,
-    "math nroot": nroot,
-    "math abs": abs_,
-    "math ceil": ceil,
-    "math floor": floor,
-    "math round": round_,
-    "math log": log,
-    "math gcd": gcd,
-    "math gcd-bulk": gcd_bulk,
-    "math lcm": lcm,
-    "math lcm-bulk": lcm_bulk,
-    "math distance cartesian-2d": distance_cartesian_2d,
-    "math distance cartesian-3d": distance_cartesian_3d,
-    "math factorial": factorial,
+    "math add": math_add,
+    "math sum": math_sum,
+    "math sub": math_sub,
+    "math mul": math_mul,
+    "math prod": math_prod,
+    "math div": math_div,
+    "math floordiv": math_floordiv,
+    "math pow": math_pow,
+    "math mod": math_mod,
+    "math sqrt": math_sqrt,
+    "math cbrt": math_cbrt,
+    "math nroot": math_nroot,
+    "math abs": math_abs,
+    "math ceil": math_ceil,
+    "math floor": math_floor,
+    "math round": math_round,
+    "math log": math_log,
+    "math ln": math_ln,
+    "math gcd": math_gcd,
+    "math gcd-bulk": math_gcd_bulk,
+    "math lcm": math_lcm,
+    "math lcm-bulk": math_lcm_bulk,
+    "math distance cartesian-2d": math_distance_cartesian_2d,
+    "math distance cartesian-3d": math_distance_cartesian_3d,
+    "math factorial": math_factorial,
     # RANDOM CMDS
     "random integer": random_integer,
     "random decimal": random_decimal,
@@ -1050,18 +1220,18 @@ PUBLIC_COMMAND_MAP = {
 PRIVATE = MANAGEMENT + MODERATION
 PRIVATE_COMMAND_MAP = {
     # MANAGEMENT CMDS
-    "mgmt echo": echo,
-    "mgmt dm": dm,
-    "mgmt announce": announce,
+    "mgmt echo": mgmt_echo,
+    "mgmt dm": mgmt_dm,
+    "mgmt announce": mgmt_announce,
     # MODERATION CMDS
-    "mod ban": ban,
-    "mod unban": unban,
-    "mod timeout add": timeout_add,
-    "mod timeout reduce": timeout_reduce,
-    "mod timeout remove": timeout_remove,
-    "mod clear": clear,
-    "mod warn": warn,
-    "mod kick": kick,
-    "mod mute": mute,
-    "mod unmute": unmute,
+    "mod ban": mod_ban,
+    "mod unban": mod_unban,
+    "mod timeout add": mod_timeout_add,
+    "mod timeout reduce": mod_timeout_reduce,
+    "mod timeout remove": mod_timeout_remove,
+    "mod clear": mod_clear,
+    "mod warn": mod_warn,
+    "mod kick": mod_kick,
+    "mod mute": mod_mute,
+    "mod unmute": mod_unmute,
 }

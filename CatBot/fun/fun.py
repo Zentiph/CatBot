@@ -20,6 +20,7 @@ from discord import app_commands
 from discord.ext import commands
 from psutil import Process
 
+from .. import emojis
 from ..bot_init import CAT_API_SEARCH_LINK, VERSION, get_cat_api_key_from_env
 from ..help import PRIVATE, PUBLIC
 from ..internal_utils import START_TIME, generate_authored_embed_with_icon
@@ -70,9 +71,6 @@ class FunCog(commands.Cog, name="Fun Commands"):
     async def stats(self, interaction: discord.Interaction) -> None:
         """
         Report general stats about the bot.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
         """
 
         logging.info("/stats invoked by %s", interaction.user)
@@ -103,7 +101,7 @@ class FunCog(commands.Cog, name="Fun Commands"):
         )
 
         embed, icon = generate_authored_embed_with_icon(
-            embed_title="CatBot Stats",
+            embed_title=f"{emojis.CHART} CatBot Stats",
             embed_description="Here's some statistics about myself.",
         )
         embed.add_field(name="Version", value=VERSION)
@@ -123,7 +121,7 @@ class FunCog(commands.Cog, name="Fun Commands"):
         embed.add_field(name="Language Version", value=python_version)
         embed.add_field(name="Package", value="discord.py")
         embed.add_field(name="Package Version", value=discord_py_version)
-        embed.add_field(name="Dependencies", value=get_dependencies())
+        embed.add_field(name="Dependencies", value=get_dependencies(), inline=True)
         embed.add_field(name="Host", value=host, inline=False)
 
         await interaction.followup.send(embed=embed, file=icon)
@@ -151,7 +149,7 @@ class FunCog(commands.Cog, name="Fun Commands"):
             coin = discord.File(fp="CatBot/images/coin_heads.png", filename="coin.png")
         else:
             embed, icon = generate_authored_embed_with_icon(
-                embed_title="Coin Flip",
+                embed_title=f"{emojis.COIN} Coin Flip",
                 embed_description="Here's the result of your coin flip.",
                 embed_color=discord.Color.from_rgb(203, 203, 203),  # Tails coin color
             )
@@ -178,7 +176,7 @@ class FunCog(commands.Cog, name="Fun Commands"):
             user = interaction.user  # type: ignore
 
         embed, icon = generate_authored_embed_with_icon(
-            embed_title=f"{user.display_name}'s Profile Picture",  # type: ignore
+            embed_title=f"{emojis.PHOTO} {user.display_name}'s Profile Picture",  # type: ignore
             embed_description=f"Here's {user.display_name}'s profile picture.",  # type: ignore
         )
         embed.set_image(url=user.display_avatar.url)  # type: ignore
@@ -201,12 +199,12 @@ class FunCog(commands.Cog, name="Fun Commands"):
 
         if user.banner is None:  # type: ignore
             await interaction.response.send_message(
-                f"{user.display_name} does not have a banner.", ephemeral=True  # type: ignore
+                f"{emojis.X} {user.display_name} does not have a banner.", ephemeral=True  # type: ignore
             )
             return
 
         embed, icon = generate_authored_embed_with_icon(
-            embed_title=f"{user.display_name}'s Profile Banner",  # type: ignore
+            embed_title=f"{emojis.PHOTO} {user.display_name}'s Profile Banner",  # type: ignore
             embed_description=f"Here's {user.display_name}'s profile banner.",  # type: ignore
         )
         embed.set_image(url=user.banner.url)  # type: ignore
@@ -232,7 +230,7 @@ class FunCog(commands.Cog, name="Fun Commands"):
                 "Failed to fetch site data: status code %s", response.status_code
             )
             await interaction.followup.send(
-                "Failed to fetch site data. "
+                f"{emojis.X} Failed to fetch site data. "
                 + "Please contact @zentiph to report this if the issue persists.",
                 ephemeral=True,
             )
@@ -242,7 +240,7 @@ class FunCog(commands.Cog, name="Fun Commands"):
         if not data:
             logging.warning("No images found in the response")
             await interaction.followup.send(
-                "No images were found. Please contact @zentiph if this issue persists.",
+                f"{emojis.X} No images were found. Please contact @zentiph if this issue persists.",
                 ephemeral=True,
             )
             return
@@ -255,7 +253,7 @@ class FunCog(commands.Cog, name="Fun Commands"):
                 "Failed to fetch image data: status code %s", response.status_code
             )
             await interaction.followup.send(
-                "Failed to fetch image data. "
+                f"{emojis.X} Failed to fetch image data. "
                 + "Please contact @zentiph to report this if the issue persists.",
                 ephemeral=True,
             )
@@ -266,12 +264,54 @@ class FunCog(commands.Cog, name="Fun Commands"):
         file = discord.File(fp=image_bytes, filename=filename)
 
         embed, icon = generate_authored_embed_with_icon(
-            embed_title="Random Cat Picture",
+            embed_title=f"{emojis.CAT} Random Cat Picture",
             embed_description="Here's your random cat picture.",
         )
         embed.set_image(url=f"attachment://{filename}")
 
         await interaction.followup.send(embed=embed, files=(file, icon))
+
+    @app_commands.command(
+        name="member-count", description="Get the number of members in this server"
+    )
+    async def member_count(self, interaction: discord.Interaction) -> None:
+        """
+        Get the member count.
+        """
+
+        logging.info("/member-count invoked by %s", interaction.user)
+
+        members = interaction.guild.members  # type: ignore
+
+        embed, icon = generate_authored_embed_with_icon(
+            embed_title=f"{emojis.PEOPLE_SYMBOL} {interaction.guild.name} Member Count",  # type: ignore
+            embed_description="Here's the member count for this server.",
+        )
+        embed.add_field(
+            name="Total Members",
+            value=interaction.guild.member_count,  # type: ignore
+            inline=False,
+        )
+        human_members = len(
+            [member for member in members if not member.bot]  # type: ignore
+        )
+        embed.add_field(name="Human Members", value=human_members, inline=False)
+        embed.add_field(
+            name="Bot Members",
+            value=interaction.guild.member_count - human_members,  # type: ignore
+            inline=False,
+        )
+        online_members = len(
+            [member for member in members if str(member.status) != "offline"]
+        )
+        embed.add_field(name="Online Members", value=online_members, inline=False)
+        embed.add_field(
+            name="Offline Members",
+            value=interaction.guild.member_count - online_members,  # type: ignore
+            inline=False,
+        )
+
+        await interaction.response.send_message(embed=embed, file=icon)
 
 
 async def setup(bot: commands.Bot):

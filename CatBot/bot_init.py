@@ -7,7 +7,9 @@ import logging
 from argparse import ArgumentParser
 
 import discord
+from discord import app_commands
 from discord.ext.commands import Bot
+from requests import Timeout
 
 from .logging_formatting import LOGGING_FORMAT, ColorFormatter
 
@@ -17,6 +19,12 @@ LOGGING_CHANNEL = 1306045987319451718
 MANAGEMENT_ROLES = ("Owner", "Management")
 MODERATOR_ROLES = ("Owner", "Management", "Mod")
 CAT_API_SEARCH_LINK = "https://api.thecatapi.com/v1/images/search"
+APP_COMMAND_ERRORS = (
+    app_commands.errors.CheckFailure,
+    discord.Forbidden,
+    OverflowError,
+    Timeout,
+)
 
 
 def get_version() -> str:
@@ -48,6 +56,8 @@ def initialize_bot() -> Bot:
 
     intents = discord.Intents.default()
     intents.message_content = True
+    intents.members = True
+    intents.presences = True
     return Bot(command_prefix="!", intents=intents)
 
 
@@ -174,3 +184,65 @@ def get_token(parser: ArgumentParser, /) -> str:
 
     args = parser.parse_args()
     return args.tokenoverride if args.tokenoverride else get_token_from_env()
+
+
+async def handle_app_command_error(
+    interaction: discord.Interaction, error: Exception
+) -> None:
+    """
+    Handle an app command error.
+    Supported/expected errors are defined in the APP_COMMAND_ERRORS constant.
+
+    :param interaction: Interaction instance
+    :type interaction: discord.Interaction
+    :param error: The error that occurred
+    :type error: AppCommandError | Exception
+    """
+
+    async def try_response(message: str, ephemeral: bool = True) -> None:
+        """
+        Attempt to respond with the given message.
+        If the response was deferred, send it with a followup instead.
+
+        :param message: Response message
+        :type message: str
+        :param ephemeral: Whether the message is ephemeral, defaults to True
+        :type ephemeral: bool, optional
+        """
+
+        try:
+            await interaction.response.send_message(message, ephemeral=ephemeral)
+        except discord.errors.InteractionResponded:
+            await interaction.followup.send(message, ephemeral=ephemeral)
+
+    if error not in APP_COMMAND_ERRORS:  # Unintentional error
+        logging.error("An error occurred: %s", error)
+        await try_response(
+            "An unknown error occurred. Contact @zentiph to report this please!"
+        )
+
+    if isinstance(error, app_commands.errors.CheckFailure):  # Restricted command
+        logging.info(
+            "Unauthorized user %s attempted to use a restricted command",
+            interaction.user,
+        )
+        await try_response("You do not have permission to use this command.")
+
+    elif isinstance(error, discord.Forbidden):
+        logging.warning(
+            "Attempted to perform a command with inadequate permissions allotted to the bot"
+        )
+        await try_response("I do not have permissions to perform this command.")
+
+    elif isinstance(error, OverflowError):
+        logging.info("Overflow error occurred during a calculation")
+        await try_response(
+            "This calculation caused an arithmetic overflow. Try using smaller numbers."
+        )
+
+    elif isinstance(error, Timeout):
+        logging.warning("Timeout error occurred during HTTP request")
+        await try_response(
+            "An attempt to communicate with an external API "
+            + "has taken too long, and has been canceled."
+        )

@@ -8,13 +8,14 @@ Color assignment cog for CatBot.
 
 import logging
 from io import BytesIO
-from typing import Dict, Literal, Tuple, Union
+from typing import Literal, Union
 
 import discord
 from discord import app_commands
 from discord.ext import commands
 from PIL import Image
 
+from .. import emojis
 from ..internal_utils import generate_authored_embed_with_icon
 from .color_tools import (
     BLUES,
@@ -98,7 +99,7 @@ async def handle_forbidden_exception(interaction: discord.Interaction, /) -> Non
     """
 
     await interaction.response.send_message(
-        "I do not have permissions to create roles. "
+        f"{emojis.ERROR} I do not have permissions to create roles. "
         + "Contact server administration about this please!",
         ephemeral=True,
     )
@@ -118,7 +119,7 @@ async def handle_http_exception(
     """
 
     await interaction.response.send_message(
-        "An error occurred. Please try again.", ephemeral=True
+        f"{emojis.ERROR} An error occurred. Please try again.", ephemeral=True
     )
     logging.error("Failed to create role due to an unexpected error: %s", err)
 
@@ -164,11 +165,6 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         """
         Assign the user a new hex color.
         This role is created if it does not exist, or if it does, it is updated.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
-        :param hex: Hex value
-        :type hex: str
         """
 
         logging.info(
@@ -177,7 +173,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
 
         if not is_hex_value(hex):
             await interaction.response.send_message(
-                "Invalid hex value provided. Supported range: 000000-ffffff",
+                f"{emojis.X} Invalid hex value provided. Supported range: 000000-ffffff",
                 ephemeral=True,
             )
             return
@@ -190,14 +186,16 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         if existing_role:
             await edit_color_role(existing_role, color, interaction.user, hex)  # type: ignore
             await interaction.response.send_message(
-                f"Your role color has been updated to {hex}.", ephemeral=True
+                f"{emojis.CHECKMARK} Your role color has been updated to {hex}.",
+                ephemeral=True,
             )
             return
 
         try:
             await create_color_role(interaction.user, color, interaction.guild)  # type: ignore
             await interaction.response.send_message(
-                f"You have been assigned a role with the color {hex}.", ephemeral=True
+                f"{emojis.CHECKMARK} You have been assigned a role with the color {hex}.",
+                ephemeral=True,
             )
         except discord.Forbidden:
             await handle_forbidden_exception(interaction)
@@ -216,15 +214,6 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         """
         Assign the user a new RGB color.
         This role is created if it does not exist, or if it does, it is updated.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
-        :param r: R value
-        :type r: int
-        :param g: G value
-        :type g: int
-        :param b: B value
-        :type b: int
         """
 
         logging.info(
@@ -233,7 +222,8 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
 
         if not all(is_rgb_value(v) for v in (r, g, b)):
             await interaction.response.send_message(
-                "Invalid RGB value provided. Supported range: 0-255", ephemeral=True
+                f"{emojis.X} Invalid RGB value provided. Supported range: 0-255",
+                ephemeral=True,
             )
             return
 
@@ -245,14 +235,15 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         if existing_role:
             await edit_color_role(existing_role, color, interaction.user, (r, g, b))  # type: ignore
             await interaction.response.send_message(
-                f"Your role color has been updated to {(r, g, b)}.", ephemeral=True
+                f"{emojis.CHECKMARK} Your role color has been updated to {(r, g, b)}.",
+                ephemeral=True,
             )
             return
 
         try:
             await create_color_role(interaction.user, color, interaction.guild)  # type: ignore
             await interaction.response.send_message(
-                f"You have been assigned a role with the color {(r, g, b)}.",
+                f"{emojis.CHECKMARK} You have been assigned a role with the color {(r, g, b)}.",
                 ephemeral=True,
             )
         except discord.Forbidden:
@@ -263,18 +254,13 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
     @role_group.command(
         name="name", description="Assign yourself a custom color with a color name"
     )
-    @app_commands.describe(name="Color name (use /colors for a list of colors)")
+    @app_commands.describe(name="Color name (use /color-list for a list of colors)")
     async def assign_color_name(
         self, interaction: discord.Interaction, name: str
     ) -> None:
         """
         Assign the user a new color using a color name.
         This role is created if it does not exist, or if it does, it is updated.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
-        :param name: Color name
-        :type name: str
         """
 
         name = name.lower()
@@ -285,7 +271,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
 
         if name not in COLORS:
             await interaction.response.send_message(
-                "Invalid color name provided. Use /colors for a list of supported colors.",
+                f"{emojis.X} Invalid color name provided. Use /color-list for a list of supported colors.",
                 ephemeral=True,
             )
             return
@@ -298,14 +284,16 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         if existing_role:
             await edit_color_role(existing_role, color, interaction.user, color)  # type: ignore
             await interaction.response.send_message(
-                f"Your role color has been updated to {name}.", ephemeral=True
+                f"{emojis.CHECKMARK} Your role color has been updated to {name}.",
+                ephemeral=True,
             )
             return
 
         try:
             await create_color_role(interaction.user, color, interaction.guild)  # type: ignore
             await interaction.response.send_message(
-                f"You have been assigned a role with the color {name}.", ephemeral=True
+                f"{emojis.CHECKMARK} You have been assigned a role with the color {name}.",
+                ephemeral=True,
             )
         except discord.Forbidden:
             await handle_forbidden_exception(interaction)
@@ -320,11 +308,6 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         """
         Assign the user a random color.
         This role is created if it does not exist, or if it does, it is updated.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
-        :param seed: Optional seed, defaults to None
-        :type seed: str | None, optional
         """
 
         logging.info("/color role random invoked by %s", interaction.user)
@@ -338,14 +321,16 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         if existing_role:
             await edit_color_role(existing_role, color, interaction.user, (r, g, b))  # type: ignore
             await interaction.response.send_message(
-                f"Your role color has been updated to {(r, g, b)}.", ephemeral=True
+                f"{emojis.CHECKMARK} Your role color has been updated to {(r, g, b)}.",
+                ephemeral=True,
             )
             return
 
         try:
             await create_color_role(interaction.user, color, interaction.guild)  # type: ignore
             await interaction.response.send_message(
-                f"You have been assigned a role with color {(r, g, b)}.", ephemeral=True
+                f"{emojis.CHECKMARK} You have been assigned a role with color {(r, g, b)}.",
+                ephemeral=True,
             )
         except discord.Forbidden:
             await handle_forbidden_exception(interaction)
@@ -362,11 +347,6 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         """
         Copy `roles`'s color and assign it to the user as a color role.
         This role is created if it does not exist, or if it does, it is updated.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
-        :param role: Role to copy the color of
-        :type role: discord.Role
         """
 
         logging.info(
@@ -375,7 +355,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
 
         if role not in interaction.guild.roles:  # type: ignore
             await interaction.response.send_message(
-                "Role was not found in this guild.", ephemeral=True
+                f"{emojis.X} The role was not found in this guild.", ephemeral=True
             )
             return
 
@@ -389,7 +369,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
                 existing_role, color, interaction.user, (color.r, color.g, color.b)  # type: ignore
             )
             await interaction.response.send_message(
-                f"Your role color has been updated to {(color.r, color.g, color.b)}.",
+                f"{emojis.CHECKMARK} Your role color has been updated to {(color.r, color.g, color.b)}.",
                 ephemeral=True,
             )
             return
@@ -397,7 +377,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         try:
             await create_color_role(interaction.user, color, interaction.guild)  # type: ignore
             await interaction.response.send_message(
-                f"You have been assigned a role with color {(color.r, color.g, color.b)}.",
+                f"{emojis.CHECKMARK} You have been assigned a role with color {(color.r, color.g, color.b)}.",
                 ephemeral=True,
             )
         except discord.Forbidden:
@@ -411,9 +391,6 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
     async def reset_color(self, interaction: discord.Interaction) -> None:
         """
         Reset the user's color.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
         """
 
         logging.info("/color role reset invoked by %s", interaction.user)
@@ -424,13 +401,13 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
 
         if not existing_role:
             await interaction.response.send_message(
-                "You do not have a color role!", ephemeral=True
+                f"{emojis.X} You do not have a color role!", ephemeral=True
             )
             return
 
         await existing_role.edit(color=discord.Color(int("000000", 16)))
         await interaction.response.send_message(
-            "Your role's color has been reset.", ephemeral=True
+            f"{emojis.CHECKMARK} Your role's color has been reset.", ephemeral=True
         )
 
     @role_group.command(
@@ -440,9 +417,6 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
     async def reassign(self, interaction: discord.Interaction) -> None:
         """
         Check if the user is missing their role, and reassign it if so.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
         """
 
         logging.info("/color role reassign invoked by %s", interaction.user)
@@ -453,19 +427,20 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
 
         if not existing_role:
             await interaction.response.send_message(
-                "You do not have a color role.", ephemeral=True
+                f"{emojis.X} Your color role does not exist, make a new one.",
+                ephemeral=True,
             )
             return
 
         if existing_role in interaction.user.roles:  # type: ignore
             await interaction.response.send_message(
-                "You already have your color role.", ephemeral=True
+                f"{emojis.X} You already have your color role.", ephemeral=True
             )
             return
 
         await interaction.user.add_roles(existing_role)  # type: ignore
         await interaction.response.send_message(
-            "Your role has been reassigned.", ephemeral=True
+            f"{emojis.CHECKMARK} Your role has been reassigned.", ephemeral=True
         )
 
     @color_group.command(
@@ -492,12 +467,6 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
     ) -> None:
         """
         Provide a list of supported color names.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
-        :param group: Group of colors to get info about
-        :type group: Literal["red", "orange", "yellow", "green",
-        "blue", "purple", "pink", "brown", "white", "gray", "grey"]
         """
 
         group_map = {
@@ -518,36 +487,20 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             "/color color-list group=%s invoked by %s", group, interaction.user
         )
 
-        def generate_embed(
-            name: str, group: Dict[str, str]
-        ) -> Tuple[discord.Embed, discord.File]:
-            """
-            Generate a color embed with the given group info.
+        colors = group_map[group]
 
-            :param name: Group name
-            :type name: str
-            :param group: Group dict
-            :type group: Dict[str, str]
-            :return: Color embed and icon
-            :rtype: Tuple[discord.Embed, discord.File]
-            """
+        embed, icon = generate_authored_embed_with_icon(
+            embed_title=f"{emojis.ART_PALETTE} {group.title()} Colors",
+            embed_description=f"Here's a list of supported {group} color names.",
+            embed_color=discord.Color(int(colors[group], 16)),
+        )
 
-            color = group[name]
+        colors_str = ""
+        for name_, value in colors.items():
+            colors_str += f"{name_.title()}  -  #{value}\n"
 
-            embed, icon = generate_authored_embed_with_icon(
-                embed_title=name.title() + " Colors",
-                embed_description=f"Here's a list of supported {name} color names.",
-                embed_color=discord.Color(int(color, 16)),
-            )
+        embed.add_field(name=f"{group.title()} Colors", value=colors_str)
 
-            colors = ""
-            for name_, value in group.items():
-                colors += f"{name_.title()}  -  #{value}\n"
-
-            embed.add_field(name=f"{name.title()} Colors", value=colors)
-            return embed, icon
-
-        embed, icon = generate_embed(group, group_map[group])
         await interaction.response.send_message(embed=embed, file=icon)
 
     @info_group.command(name="rgb", description="Get info about an RGB color")
@@ -559,15 +512,6 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
     ) -> None:
         """
         Get info about the RGB value.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
-        :param r: R value
-        :type r: int
-        :param g: G value
-        :type g: int
-        :param b: B value
-        :type b: int
         """
 
         logging.info(
@@ -576,7 +520,8 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
 
         if not all(is_rgb_value(v) for v in (r, g, b)):
             await interaction.response.send_message(
-                "Invalid RGB value provided. Supported range: 0-255", ephemeral=True
+                f"{emojis.X} Invalid RGB value provided. Supported range: 0-255",
+                ephemeral=True,
             )
             return
 
@@ -586,7 +531,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         file = discord.File(fp=image, filename=filename)
 
         embed, icon = generate_authored_embed_with_icon(
-            embed_title=f"{(r, g, b)} Info",
+            embed_title=f"{emojis.ART_PALETTE} {(r, g, b)} Info",
             embed_description="Here's some information about your color.",
             embed_color=discord.Color.from_rgb(r, g, b),
         )
@@ -606,11 +551,6 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
     async def hex_info(self, interaction: discord.Interaction, hex: str) -> None:
         """
         Get info about the hex value.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
-        :param hex: Hex value
-        :type hex: str
         """
 
         logging.info(
@@ -619,7 +559,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
 
         if not is_hex_value(hex):
             await interaction.response.send_message(
-                "Invalid hex value provided. Supported range: 000000-ffffff",
+                f"{emojis.X} Invalid hex value provided. Supported range: 000000-ffffff",
                 ephemeral=True,
             )
             return
@@ -631,7 +571,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         file = discord.File(fp=image, filename=filename)
 
         embed, icon = generate_authored_embed_with_icon(
-            embed_title=f"#{hex} Info",
+            embed_title=f"{emojis.ART_PALETTE} #{hex} Info",
             embed_description="Here's some information about your color.",
             embed_color=discord.Color.from_rgb(r, g, b),
         )
@@ -648,16 +588,11 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
 
     @info_group.command(name="name", description="Get info about a color name")
     @app_commands.describe(
-        name="Color name (use /colors for a list of supported colors)"
+        name="Color name (use /color-list for a list of supported colors)"
     )
     async def name_info(self, interaction: discord.Interaction, name: str) -> None:
         """
         Get info about the hex value.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
-        :param name: Color name
-        :type name: str
         """
 
         logging.info(
@@ -668,7 +603,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
 
         if name not in COLORS:
             await interaction.response.send_message(
-                "Invalid color name provided. Use /colors for a list of supported colors",
+                f"{emojis.X} Invalid color name provided. Use /color color-list for a list of supported colors",
                 ephemeral=True,
             )
             return
@@ -680,7 +615,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         file = discord.File(fp=image, filename=filename)
 
         embed, icon = generate_authored_embed_with_icon(
-            embed_title=f"{name.title()} Info",
+            embed_title=f"{emojis.ART_PALETTE} {name.title()} Info",
             embed_description="Here's some information about your color.",
             embed_color=discord.Color.from_rgb(r, g, b),
         )
@@ -698,18 +633,13 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
     ) -> None:
         """
         Get info about `role`'s color.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
-        :param role: Role to get color info of
-        :type role: discord.Role
         """
 
         logging.info("/color info role role=%s invoked by %s", role, interaction.user)
 
         if role not in interaction.guild.roles:  # type: ignore
             await interaction.response.send_message(
-                "Role was not found in this guild.", ephemeral=True
+                f"{emojis.X} The role was not found in this guild.", ephemeral=True
             )
             return
 
@@ -720,7 +650,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         file = discord.File(fp=image, filename=filename)
 
         embed, icon = generate_authored_embed_with_icon(
-            embed_title=f"{role.name} Color Info",
+            embed_title=f"{emojis.ART_PALETTE} {role.name} Color Info",
             embed_description="Here's some information about your role's color.",
             embed_color=role.color,
         )
@@ -743,11 +673,6 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
     ) -> None:
         """
         Generate a random color.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
-        :param seed: Optional seed, defaults to None
-        :type seed: str | None, optional
         """
 
         logging.info("/color random invoked by %s", interaction.user)
@@ -760,7 +685,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         file = discord.File(fp=image, filename=filename)
 
         embed, icon = generate_authored_embed_with_icon(
-            embed_title="Random Color",
+            embed_title=f"{emojis.ART_PALETTE} Random Color",
             embed_description="Here's your randomly generated color.",
             embed_color=discord.Color.from_rgb(r, g, b),
         )
@@ -785,15 +710,6 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
     ) -> None:
         """
         Invert the RGB value.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
-        :param r: R value
-        :type r: int
-        :param g: G value
-        :type g: int
-        :param b: B value
-        :type b: int
         """
 
         logging.info(
@@ -802,7 +718,8 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
 
         if not all(is_rgb_value(v) for v in (r, g, b)):
             await interaction.response.send_message(
-                "Invalid RGB value provided. Supported range: 0-255", ephemeral=True
+                f"{emojis.X} Invalid RGB value provided. Supported range: 0-255",
+                ephemeral=True,
             )
             return
 
@@ -814,7 +731,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         file = discord.File(fp=image, filename=filename)
 
         embed, icon = generate_authored_embed_with_icon(
-            embed_title=f"Inverted color of ({r}, {g}, {b})",
+            embed_title=f"{emojis.ART_PALETTE} Inverted color of ({r}, {g}, {b})",
             embed_description="Here's your inverted color.",
             embed_color=discord.Color.from_rgb(nr, ng, nb),
         )
@@ -835,11 +752,6 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
     async def invert_hex(self, interaction: discord.Interaction, hex: str) -> None:
         """
         Invert `hex`.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
-        :param hex: Hex value
-        :type hex: str
         """
 
         logging.info(
@@ -848,7 +760,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
 
         if not is_hex_value(hex):
             await interaction.response.send_message(
-                "Invalid hex value provided. Supported range: 000000-ffffff",
+                f"{emojis.X} Invalid hex value provided. Supported range: 000000-ffffff",
                 ephemeral=True,
             )
             return
@@ -863,7 +775,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         file = discord.File(fp=image, filename=filename)
 
         embed, icon = generate_authored_embed_with_icon(
-            embed_title=f"Inverted color of #{hex}",
+            embed_title=f"{emojis.ART_PALETTE} Inverted color of #{hex}",
             embed_description="Here's your inverted color.",
             embed_color=discord.Color.from_rgb(nr, ng, nb),
         )
@@ -880,17 +792,12 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         await interaction.response.send_message(embed=embed, files=(file, icon))
 
     @invert_group.command(name="name", description="Invert the color name")
-    @app_commands.describe(name="Color name (use /colors for a list of colors)")
+    @app_commands.describe(name="Color name (use /color-list for a list of colors)")
     async def invert_color_name(
         self, interaction: discord.Interaction, name: str
     ) -> None:
         """
         Invert the color name.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
-        :param name: Color name
-        :type name: str
         """
 
         logging.info(
@@ -901,7 +808,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
 
         if name not in COLORS:
             await interaction.response.send_message(
-                "Invalid color name provided. Use /colors for a list of supported colors",
+                f"{emojis.X} Invalid color name provided. Use /color-list for a list of supported colors",
                 ephemeral=True,
             )
             return
@@ -916,7 +823,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         file = discord.File(fp=image, filename=filename)
 
         embed, icon = generate_authored_embed_with_icon(
-            embed_title=f"Inverted color of #{hex}",
+            embed_title=f"{emojis.ART_PALETTE} Inverted color of #{hex}",
             embed_description="Here's your inverted color.",
             embed_color=discord.Color.from_rgb(nr, ng, nb),
         )

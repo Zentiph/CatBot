@@ -1,5 +1,5 @@
 """
-times.py
+date_time.py
 Date and time related commands.
 """
 
@@ -12,6 +12,7 @@ import pytz
 from discord import app_commands
 from discord.ext import commands
 
+from .. import emojis
 from ..internal_utils import generate_authored_embed_with_icon
 from .dt_formatting import (
     NUMBER_TO_DAY,
@@ -22,7 +23,8 @@ from .dt_formatting import (
 )
 
 INVALID_TIMEZONE_MESSAGE = (
-    "You have entered an invalid timezone.\n"
+    emojis.X
+    + " You have entered an invalid timezone.\n"
     + "A list of valid timezones can be found here: "
     + "https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568",
 )
@@ -117,7 +119,7 @@ class DateTimeCog(commands.Cog, name="Date & Time Commands"):
         local_datetime = datetime.datetime.now()
 
         embed, icon = generate_authored_embed_with_icon(
-            embed_title="Date & Time",
+            embed_title=f"{emojis.STOPWATCH} Date & Time",
             embed_description="Here's the current date & time info you requested.",
         )
         embed.add_field(
@@ -179,7 +181,7 @@ class DateTimeCog(commands.Cog, name="Date & Time Commands"):
         local_date = local_datetime.date()
 
         embed, icon = generate_authored_embed_with_icon(
-            embed_title="Date & Time",
+            embed_title=f"{emojis.STOPWATCH} Date & Time",
             embed_description="Here's the current date & time info you requested.",
         )
         embed.add_field(
@@ -244,7 +246,7 @@ class DateTimeCog(commands.Cog, name="Date & Time Commands"):
         local_time = local_datetime.time()
 
         embed, icon = generate_authored_embed_with_icon(
-            embed_title="Date & Time",
+            embed_title=f"{emojis.STOPWATCH} Date & Time",
             embed_description="Here's the current date & time info you requested.",
         )
         embed.add_field(
@@ -287,12 +289,12 @@ class DateTimeCog(commands.Cog, name="Date & Time Commands"):
             date = datetime.date(year, NUMBER_TO_MONTH.index(month), day)
         except ValueError:  # Date creation failed due to invalid values
             await interaction.response.send_message(
-                "Invalid date entered.", ephemeral=True
+                f"{emojis.X} Invalid date entered.", ephemeral=True
             )
             return
 
         embed, icon = generate_authored_embed_with_icon(
-            embed_title=f"Weekday on {month} {day}, {year}",
+            embed_title=f"{emojis.STOPWATCH} Weekday on {month} {day}, {year}",
             embed_description="Here's the weekday on the date you provided.",
         )
         embed.add_field(name="Weekday", value=NUMBER_TO_DAY[date.weekday()])
@@ -331,7 +333,7 @@ class DateTimeCog(commands.Cog, name="Date & Time Commands"):
             date = datetime.date(year, NUMBER_TO_MONTH.index(month), day)
         except ValueError:  # Datetime creation failed due to invalid values
             await interaction.response.send_message(
-                "Invalid date entered.", ephemeral=True
+                f"{emojis.X} Invalid date entered.", ephemeral=True
             )
             return
 
@@ -339,7 +341,7 @@ class DateTimeCog(commands.Cog, name="Date & Time Commands"):
         delta = date - now
 
         embed, icon = generate_authored_embed_with_icon(
-            embed_title="Day Difference",
+            embed_title=f"{emojis.STOPWATCH} Day Difference",
             embed_description="Here's the number of days until the date you requested.",
         )
         embed.add_field(

@@ -10,6 +10,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+from .. import emojis
 from ..bot_init import MANAGEMENT_ROLES
 from ..confirm_button import ConfirmButton
 from .command_logging import log_command
@@ -52,14 +53,6 @@ class ManagementCog(commands.Cog, name="Management Commands"):
     ) -> None:
         """
         Echo `message` to `channel`.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
-        :param message: Message to echo
-        :type message: str
-        :param channel: Channel to echo the message to;
-        sends to the current channel if None, defaults to None
-        :type channel: discord.TextChannel | None, optional
         """
 
         logging.info(
@@ -77,10 +70,12 @@ class ManagementCog(commands.Cog, name="Management Commands"):
 
         try:
             await channel.send(message)  # type: ignore
-            await interaction.response.send_message("Echoed message.", ephemeral=True)
+            await interaction.response.send_message(
+                f"{emojis.CHECKMARK} Echoed message.", ephemeral=True
+            )
         except discord.Forbidden:
             await interaction.response.send_message(
-                "I don't have permission to send messages in this channel.",
+                f"{emojis.X} I don't have permission to send messages in this channel.",
                 ephemeral=True,
             )
             logging.warning(
@@ -99,13 +94,6 @@ class ManagementCog(commands.Cog, name="Management Commands"):
     ) -> None:
         """
         DM `user` with `message`.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
-        :param user: User to DM
-        :type user: discord.User
-        :param message: Message to send to `user`
-        :type message: str
         """
 
         logging.info(
@@ -120,10 +108,13 @@ class ManagementCog(commands.Cog, name="Management Commands"):
 
         try:
             await user.send(message)  # type: ignore
-            await interaction.response.send_message("DM sent.", ephemeral=True)
+            await interaction.response.send_message(
+                f"{emojis.CHECKMARK} DM sent.", ephemeral=True
+            )
         except discord.Forbidden:
             await interaction.response.send_message(
-                "I don't have permission to send DMs to this user.", ephemeral=True
+                f"{emojis.X} I don't have permission to send DMs to this user.",
+                ephemeral=True,
             )
 
     @management_group.command(name="announce", description="Announce a message.")
@@ -142,16 +133,6 @@ class ManagementCog(commands.Cog, name="Management Commands"):
     ) -> None:
         """
         Create an announcement in `channel` with `message` and optionally ping `ping`.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
-        :param message: Announcement message
-        :type message: str
-        :param channel: Channel to announce in;
-        sends in current channel if None, defaults to None
-        :type channel: Optional[discord.TextChannel], optional
-        :param ping: Role to ping if not None, defaults to None
-        :type ping: Optional[discord.Role], optional
         """
 
         logging.info(
@@ -188,7 +169,7 @@ class ManagementCog(commands.Cog, name="Management Commands"):
                 await channel.send(message)  # type: ignore
             except discord.Forbidden:
                 await interaction.response.send_message(
-                    "I don't have permission to send messages in this channel.",
+                    f"{emojis.X} I don't have permission to send messages in this channel.",
                     ephemeral=True,
                 )
                 logging.warning(
@@ -198,19 +179,21 @@ class ManagementCog(commands.Cog, name="Management Commands"):
 
         if ping_is_at_everyone:  # type: ignore
             view = ConfirmButton(
-                interaction, "Announcement sent.", "Announcement cancelled."
+                interaction,
+                f"{emojis.CHECKMARK} Announcement sent.",
+                f"{emojis.CANCELLED} Announcement cancelled.",
             )
             view.on_confirmation(attempt_send)
 
             await interaction.response.send_message(
-                "Are you sure you want to ping everyone with this announcement?",
+                f"{emojis.WARNING} Are you sure you want to ping everyone with this announcement?",
                 view=view,
                 ephemeral=True,
             )
         else:
             await attempt_send()
             await interaction.response.send_message(
-                "Announcement sent.", ephemeral=True
+                f"{emojis.CHECKMARK} Announcement sent.", ephemeral=True
             )
 
 

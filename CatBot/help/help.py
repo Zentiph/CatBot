@@ -10,6 +10,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+from .. import emojis
 from ..internal_utils import (
     DEFAULT_EMBED_COLOR,
     generate_authored_embed_with_icon,
@@ -55,7 +56,7 @@ def generate_help_embed(
     """
 
     embed, icon = generate_authored_embed_with_icon(
-        embed_title=f"{category.title()} Commands Help Page",
+        embed_title=f"{emojis.QUESTION_MARK} {category.title()} Commands Help Page",
         embed_description=f"Here's a list of {category} commands and how to use them.",
     )
 
@@ -100,11 +101,6 @@ class HelpCog(commands.Cog, name="Help Commands"):
     ) -> None:
         """
         Get help for `category`.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
-        :param category: Category to get help for
-        :type category: HelpCategory
         """
 
         logging.info(
@@ -121,11 +117,6 @@ class HelpCog(commands.Cog, name="Help Commands"):
     async def help_command(self, interaction: discord.Interaction, cmd: str) -> None:
         """
         Get help for `cmd`.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
-        :param cmd: Command to get help for
-        :type cmd: str
         """
 
         logging.info("/help command cmd=%s invoked by %s", repr(cmd), interaction.user)
@@ -133,12 +124,12 @@ class HelpCog(commands.Cog, name="Help Commands"):
         command = PUBLIC_COMMAND_MAP.get(cmd, None)
         if command is None:
             await interaction.response.send_message(
-                f"I do not have a command called **{cmd}**.", ephemeral=True
+                f"{emojis.X} I do not have a command called **{cmd}**.", ephemeral=True
             )
             return
 
         embed, icon = generate_authored_embed_with_icon(
-            embed_title=f"{cmd} Help Page",
+            embed_title=f"{emojis.QUESTION_MARK} {cmd} Help Page",
             embed_description=f"Here's how to use **{cmd}**.",
             embed_color=DEFAULT_EMBED_COLOR,
         )
@@ -182,11 +173,6 @@ class ClassifiedHelpCog(commands.Cog, name="Moderation Help Commands"):
     ) -> None:
         """
         Get help for `category`.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
-        :param category: Category to get help for
-        :type category: ClassifiedHelpCategory
         """
 
         logging.info(
@@ -203,11 +189,6 @@ class ClassifiedHelpCog(commands.Cog, name="Moderation Help Commands"):
     async def help_command(self, interaction: discord.Interaction, cmd: str) -> None:
         """
         Get help for `cmd`.
-
-        :param interaction: Interaction instance
-        :type interaction: discord.Interaction
-        :param cmd: Command to get help for
-        :type cmd: str
         """
 
         logging.info(
@@ -217,12 +198,13 @@ class ClassifiedHelpCog(commands.Cog, name="Moderation Help Commands"):
         command = PRIVATE_COMMAND_MAP.get(cmd, None)
         if command is None:
             await interaction.response.send_message(
-                f"I do not have a private command called **{cmd}**.", ephemeral=True
+                f"{emojis.X} I do not have a private command called **{cmd}**.",
+                ephemeral=True,
             )
             return
 
         embed, icon = generate_authored_embed_with_icon(
-            embed_title=f"{cmd} Help Page",
+            embed_title=f"{emojis.QUESTION_MARK} {cmd} Help Page",
             embed_description=f"Here's how to use **{cmd}**.",
             embed_color=DEFAULT_EMBED_COLOR,
         )

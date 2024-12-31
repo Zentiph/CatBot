@@ -1,6 +1,18 @@
 # CatBot Changelog
 A collective history of all the changes made to CatBot.
 
+## v0.9.1
+* Refactored code to prevent repetition
+* Added /member-count
+* Fixed stats embed field misalignment
+* Add emojis to bot responses
+* Split /math log into two commands
+  * /math log {x} {base} {ndigits}
+  * /math ln {x} {ndigits}
+  * /math log's base param is now defaulted to 10 rather than None for e
+* Changed all /math command responses to send embeds
+* Added ndigits param to some math commands
+
 ## v0.9.0
 * Added datetime module
   * /date-time date-time
