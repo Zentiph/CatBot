@@ -8,7 +8,7 @@ from asyncio import run
 
 import discord
 
-from CatBot.bot_init import (
+from CatBot.CatBot_utils import (
     LOG_FILE,
     config_logging,
     get_token,
@@ -76,6 +76,7 @@ async def setup() -> None:
     await bot.load_extension("CatBot.management.management")
     await bot.load_extension("CatBot.management.moderation")
     await bot.load_extension("CatBot.math.maths")
+    await bot.load_extension("CatBot.math.stats")
     await bot.load_extension("CatBot.rand.rand")
 
 

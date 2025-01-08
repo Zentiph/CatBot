@@ -11,14 +11,14 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from .. import emojis
+from ..CatBot_utils import emojis
 from .math_utils import (
     create_sequence_string,
     generate_math_embed_with_icon,
     generate_ordinal_string,
     is_number,
-    simplify_number_type,
     round_on_ndigits,
+    simplify_number_type,
 )
 
 
@@ -111,7 +111,7 @@ class MathCog(commands.Cog, name="Math Commands"):
         )  # Split at commas and remove spaces
         if any(not is_number(num) for num in numbers_list):
             await interaction.response.send_message(
-                "Invalid input. Please provide only numbers separated by commas.",
+                f"{emojis.X} Invalid input. Please provide only numbers separated by commas.",
                 ephemeral=True,
             )
             return
@@ -229,7 +229,7 @@ class MathCog(commands.Cog, name="Math Commands"):
         )  # Split at commas and remove spaces
         if any(not is_number(num) for num in numbers_list):
             await interaction.response.send_message(
-                "Invalid input. Please provide only numbers separated by commas.",
+                f"{emojis.X} Invalid input. Please provide only numbers separated by commas.",
                 ephemeral=True,
             )
             return
@@ -683,7 +683,7 @@ class MathCog(commands.Cog, name="Math Commands"):
         )  # Split at commas and remove spaces
         if any(not is_number(num) for num in numbers_list):
             await interaction.response.send_message(
-                "Invalid input. Please provide only numbers separated by commas.",
+                f"{emojis.X} Invalid input. Please provide only numbers separated by commas.",
                 ephemeral=True,
             )
             return
@@ -691,7 +691,7 @@ class MathCog(commands.Cog, name="Math Commands"):
         floats = (float(num) for num in numbers_list)
         if any(not flt.is_integer() for flt in floats):
             await interaction.response.send_message(
-                "Invalid input. Please provide only positive integers separated by commas."
+                f"{emojis.X} Invalid input. Please provide only positive integers separated by commas."
             )
             return
 
@@ -752,7 +752,7 @@ class MathCog(commands.Cog, name="Math Commands"):
         )  # Split at commas and remove spaces
         if any(not is_number(num) for num in numbers_list):
             await interaction.response.send_message(
-                "Invalid input. Please provide only numbers separated by commas.",
+                f"{emojis.X} Invalid input. Please provide only numbers separated by commas.",
                 ephemeral=True,
             )
             return
@@ -760,7 +760,7 @@ class MathCog(commands.Cog, name="Math Commands"):
         floats = (float(num) for num in numbers_list)
         if any(not flt.is_integer() for flt in floats):
             await interaction.response.send_message(
-                "Invalid input. Please provide only positive integers separated by commas."
+                f"{emojis.X} Invalid input. Please provide only positive integers separated by commas."
             )
             return
 

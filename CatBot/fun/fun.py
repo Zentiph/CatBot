@@ -4,7 +4,6 @@ Fun commands for CatBot.
 """
 
 #  * mini games (tic tac toe, etc)
-#  * /cat-pic
 
 import logging
 import random
@@ -20,10 +19,15 @@ from discord import app_commands
 from discord.ext import commands
 from psutil import Process
 
-from .. import emojis
-from ..bot_init import CAT_API_SEARCH_LINK, VERSION, get_cat_api_key_from_env
+from ..CatBot_utils import (
+    CAT_API_SEARCH_LINK,
+    START_TIME,
+    VERSION,
+    emojis,
+    generate_authored_embed_with_icon,
+    get_cat_api_key_from_env,
+)
 from ..help import PRIVATE, PUBLIC
-from ..internal_utils import START_TIME, generate_authored_embed_with_icon
 
 # A bit redundant, but helps readability.
 SECONDS_PER_HOUR = 3600
@@ -67,13 +71,13 @@ class FunCog(commands.Cog, name="Fun Commands"):
 
         logging.info("FunCog loaded")
 
-    @app_commands.command(name="stats", description="Get stats about the bot")
-    async def stats(self, interaction: discord.Interaction) -> None:
+    @app_commands.command(name="self-stats", description="Get stats about myself")
+    async def self_stats(self, interaction: discord.Interaction) -> None:
         """
         Report general stats about the bot.
         """
 
-        logging.info("/stats invoked by %s", interaction.user)
+        logging.info("/self-stats invoked by %s", interaction.user)
 
         await interaction.response.defer(thinking=True)
 
@@ -117,11 +121,9 @@ class FunCog(commands.Cog, name="Fun Commands"):
         embed.add_field(
             name="Memory Usage", value=f"{round(memory_usage, 2)} MiB", inline=False
         )
-        embed.add_field(name="Language", value="Python")
-        embed.add_field(name="Language Version", value=python_version)
-        embed.add_field(name="Package", value="discord.py")
-        embed.add_field(name="Package Version", value=discord_py_version)
-        embed.add_field(name="Dependencies", value=get_dependencies(), inline=True)
+        embed.add_field(name="Language", value=f"Python {python_version}", inline=False)
+        embed.add_field(name="Package", value=f"discord.py {discord_py_version}")
+        embed.add_field(name="Dependencies", value=get_dependencies())
         embed.add_field(name="Host", value=host, inline=False)
 
         await interaction.followup.send(embed=embed, file=icon)
@@ -199,7 +201,8 @@ class FunCog(commands.Cog, name="Fun Commands"):
 
         if user.banner is None:  # type: ignore
             await interaction.response.send_message(
-                f"{emojis.X} {user.display_name} does not have a banner.", ephemeral=True  # type: ignore
+                f"{emojis.X} {user.display_name} does not have a banner.",  # type: ignore
+                ephemeral=True,
             )
             return
 
@@ -284,7 +287,8 @@ class FunCog(commands.Cog, name="Fun Commands"):
         members = interaction.guild.members  # type: ignore
 
         embed, icon = generate_authored_embed_with_icon(
-            embed_title=f"{emojis.PEOPLE_SYMBOL} {interaction.guild.name} Member Count",  # type: ignore
+            embed_title=f"{emojis.PEOPLE_SYMBOL} {interaction.guild.name}"  # type: ignore
+            + " Member Count",
             embed_description="Here's the member count for this server.",
         )
         embed.add_field(

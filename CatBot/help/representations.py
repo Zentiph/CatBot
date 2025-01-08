@@ -150,7 +150,9 @@ class Command:
         """
 
         if param.name in [param.name for param in self.__params]:
-            raise AttributeError(f"Param {param.name} is already added to Command")
+            raise AttributeError(
+                f"Param {param.name} is already added to this Command ({self.name})"
+            )
 
         self.__params.append(param)
 
@@ -207,7 +209,7 @@ def generate_field_title(command: Command, /) -> str:
     :rtype: str
     """
 
-    return f"**/{command.name}**"
+    return f"/{command.name}"
 
 
 def generate_field_description(command: Command, /) -> str:
@@ -252,9 +254,10 @@ def generate_field_description(command: Command, /) -> str:
 
         optional_str = ", optional" if param.optional else ""
         default = repr(param.default)
-        default = "empty" if default == "None" else default
         default_str = (
-            f", defaults to *{default}*" if param.default != NO_DEFAULT else ""
+            f", defaults to *{default}*"
+            if param.default != NO_DEFAULT and param.default is not None
+            else ""
         )
 
         # Will look like:

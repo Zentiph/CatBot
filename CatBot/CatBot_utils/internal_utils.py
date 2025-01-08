@@ -35,6 +35,7 @@ def wrap_reason(reason: str, caller: Union[discord.Member, discord.User]) -> str
     return f"@{caller.name} (ID={caller.id}): {reason}"
 
 
+# pylint: disable=too-many-arguments
 def generate_authored_embed_with_icon(
     *,
     embed_title: Optional[Any] = None,

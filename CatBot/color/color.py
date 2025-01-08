@@ -15,8 +15,7 @@ from discord import app_commands
 from discord.ext import commands
 from PIL import Image
 
-from .. import emojis
-from ..internal_utils import generate_authored_embed_with_icon
+from ..CatBot_utils import emojis, generate_authored_embed_with_icon
 from .color_tools import (
     BLUES,
     BROWNS,
@@ -271,7 +270,8 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
 
         if name not in COLORS:
             await interaction.response.send_message(
-                f"{emojis.X} Invalid color name provided. Use /color-list for a list of supported colors.",
+                f"{emojis.X} Invalid color name provided. "
+                + "Use /color-list for a list of supported colors.",
                 ephemeral=True,
             )
             return
@@ -603,7 +603,8 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
 
         if name not in COLORS:
             await interaction.response.send_message(
-                f"{emojis.X} Invalid color name provided. Use /color color-list for a list of supported colors",
+                f"{emojis.X} Invalid color name provided. "
+                + "Use /color color-list for a list of supported colors",
                 ephemeral=True,
             )
             return

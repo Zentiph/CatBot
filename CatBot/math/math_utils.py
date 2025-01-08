@@ -1,14 +1,14 @@
 """
-mathutils.py
+math_utils.py
 Utils for the math module.
 """
 
 from re import match as re_match
-from typing import Any, List, Optional, Tuple, Union, overload
+from typing import Any, Callable, List, Optional, Tuple, Union, overload
 
-from discord import File, Embed
+from discord import Embed, File
 
-from ..internal_utils import generate_authored_embed_with_icon
+from ..CatBot_utils import generate_authored_embed_with_icon
 
 
 def is_number(string: str) -> bool:

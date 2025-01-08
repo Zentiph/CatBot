@@ -9,11 +9,11 @@ from typing import Literal, Union
 
 from discord import Member, Role, TextChannel, User
 
-from ..internal_utils import TimeUnit
+from ..CatBot_utils import TimeUnit
 from ..date_time import Month
 from .representations import Command, Param
 
-HelpCategory = Literal["color", "date-time", "fun", "help", "math", "random"]
+HelpCategory = Literal["color", "date-time", "fun", "help", "math", "random", "stats"]
 ClassifiedHelpCategory = Literal["management", "moderation"]
 
 
@@ -199,7 +199,6 @@ date_time_date_time.add_param(
         name="military_time",
         type=bool,
         description="Whether to use military (24-hour) time",
-        optional=True,
         default=False,
     )
 )
@@ -208,7 +207,6 @@ date_time_date_time.add_param(
         name="seconds",
         type=bool,
         description="Whether to include seconds in the time",
-        optional=True,
         default=False,
     )
 )
@@ -218,7 +216,6 @@ date_time_date_time.add_param(
         type=bool,
         description="Whether to include microseconds in the time "
         + "(if True, seconds are included too)",
-        optional=True,
         default=False,
     )
 )
@@ -241,7 +238,6 @@ date_time_time.add_param(
         name="military_time",
         type=bool,
         description="Whether to use military (24-hour) time",
-        optional=True,
         default=False,
     )
 )
@@ -250,7 +246,6 @@ date_time_time.add_param(
         name="seconds",
         type=bool,
         description="Whether to include seconds in the time",
-        optional=True,
         default=False,
     )
 )
@@ -260,7 +255,6 @@ date_time_time.add_param(
         type=bool,
         description="Whether to include microseconds in the time "
         + "(if True, seconds are included too)",
-        optional=True,
         default=False,
     )
 )
@@ -293,7 +287,9 @@ date_time_days_until.add_param(Param(name="year", type=int, description="Year"))
 
 flip_coin = Command(name="flip-coin", description="Flip a coin")
 
-stats = Command(name="stats", description="Get statistics about CatBot.")
+self_stats = Command(
+    name="self-stats", description="Get statistics about myself, CatBot"
+)
 
 profile_picture = Command(
     name="profile-picture", description="Get a user's profile picture"
@@ -620,7 +616,6 @@ math_log.add_param(
         name="base",
         type=Union[float, None],
         description="Base of the logarithm",
-        optional=True,
         default=10,
     )
 )
@@ -766,7 +761,6 @@ mod_ban.add_param(
         name="delete_message_time",
         type=int,
         description="How much of the user's message history to delete",
-        optional=True,
         default=0,
     )
 )
@@ -775,7 +769,6 @@ mod_ban.add_param(
         name="time_unit",
         type=TimeUnit,
         description="Unit of time",
-        optional=True,
         default="seconds",
     )
 )
@@ -792,7 +785,6 @@ mod_ban.add_param(
         name="ghost",
         type=bool,
         description="Don't notify the user",
-        optional=True,
         default=False,
     )
 )
@@ -824,7 +816,6 @@ mod_timeout_add.add_param(
         name="time_unit",
         type=TimeUnit,
         description="Unit of time",
-        optional=True,
         default="seconds",
     )
 )
@@ -851,7 +842,6 @@ mod_timeout_reduce.add_param(
         name="time_unit",
         type=TimeUnit,
         description="Unit of time",
-        optional=True,
         default="seconds",
     )
 )
@@ -964,7 +954,6 @@ random_integer.add_param(
         name="a",
         type=int,
         description="The left endpoint (inclusive)",
-        optional=True,
         default=0,
     )
 )
@@ -973,7 +962,6 @@ random_integer.add_param(
         name="b",
         type=int,
         description="The right endpoint (inclusive)",
-        optional=True,
         default=10,
     )
 )
@@ -995,7 +983,6 @@ random_decimal.add_param(
         name="a",
         type=float,
         description="The left endpoint (inclusive)",
-        optional=True,
         default=0.0,
     )
 )
@@ -1004,7 +991,6 @@ random_decimal.add_param(
         name="b",
         type=float,
         description="The right endpoint (inclusive)",
-        optional=True,
         default=1.0,
     )
 )
@@ -1033,7 +1019,6 @@ random_choice.add_param(
         name="choices",
         type=int,
         description="The number of choices to pick from the given values",
-        optional=True,
         default=1,
     )
 )
@@ -1042,7 +1027,6 @@ random_choice.add_param(
         name="duplicates",
         type=bool,
         description="Whether the same choice can be made multiple times",
-        optional=True,
         default=True,
     )
 )
@@ -1062,7 +1046,7 @@ random_shuffle.add_param(
     Param(
         name="values",
         type=str,
-        description='A list of values separated by commas (e.g. "1,2,3,a,b,c")',
+        description='A list of values separated by commas (e.g. "1,2,3,a,b,cat")',
     )
 )
 random_shuffle.add_param(
@@ -1071,6 +1055,61 @@ random_shuffle.add_param(
         type=str,
         description="Optional seed to use when generating the value",
         optional=True,
+    )
+)
+
+# # # # # # # # # #
+# STATISTICS CMDS #
+# # # # # # # # # #
+
+stats_mean = Command(
+    name="/stats mean", description="Compute the mean (average value) of a data set"
+)
+stats_mean.add_param(
+    Param(
+        name="numbers",
+        type=str,
+        description='A list of numbers separated by commas (e.g. "1,2,3,4"',
+    )
+)
+
+stats_median = Command(
+    name="/stats median",
+    description="Compute the median (middle value) of a data set; "
+    + "the median will be calculated as the average of the two "
+    + "middle values if there are an even amount of values",
+)
+stats_median.add_param(
+    Param(
+        name="numbers",
+        type=str,
+        description='A list of numbers separated by commas (e.g. "1,2,3,4"',
+    )
+)
+
+stats_mode = Command(
+    name="/stats mode",
+    description="Compute the mode (most occurring value) of a data set; "
+    + "if there are multiple modes, the first occurring mode will be returned; "
+    + "see /stats multimode for calculating multiple modes",
+)
+stats_mode.add_param(
+    Param(
+        name="numbers",
+        type=str,
+        description='A list of numbers separated by commas (e.g. "1,2,3,4"',
+    )
+)
+
+stats_multimode = Command(
+    name="/stats multimode",
+    description="Compute all the modes (most occurring values) of a data set",
+)
+stats_multimode.add_param(
+    Param(
+        name="numbers",
+        type=str,
+        description='A list of numbers separated by commas (e.g. "1,2,3,4"',
     )
 )
 
@@ -1104,7 +1143,7 @@ DATETIME = (
     date_time_weekday,
     date_time_days_until,
 )
-FUN = (flip_coin, stats, profile_picture, banner, cat_pic, member_count)
+FUN = (flip_coin, self_stats, profile_picture, banner, cat_pic, member_count)
 HELP = (help_category, help_command)
 MATH = (
     math_add,
@@ -1134,6 +1173,7 @@ MATH = (
     math_factorial,
 )
 RANDOM = (random_integer, random_decimal, random_choice, random_shuffle)
+STATS = (stats_mean, stats_median, stats_mode, stats_mode, stats_multimode)
 
 MANAGEMENT = (mgmt_echo, mgmt_dm, mgmt_announce)
 MODERATION = (
@@ -1149,7 +1189,7 @@ MODERATION = (
 )
 
 
-PUBLIC = COLOR + DATETIME + FUN + HELP + MATH + RANDOM
+PUBLIC = COLOR + DATETIME + FUN + HELP + MATH + RANDOM + STATS
 PUBLIC_COMMAND_MAP = {
     # COLOR CMDS
     "color role hex": color_role_hex,
@@ -1176,7 +1216,7 @@ PUBLIC_COMMAND_MAP = {
     "date-time days-until": date_time_days_until,
     # FUN CMDS
     "flip-coin": flip_coin,
-    "stats": stats,
+    "self-stats": self_stats,
     "profile-picture": profile_picture,
     "banner": banner,
     "cat-pic": cat_pic,
@@ -1215,6 +1255,11 @@ PUBLIC_COMMAND_MAP = {
     "random decimal": random_decimal,
     "random choice": random_choice,
     "random shuffle": random_shuffle,
+    # STATS CMDS
+    "stats mean": stats_mean,
+    "stats median": stats_median,
+    "stats mode": stats_mode,
+    "stats multimode": stats_multimode,
 }
 
 PRIVATE = MANAGEMENT + MODERATION

@@ -11,8 +11,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from .. import emojis
-from ..internal_utils import generate_authored_embed_with_icon
+from ..CatBot_utils import emojis, generate_authored_embed_with_icon
 
 
 # pylint: disable=too-many-public-methods

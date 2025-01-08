@@ -4,15 +4,15 @@ Help cog for CatBot.
 """
 
 import logging
-from typing import Union, Tuple
+from typing import Tuple, Union
 
 import discord
 from discord import app_commands
 from discord.ext import commands
 
-from .. import emojis
-from ..internal_utils import (
+from ..CatBot_utils import (
     DEFAULT_EMBED_COLOR,
+    emojis,
     generate_authored_embed_with_icon,
 )
 from .commands import (
@@ -23,9 +23,10 @@ from .commands import (
     MANAGEMENT,
     MATH,
     MODERATION,
-    RANDOM,
     PRIVATE_COMMAND_MAP,
     PUBLIC_COMMAND_MAP,
+    RANDOM,
+    STATS,
     ClassifiedHelpCategory,
     HelpCategory,
 )
@@ -38,6 +39,7 @@ CATEGORY_MAP = {
     "help": HELP,
     "math": MATH,
     "random": RANDOM,
+    "stats": STATS,
     "management": MANAGEMENT,
     "moderation": MODERATION,
 }

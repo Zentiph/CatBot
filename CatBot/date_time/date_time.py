@@ -12,8 +12,7 @@ import pytz
 from discord import app_commands
 from discord.ext import commands
 
-from .. import emojis
-from ..internal_utils import generate_authored_embed_with_icon
+from ..CatBot_utils import emojis, generate_authored_embed_with_icon
 from .dt_formatting import (
     NUMBER_TO_DAY,
     NUMBER_TO_MONTH,

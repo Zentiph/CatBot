@@ -11,10 +11,14 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from .. import emojis
-from ..bot_init import MODERATOR_ROLES
-from ..confirm_button import ConfirmButton
-from ..internal_utils import TIME_MULTIPLICATION_TABLE, TimeUnit, wrap_reason
+from ..CatBot_utils import (
+    MODERATOR_ROLES,
+    TIME_MULTIPLICATION_TABLE,
+    ConfirmButton,
+    TimeUnit,
+    emojis,
+    wrap_reason,
+)
 from .command_logging import log_command
 
 MAX_MESSAGE_DELETE_TIME = 604800

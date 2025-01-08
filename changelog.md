@@ -1,7 +1,9 @@
 # CatBot Changelog
 A collective history of all the changes made to CatBot.
 
-## v0.9.1
+## v0.10.0
+* Added stats cog
+  * Renamed /stats to /self-stats
 * Refactored code to prevent repetition
 * Added /member-count
 * Fixed stats embed field misalignment
@@ -12,6 +14,7 @@ A collective history of all the changes made to CatBot.
   * /math log's base param is now defaulted to 10 rather than None for e
 * Changed all /math command responses to send embeds
 * Added ndigits param to some math commands
+* Slight /stats formatting changes
 
 ## v0.9.0
 * Added datetime module
