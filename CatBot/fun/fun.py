@@ -71,13 +71,13 @@ class FunCog(commands.Cog, name="Fun Commands"):
 
         logging.info("FunCog loaded")
 
-    @app_commands.command(name="self-stats", description="Get stats about myself")
+    @app_commands.command(name="bot-stats", description="Get stats about myself")
     async def self_stats(self, interaction: discord.Interaction) -> None:
         """
         Report general stats about the bot.
         """
 
-        logging.info("/self-stats invoked by %s", interaction.user)
+        logging.info("/bot-stats invoked by %s", interaction.user)
 
         await interaction.response.defer(thinking=True)
 

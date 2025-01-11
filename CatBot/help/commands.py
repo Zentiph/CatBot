@@ -287,9 +287,7 @@ date_time_days_until.add_param(Param(name="year", type=int, description="Year"))
 
 flip_coin = Command(name="flip-coin", description="Flip a coin")
 
-self_stats = Command(
-    name="self-stats", description="Get statistics about myself, CatBot"
-)
+bot_stats = Command(name="bot-stats", description="Get statistics about myself, CatBot")
 
 profile_picture = Command(
     name="profile-picture", description="Get a user's profile picture"
@@ -1143,7 +1141,7 @@ DATETIME = (
     date_time_weekday,
     date_time_days_until,
 )
-FUN = (flip_coin, self_stats, profile_picture, banner, cat_pic, member_count)
+FUN = (flip_coin, bot_stats, profile_picture, banner, cat_pic, member_count)
 HELP = (help_category, help_command)
 MATH = (
     math_add,
@@ -1216,7 +1214,7 @@ PUBLIC_COMMAND_MAP = {
     "date-time days-until": date_time_days_until,
     # FUN CMDS
     "flip-coin": flip_coin,
-    "self-stats": self_stats,
+    "bot-stats": bot_stats,
     "profile-picture": profile_picture,
     "banner": banner,
     "cat-pic": cat_pic,
