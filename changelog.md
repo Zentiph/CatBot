@@ -1,7 +1,7 @@
 # CatBot Changelog
 A collective history of all the changes made to CatBot.
 
-## v.10.1
+## v0.10.1
 * Renamed /self-stats to /bot-stats
 
 ## v0.10.0
