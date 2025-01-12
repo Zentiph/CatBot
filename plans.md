@@ -52,6 +52,7 @@ The more exclamation points, the more urgent/desired a change is.
 * clear as many mypy and pylint ignore/disables as possible
 * Find a better way to do /help !!
   * Have a dict mapping funcs to simple names that can be used in help
+* Update tests (mainly for pawprints) !!
 
 ## Bug Fixes
 * ...

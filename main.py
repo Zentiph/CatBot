@@ -3,7 +3,6 @@ main.py
 Main file.
 """
 
-import logging
 from asyncio import run
 
 import discord
@@ -15,6 +14,7 @@ from CatBot.CatBot_utils import (
     handle_app_command_error,
     initialize_bot,
     initialize_cli_arg_parser,
+    pawprints,
 )
 
 bot = initialize_bot()
@@ -32,14 +32,14 @@ async def on_ready() -> None:
 
     if cli_args.testing:
         await bot.change_presence(activity=discord.Game(name="⚠ TESTING ⚠"))
-        logging.warning(
+        pawprints.warning(
             "The application has been started in testing mode; ignore if this is intentional"
         )
     else:
         await bot.change_presence(activity=discord.Game(name="/help"))
 
-    logging.info("Logged in as %s and slash commands synced", bot.user.name)  # type: ignore
-    logging.info("---------------------------------------------")
+    pawprints.setup(f"Logged in as {bot.user.name} and slash commands synced")  # type: ignore
+    pawprints.setup("---------------------------------------------")
 
 
 @bot.tree.error
@@ -64,7 +64,7 @@ async def setup() -> None:
     """
 
     with open(LOG_FILE, "w", encoding="utf8"):
-        logging.info("Log file %s cleared", LOG_FILE)
+        pawprints.setup(f"Log file {LOG_FILE} cleared")
 
     if cli_args.testing:
         await bot.load_extension("CatBot.experiments.experimental")

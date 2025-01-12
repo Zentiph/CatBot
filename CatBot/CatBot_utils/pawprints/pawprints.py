@@ -60,7 +60,7 @@ _OPEN_TEXT_WRITING_MODES = (
 
 _loggers: Dict[int, "Logger"] = {}
 _loggers_by_name: Dict[str, "Logger"] = {}
-_outputs: Dict[int, "_LoggerOutput"] = {}
+_outputs: Dict[int, "LoggerOutput"] = {}
 # We define these as lists so we can access them anywhere without use of 'global'
 _most_recent_logger_id: List[int] = [-1]
 _most_recent_output_id: List[int] = [-1]
@@ -183,7 +183,7 @@ COMMAND_CALL = 2
 """
 Level for tracing command calls.
 """
-CMD_CALL = COMMAND_CALL
+CALL = COMMAND_CALL
 INFO = 3
 """
 Level for tracking important information.
@@ -209,7 +209,7 @@ Level for fatal errors.
 _level_name_to_number = {
     "DEBUG": 1,
     "COMMAND_CALL": 2,
-    "CMD_CALL": 2,
+    "CALL": 2,
     "INFO": 3,
     "SETUP": 4,
     "WARNING": 5,
@@ -219,7 +219,7 @@ _level_name_to_number = {
 }
 _level_number_to_name = {
     1: "DEBUG",
-    2: "COMMAND_CALL",
+    2: "CALL",
     3: "INFO",
     4: "SETUP",
     5: "WARNING",
@@ -270,7 +270,7 @@ def get_level_name(level, /):
     if level in (
         "DEBUG",
         "COMMAND_CALL",
-        "CMD_CALL",
+        "CALL",
         "INFO",
         "SETUP",
         "WARNING",
@@ -411,13 +411,18 @@ class Formatter:
     Formatter for log messages.
     """
 
-    def __init__(self, template, timestamp_format=DEFAULT_TIMESTAMP_FORMAT, end="\n"):
+    def __init__(
+        self,
+        template=DEFAULT_FORMAT,
+        timestamp_format=DEFAULT_TIMESTAMP_FORMAT,
+        end="\n",
+    ):
         """
         Formatter for log messages.
 
-        :param template: Format to use when formatting log messages.
-        Below is a list of important formatting variables.
-        :type template: str
+        :param template: Format to use when formatting log messages, defaults to DEFAULT_FORMAT;
+        Below is a list of important formatting variables
+        :type template: str, optional
         :param timestamp_format: Format to use for timestamps
         :type timestamp_format: str
         :param end: String to terminate each message with, defaults to "\\n"
@@ -525,7 +530,7 @@ class Formatter:
 default_formatter = Formatter(DEFAULT_FORMAT)
 
 
-class _LoggerOutput:  # pylint: disable=too-few-public-methods
+class LoggerOutput:
     """
     Base class for logger output streams.
     """
@@ -537,15 +542,16 @@ class _LoggerOutput:  # pylint: disable=too-few-public-methods
 
         self.__id = _generate_new_output_id()
         _outputs[self.__id] = self
+        self.__formatter = None
 
-    # this method should be overridden by subclasses
+    # This method should be overridden by subclasses.
     @abstractmethod
     def send(self, message, /):
         """
         Send a log message through an output channel.
 
         :param message: Message to send
-        :type message: SupportsStr | SupportsRepr
+        :type message: str
         """
 
     @property
@@ -558,8 +564,34 @@ class _LoggerOutput:  # pylint: disable=too-few-public-methods
 
         return self.__id
 
+    @property
+    def formatter(self):
+        """
+        The Formatter being used by the output.
 
-class StreamOutput(_LoggerOutput):
+        This formatter defaults to None on creation.
+        If a LoggerOutput's Formatter is None, it will use the Logger's Formatter.
+        If the Formatter is not None, it will override the Logger's Formatter.
+        """
+
+        return self.__formatter
+
+    @formatter.setter
+    def formatter(self, new):
+        if not isinstance(new, Formatter):
+            raise TypeError("formatter must be a pawprints.Formatter")
+
+        self.__formatter = new
+
+    def remove_formatter(self):
+        """
+        Remove the Formatter from this LoggerOutput.
+        """
+
+        self.__formatter = None
+
+
+class StreamOutput(LoggerOutput):
     """
     Stream output handler for loggers.
     """
@@ -585,7 +617,7 @@ class StreamOutput(_LoggerOutput):
         Write a log message to the output stream.
 
         :param message: Message to send
-        :type message: SupportsStr | SupportsRepr
+        :type message: str
         """
 
         stream = self.__stream
@@ -601,7 +633,7 @@ class StreamOutput(_LoggerOutput):
         return self.__stream
 
 
-class FileOutput(_LoggerOutput):
+class FileOutput(LoggerOutput):
     """
     File output handler for loggers.
     """
@@ -642,7 +674,7 @@ class FileOutput(_LoggerOutput):
         Write a log message to the output file.
 
         :param message: Message to send
-        :type message: SupportsStr | SupportsRepr
+        :type message: str
         """
 
         with open(
@@ -752,9 +784,15 @@ class Logger:  # pylint: disable=too-many-instance-attributes
         stack_level = 3
 
         log_message = LogMessage(message, level, self.__name, stack()[stack_level])
-        out_message = self.__formatter.format(log_message)
 
         for output_handler in self.__outputs:
+            if output_handler.formatter is not None:
+                # Override this Logger's Formatter if
+                # the LoggerOutput has its own Formatter
+                out_message = output_handler.formatter.format(log_message)
+            else:
+                out_message = self.__formatter.format(log_message)
+
             output_handler.send(out_message)
 
     def log(self, message, level=NO_LEVEL_SET, /):
@@ -785,15 +823,15 @@ class Logger:  # pylint: disable=too-many-instance-attributes
 
     def command_call(self, message, /):
         """
-        Create a CMD_CALL level log with the given message.
+        Create a CALL level log with the given message.
 
         :param message: Message to log
         :type message: SupportsStr | SupportsRepr
         """
 
-        self.__log(message, CMD_CALL)
+        self.__log(message, CALL)
 
-    cmd_call = command_call
+    call = command_call
 
     def info(self, message, /):
         """
@@ -851,11 +889,11 @@ class Logger:  # pylint: disable=too-many-instance-attributes
         """
         Add a logger output to this Logger.
 
-        :param output: logger output to add; can be a _LoggerOutput instance or an output id
-        :type output: _LoggerOutput | int
+        :param output: logger output to add; can be a LoggerOutput instance or an output id
+        :type output: LoggerOutput | int
         """
 
-        if isinstance(output, _LoggerOutput):
+        if isinstance(output, LoggerOutput):
             self.__outputs.append(output)
             return
 
@@ -863,10 +901,10 @@ class Logger:  # pylint: disable=too-many-instance-attributes
             if output_object := _outputs.get(output, None):
                 self.__outputs.append(output_object)
                 return
-            raise ValueError(f"_LoggerOutput id '{output}' was not found")
+            raise ValueError(f"LoggerOutput id '{output}' was not found")
 
         raise TypeError(
-            "output must be a pawprints._LoggerOutput or int matching a _LoggerOutput's id"
+            "output must be a pawprints.LoggerOutput or int matching a LoggerOutput's id"
         )
 
     def remove_output(self, arg, /):
@@ -874,12 +912,12 @@ class Logger:  # pylint: disable=too-many-instance-attributes
         Remove a logger output from this Logger.
 
         :param output: Logger output to remove
-        :type output: _LoggerOutput
+        :type output: LoggerOutput
         :param id: ID of the output to remove
         :type id: int
         """
 
-        if isinstance(arg, _LoggerOutput):
+        if isinstance(arg, LoggerOutput):
             if arg in self.__outputs:
                 self.__outputs.remove(arg)
 
@@ -890,7 +928,7 @@ class Logger:  # pylint: disable=too-many-instance-attributes
 
         else:
             raise TypeError(
-                "output to remove must be a pawprints._LoggerOutput or an int"
+                "output to remove must be a pawprints.LoggerOutput or an int"
             )
 
     def clear_outputs(self):
@@ -929,7 +967,7 @@ class Logger:  # pylint: disable=too-many-instance-attributes
         The logger outputs this Logger outputs logs to.
 
         :return: A list of all of this Logger's logger outputs
-        :rtype: List[_LoggerOutput]
+        :rtype: List[LoggerOutput]
         """
 
         return self.__outputs
@@ -1001,7 +1039,7 @@ def config_root(
     :param formatter: Formatter to use, defaults to None
     :type formatter: pawprints.Formatter | None, optional
     :param outputs: An iterable of outputs to use, defaults to None
-    :type outputs: Sequence[_LoggerOutput] | None, optional
+    :type outputs: Sequence[LoggerOutput] | None, optional
     :param enabled: Whether to enable the root Logger, defaults to None
     :type enabled: bool | None, optional
     :param filepath: A filepath that will be used to create a
@@ -1077,16 +1115,16 @@ def debug(message, /):
 
 def command_call(message, /):
     """
-    Create a CMD_CALL level log with the given message.
+    Create a CALL level log with the given message.
 
     :param message: Message to log
     :type message: SupportsStr | SupportsRepr
     """
 
-    root.log(message, CMD_CALL)
+    root.log(message, CALL)
 
 
-cmd_call = command_call
+call = command_call
 
 
 def info(message, /):

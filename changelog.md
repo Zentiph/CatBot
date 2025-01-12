@@ -1,6 +1,10 @@
 # CatBot Changelog
 A collective history of all the changes made to CatBot.
 
+## v0.11.1
+* Replaced logging with pawprints
+* Added Formatters to LoggerOutputs in pawprints
+
 ## v0.10.1
 * Renamed /self-stats to /bot-stats
 

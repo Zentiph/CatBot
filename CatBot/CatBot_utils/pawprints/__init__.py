@@ -6,7 +6,7 @@ as well as preventing discord.py logs from appearing when using logging in DEBUG
 """
 
 __all__ = [
-    "CMD_CALL",
+    "CALL",
     "COMMAND_CALL",
     "DEBUG",
     "DEFAULT_FORMAT",
@@ -23,7 +23,7 @@ __all__ = [
     "Logger",
     "LogMessage",
     "StreamOutput",
-    "cmd_call",
+    "call",
     "command_call",
     "config_root",
     "debug",
@@ -43,7 +43,7 @@ __all__ = [
 ]
 
 from .pawprints import (
-    CMD_CALL,
+    CALL,
     COMMAND_CALL,
     DEBUG,
     DEFAULT_FORMAT,
@@ -60,7 +60,7 @@ from .pawprints import (
     Logger,
     LogMessage,
     StreamOutput,
-    cmd_call,
+    call,
     command_call,
     config_root,
     debug,

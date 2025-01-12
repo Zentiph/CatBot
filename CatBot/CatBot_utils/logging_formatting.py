@@ -3,43 +3,54 @@ logging_formatting.py
 Logging formatting code.
 """
 
-import logging
-
-LOGGING_FORMAT = (
-    "%(asctime)s | [%(levelname)s] %(name)s - %(message)s (%(filename)s:%(lineno)d)"
-)
+from . import pawprints
 
 
-class ColorFormatter(logging.Formatter):
+class ColorFormatter(pawprints.Formatter):
     """
     Custom color formatter for logging stream outputs.
     """
 
-    DEBUG = "\x1b[38;2;166;227;161m"  # green
-    INFO = "\x1b[38;2;93;157;243m"  # blue
-    WARNING = "\x1b[38;2;255;255;0m"  # yellow
-    ERROR = "\x1b[38;2;255;0;0m"  # red
-    FATAL = "\x1b[38;2;255;0;0m" + "\x1b[1m"  # red in bold
+    DEBUG = "\x1b[32m"  # green
+    CALL = "\x1b[36m"  # light blue
+    INFO = "\x1b[34m"  # blue
+    SETUP = "\x1b[35m"  # magenta
+    WARNING = "\x1b[33m"  # yellow
+    ERROR = "\x1b[31m"  # red
+    FATAL = "\x1b[31m" + "\x1b[1m"  # red in bold
     RESET = "\x1b[0m"
 
-    FORMATS = {
-        logging.DEBUG: DEBUG + LOGGING_FORMAT + RESET,
-        logging.INFO: INFO + LOGGING_FORMAT + RESET,
-        logging.WARNING: WARNING + LOGGING_FORMAT + RESET,
-        logging.ERROR: ERROR + LOGGING_FORMAT + RESET,
-        logging.CRITICAL: FATAL + LOGGING_FORMAT + RESET,
-    }
+    def get_format_by_level(self, levelno: int, /) -> str:
+        """
+        Get the format to use based on the levelno.
 
-    def format(self, record: logging.LogRecord) -> str:
+        :param levelno: Logging level
+        :type levelno: int
+        :return: Format to use for the given levelno
+        :rtype: str
+        """
+
+        formats = {
+            pawprints.DEBUG: self.DEBUG + self.template + self.RESET,
+            pawprints.CALL: self.CALL + self.template + self.RESET,
+            pawprints.INFO: self.INFO + self.template + self.RESET,
+            pawprints.SETUP: self.SETUP + self.template + self.RESET,
+            pawprints.WARNING: self.WARNING + self.template + self.RESET,
+            pawprints.ERROR: self.ERROR + self.template + self.RESET,
+            pawprints.FATAL: self.FATAL + self.template + self.RESET,
+        }
+
+        return formats[levelno]
+
+    def format(self, message: pawprints.LogMessage, /) -> str:
         """
         Apply the format to the log message.
 
-        :param record: Logging record
-        :type record: logging.LogRecord
+        :param message: Logging message
+        :type message: pawprints.LogMessage
         :return: Formatted log
         :rtype: str
         """
 
-        log_fmt = self.FORMATS.get(record.levelno)
-        formatter = logging.Formatter(log_fmt)
-        return formatter.format(record)
+        formatter = pawprints.Formatter(self.get_format_by_level(message.levelno))
+        return formatter.format(message)

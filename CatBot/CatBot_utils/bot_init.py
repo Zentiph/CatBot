@@ -3,7 +3,6 @@ bot_init.py
 Bot initialization code.
 """
 
-import logging
 from argparse import ArgumentParser
 
 import discord
@@ -11,7 +10,8 @@ from discord import app_commands
 from discord.ext.commands import Bot
 from requests import Timeout
 
-from .logging_formatting import LOGGING_FORMAT, ColorFormatter
+from . import pawprints
+from .logging_formatting import ColorFormatter
 
 LOG_FILE = "logs.log"
 DEFAULT_EMBED_COLOR = discord.Color(int("ffffff", 16))
@@ -149,25 +149,26 @@ def config_logging(parser: ArgumentParser, /) -> None:
 
     args = parser.parse_args()
     log_file = args.logfile if args.logfile else LOG_FILE
+
     if args.nostreamlogging:
-        handlers = [logging.FileHandler(log_file)]
+        outputs = [pawprints.FileOutput(log_file)]
     else:
-        sh = logging.StreamHandler()
+        stream_output = pawprints.StreamOutput()
         if args.coloredlogs:
-            sh.setFormatter(ColorFormatter())
-        handlers = [
-            logging.FileHandler(log_file),
-            sh,  # type: ignore
+            stream_output.formatter = ColorFormatter()
+        outputs = [
+            pawprints.FileOutput(log_file),
+            stream_output,  # type: ignore
         ]
 
-    logging.basicConfig(
-        level=logging.INFO,
-        format=LOGGING_FORMAT,
-        handlers=handlers,  # type: ignore
+    pawprints.config_root(
+        level=pawprints.CALL,
+        outputs=outputs,
     )
 
-    logging.info(
-        "Logging config: logfile=%s, nostreamlogging=%s", log_file, args.nostreamlogging
+    pawprints.setup(
+        f"Logging config: logfile={log_file}, testing={args.testing}, "
+        + f"nostreamlogging={args.nostreamlogging}, coloredlogs={args.coloredlogs}"
     )
 
 
@@ -216,32 +217,31 @@ async def handle_app_command_error(
             await interaction.followup.send(message, ephemeral=ephemeral)
 
     if error not in APP_COMMAND_ERRORS:  # Unintentional error
-        logging.error("An error occurred: %s", error)
+        pawprints.error(f"An error occurred: {error}")
         await try_response(
             "An unknown error occurred. Contact @zentiph to report this please!"
         )
 
     if isinstance(error, app_commands.errors.CheckFailure):  # Restricted command
-        logging.info(
-            "Unauthorized user %s attempted to use a restricted command",
-            interaction.user,
+        pawprints.info(
+            f"Unauthorized user {interaction.user} attempted to use a restricted command",
         )
         await try_response("You do not have permission to use this command.")
 
     elif isinstance(error, discord.Forbidden):
-        logging.warning(
+        pawprints.warning(
             "Attempted to perform a command with inadequate permissions allotted to the bot"
         )
         await try_response("I do not have permissions to perform this command.")
 
     elif isinstance(error, OverflowError):
-        logging.info("Overflow error occurred during a calculation")
+        pawprints.info("Overflow error occurred during a calculation")
         await try_response(
             "This calculation caused an arithmetic overflow. Try using smaller numbers."
         )
 
     elif isinstance(error, Timeout):
-        logging.warning("Timeout error occurred during HTTP request")
+        pawprints.warning("Timeout error occurred during HTTP request")
         await try_response(
             "An attempt to communicate with an external API "
             + "has taken too long, and has been canceled."
