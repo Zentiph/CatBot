@@ -59,12 +59,13 @@ class ManagementCog(commands.Cog, name="Management Commands"):
             channel,
             interaction.user,
         )
-        await log_command(
-            "echo", interaction.user, self.bot, message=repr(message), channel=channel
-        )
 
         if channel is None:
             channel = interaction.channel  # type: ignore
+
+        await log_command(
+            "echo", interaction.user, self.bot, message=repr(message), channel=channel
+        )
 
         try:
             await channel.send(message)  # type: ignore
