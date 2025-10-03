@@ -6,8 +6,12 @@ CatBot is a Discord bot I made for a Discord server my friends and I share.
 
 ## Features
 * Moderation tools
-* Color roles
-* Fun commands
+* Fully customizeable color roles
+* Date/time tools
+* Fun commands (coin flip, server/user info, etc.)
+* Math commands
+* Randomness commands
+* Help commands
 
 ## Changelog
 [changelog.md](changelog.md)
