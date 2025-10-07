@@ -55,6 +55,7 @@ The more exclamation points, the more urgent/desired a change is.
   * Have a dict mapping funcs to simple names that can be used in help
 * Update tests (mainly for pawprints) !!
 * Add version of /help with no args that gives a general overview of how CatBot works, what features it has, and how to use the other /help commands
+* Add .env auto generator when bot is run and .env can't be found. It will add all needed fields and default to empty, then quit stating that the .env needs to be filled out.
 * change commands with lines (-) for spaces to be one word
   * (discord autofill stops for commands like cat-pic if you type catpic)
 * MOVE TO DISCORD.JS EVENTUALLY
