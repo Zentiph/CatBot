@@ -1,10 +1,9 @@
+import logging
+from enum import StrEnum
 from typing import Final
 
 __author__: Final[str]
 __license__: Final[str]
-
-import logging
-from enum import StrEnum
 
 LOG_FILE: Final[str]
 LOGGING_CHANNEL: Final[int]

@@ -1,10 +1,11 @@
 """Logging utility for CatBot."""
 
+import logging
+from enum import StrEnum
+
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
-import logging
-from enum import StrEnum
 
 LOG_FILE = "logs.log"
 """The file to log to."""
