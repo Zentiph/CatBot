@@ -12,6 +12,12 @@ LOGGING_CHANNEL = 1306045987319451718
 """The channel to post command logs in.
 This is a temporary solution until a DB is added.
 """
+DEFAULT_FMT = (
+    "[%(asctime)s] [%(levelname)s] %(name)s - %(message)s (%(filename)s:%(lineno)d)"
+)
+"""The default logging format to use."""
+DEFAULT_DATE_FMT = "%Y-%m-%d %H:%M:%S"
+"""The default logging date format to use."""
 
 
 class AnsiColor(StrEnum):
@@ -48,7 +54,13 @@ class AnsiColorFormatter(logging.Formatter):
 
 
 def config_logging(
-    logfile: str, *, console_logging: bool, colored_logs: bool, debug: bool
+    logfile: str,
+    *,
+    console_logging: bool,
+    colored_logs: bool,
+    debug: bool,
+    fmt: str = DEFAULT_FMT,
+    date_fmt: str = DEFAULT_DATE_FMT,
 ) -> None:
     """Configure CatBot's logging.
 
@@ -57,6 +69,9 @@ def config_logging(
         console_logging (bool): Whether to enable console logging.
         colored_logs (bool): Whether to color console logs.
         debug (bool): Whether to log debug messages.
+        fmt (str, optional): The logging format to use. Defaults to DEFAULT_FMT.
+        date_fmt (str, optional): The logging date format to use.
+            Defaults to DEFAULT_DATE_FMT.
     """
 
     handlers: list[logging.Handler] = []
@@ -70,7 +85,7 @@ def config_logging(
     handlers.append(logging.FileHandler(logfile, encoding="utf-8"))
 
     level = logging.DEBUG if debug else logging.INFO
-    logging.basicConfig(level=level, handlers=handlers)
+    logging.basicConfig(level=level, handlers=handlers, format=fmt, datefmt=date_fmt)
 
     logging.info(
         f"CatBot logging config: logfile={logfile}, debug={debug},"
