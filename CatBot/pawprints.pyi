@@ -1,3 +1,4 @@
+# pylint:disable=all
 import logging
 from enum import StrEnum
 from typing import Final
