@@ -2,13 +2,18 @@
 Functionality for reading and creating the .env file.
 """
 
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable, TypeVar
+from typing import TypeVar
+
 
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
 T = TypeVar("T")
+
+EXPECTED_FIELDS = ("TOKEN", "CAT_API_KEY")
+"""All the fields that are expected to be in the .env file."""
 
 
 class EnvSyntaxError(ValueError):
@@ -51,7 +56,13 @@ class DotEnv(dict[str, str]):
                         f"in '{filename}', line {i + 1}"
                     )
 
-                env_dict[fields[0]] = fields[1]
+                value = fields[1]
+                if (value.startswith('"') and value.endswith('"')) or (
+                    value.startswith("'") and value.endswith("'")
+                ):
+                    value = value[1][1:-1]  # strip leading and ending quotes
+
+                env_dict[fields[0]] = value
 
         super().__init__(**env_dict)
 
@@ -71,3 +82,23 @@ class DotEnv(dict[str, str]):
             return coercer(self[key])
         except (TypeError, ValueError):
             return None
+
+
+def patch_env(filename: str, env: DotEnv) -> None:
+    if not filename.endswith(".env"):
+        raise ValueError("The file to parse should be a .env file.")
+
+    path = Path(filename)
+    if not path.exists():
+        raise FileNotFoundError("Provided .env path does not exist.")
+
+    with path.open(mode="a", encoding="utf-8") as file:
+        for field in EXPECTED_FIELDS:
+            if env.get(field) is None:
+                file.write(f"{field}= #! value needed !")
+
+
+def generate_env() -> None:
+    with open(".env", mode="x", encoding="utf-8") as file:
+        for field in EXPECTED_FIELDS:
+            file.write(f"{field}= #! value needed !")
