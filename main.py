@@ -17,6 +17,9 @@ from requests import Timeout
 
 from CatBot import env, pawprints
 
+__author__ = "Gavin Borne"
+__license__ = "MIT"
+
 APP_COMMAND_ERRORS = (
     app_commands.errors.CheckFailure,
     discord.Forbidden,
