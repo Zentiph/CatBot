@@ -7,7 +7,7 @@ from asyncio import run
 
 import discord
 
-from CatBot.CatBot_utils import (
+from .CatBot_utils import (
     LOG_FILE,
     config_logging,
     get_token,
@@ -90,5 +90,4 @@ def main():
     bot.run(get_token(parser))
 
 
-if __name__ == "__main__":
-    main()
+main()
