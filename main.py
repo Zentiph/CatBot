@@ -2,19 +2,20 @@
 The entrypoint to run CatBot from.
 """
 
-import logging
 import asyncio
-from pathlib import Path
-
+import logging
+import pkgutil
 from argparse import ArgumentParser, BooleanOptionalAction
+from importlib import import_module
+from pathlib import Path
+from sys import exit as ex
+
 import discord
 from discord import app_commands
 from discord.ext import commands
 from requests import Timeout
-from sys import exit as ex
 
-
-from CatBot import pawprints, env
+from CatBot import env, pawprints
 
 APP_COMMAND_ERRORS = (
     app_commands.errors.CheckFailure,
@@ -44,7 +45,7 @@ def init_arg_parser() -> ArgumentParser:
         ArgumentParser: The argument parser.
     """
     arg_parser = ArgumentParser(description="Run CatBot with optional arguments")
-    parser.add_argument(
+    arg_parser.add_argument(
         "--log-file",
         type=str,
         default="logs.log",
@@ -150,22 +151,47 @@ async def on_app_command_error(
         )
 
 
+async def load_group(to: commands.Bot, base_pkg: str) -> None:
+    """Load a group of extensions from a base package.
+
+    Args:
+        to (commands.Bot): The bot to load the extensions to.
+        base_pkg (str): The base package of the extension group.
+    """
+    pkg = import_module(base_pkg)
+    for _, module_name, _ in pkgutil.iter_modules(pkg.__path__):
+        full_name = f"{base_pkg}.{module_name}"
+        try:
+            await to.load_extension(full_name)
+            logging.info(f"Loaded extension: {full_name}")
+        except commands.errors.ExtensionAlreadyLoaded:
+            logging.debug(f"Already loaded extension: {full_name}, skipping")
+        except commands.errors.NoEntryPointError:
+            # Module didn't have a setup(bot) func
+            logging.debug(
+                f"Couldn't load extension: {full_name}, "
+                "no setup(bot) function present, skipping"
+            )
+        except commands.errors.ExtensionNotFound:
+            logging.error(f"Extension not found: {full_name}")
+        except commands.errors.ExtensionFailed:
+            logging.exception(f"Failed to load extension: {full_name}")
+
+
 async def setup(logfile: Path) -> None:
-    with logfile.open("w", encoding="utf8"):
-        logging.info(f"Log file {logfile} cleared")
+    logfile.parent.mkdir(parents=True, exist_ok=True)
+    logfile.write_text("", encoding="utf-8")  # clear
 
     if args.debug:
-        await bot.load_extension("CatBot.experiments.experimental")
+        await load_group(bot, "experimental")
 
-    await bot.load_extension("CatBot.color.color")
-    await bot.load_extension("CatBot.date_time.date_time")
-    await bot.load_extension("CatBot.fun.fun")
-    await bot.load_extension("CatBot.help.help")
-    await bot.load_extension("CatBot.management.management")
-    await bot.load_extension("CatBot.management.moderation")
-    await bot.load_extension("CatBot.math.maths")
-    await bot.load_extension("CatBot.math.stats")
-    await bot.load_extension("CatBot.rand.rand")
+    await load_group(bot, "color")
+    await load_group(bot, "date_time")
+    await load_group(bot, "fun")
+    await load_group(bot, "help")
+    await load_group(bot, "management")
+    await load_group(bot, "math")
+    await load_group(bot, "rand")
 
 
 def main():
