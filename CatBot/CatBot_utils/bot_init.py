@@ -9,7 +9,7 @@ import discord
 from discord import app_commands
 from discord.ext.commands import Bot
 from requests import Timeout
-
+import os
 from . import pawprints
 from .logging_formatting import ColorFormatter
 
@@ -27,23 +27,7 @@ APP_COMMAND_ERRORS = (
 )
 
 
-def get_version() -> str:
-    """
-    Get CatBot's current version.
-
-    :return: Version
-    :rtype: str
-    """
-
-    with open("changelog.md", encoding="utf8") as file:
-        line = file.readline()
-        while not line.startswith("## v"):
-            line = file.readline()
-
-        return line.split(" ")[1].strip()
-
-
-VERSION = get_version()
+VERSION = "v0.11.1"  # temp fix to get bot working with docker while refactoring is WIP
 
 
 def initialize_bot() -> Bot:
@@ -94,40 +78,6 @@ def initialize_cli_arg_parser() -> ArgumentParser:
     )
 
     return parser
-
-
-def get_token_from_env() -> str:
-    """
-    Get CatBot's token from the .env file.
-
-    :return: CatBot token
-    :rtype: str
-    """
-
-    with open(".env", encoding="utf8") as file:
-        line = file.readline()
-        while not line.startswith("TOKEN="):
-            line = file.readline()
-        index = line.find("=")
-
-    return line[index + 1 :].strip().strip('"')
-
-
-def get_cat_api_key_from_env() -> str:
-    """
-    Get CatBot's Cat API key from the .env file.
-
-    :return: Cat API key
-    :rtype: str
-    """
-
-    with open(".env", encoding="utf8") as file:
-        line = file.readline()
-        while not line.startswith("CAT_API_KEY="):
-            line = file.readline()
-        index = line.find("=")
-
-    return line[index + 1 :].strip().strip('"')
 
 
 def config_logging(parser: ArgumentParser, /) -> None:
@@ -184,7 +134,7 @@ def get_token(parser: ArgumentParser, /) -> str:
     """
 
     args = parser.parse_args()
-    return args.tokenoverride if args.tokenoverride else get_token_from_env()
+    return args.tokenoverride if args.tokenoverride else os.getenv("TOKEN")
 
 
 async def handle_app_command_error(

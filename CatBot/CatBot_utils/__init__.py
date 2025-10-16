@@ -14,7 +14,6 @@ from .bot_init import (
     MODERATOR_ROLES,
     VERSION,
     config_logging,
-    get_cat_api_key_from_env,
     get_token,
     handle_app_command_error,
     initialize_bot,

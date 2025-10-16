@@ -12,7 +12,7 @@ from io import BytesIO
 from platform import platform
 from sys import version_info
 from typing import List, Optional
-
+import os
 import discord
 import requests
 from discord import app_commands
@@ -25,7 +25,6 @@ from ..CatBot_utils import (
     VERSION,
     emojis,
     generate_authored_embed_with_icon,
-    get_cat_api_key_from_env,
 )
 from ..help import PRIVATE, PUBLIC
 
@@ -36,7 +35,7 @@ HOURS_PER_DAY = 24
 MINUTES_PER_HOUR = 60
 MICROSECONDS_PER_SECOND = 1000000
 
-CAT_API_KEY = get_cat_api_key_from_env()
+CAT_API_KEY = os.getenv("CAT_API_KEY")
 
 
 def get_dependencies() -> str:
