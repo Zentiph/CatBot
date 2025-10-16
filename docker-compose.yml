@@ -1,0 +1,29 @@
+services:
+  # not yet implemented, but planned!
+  # db:
+  #   image: postgres:16
+  #   environment:
+  #     POSTGRES_DB: botdb
+  #     POSTGRES_USER: botuser
+  #     POSTGRES_PASSWORD: change_me
+  #   volumes:
+  #     - ./pgdata:/var/lib/postgresql/data
+  #   restart: unless-stopped
+
+  # redis:
+  #   image: redis:7
+  #   volumes:
+  #     - ./redisdata:/data
+  #   restart: unless-stopped
+
+  bot:
+    build: .
+    env_file: .env
+    # depends_on: [db, redis]
+    # keep logs modest so they don't fill disk
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
