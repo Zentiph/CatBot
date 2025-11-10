@@ -36,7 +36,7 @@ services:
     image: catbot:latest
     build: .
     env_file: .env.test
-    restart: unless-stopped
+    restart: no
     entrypoint: [ "/bin/sh", "-lc", "python -m CatBot --tokenoverride \"$$TESTING_TOKEN\" --testing" ]
     logging:
       driver: json-file
