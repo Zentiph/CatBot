@@ -5,3 +5,4 @@
 *.bat
 __pycache__/
 *.cbdata
+.pytest_cache/
