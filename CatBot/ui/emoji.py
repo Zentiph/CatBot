@@ -3,6 +3,10 @@ Strings that are converted into Discord emojis when written by the bot.
 """
 
 from enum import StrEnum
+import discord
+
+__author__ = "Gavin Borne"
+__license__ = "MIT"
 
 
 class Status(StrEnum):
@@ -36,3 +40,23 @@ class Visual(StrEnum):
     ALERT = ":exclamation:"
     RANDOM = ":twisted_rightwards_arrows:"
     MATH = ":hash:"
+
+
+async def report(
+    interaction: discord.Interaction,
+    message: str,
+    status: Status,
+    /,
+    *,
+    ephemeral: bool = True,
+) -> None:
+    """Report a result of a command with a status emoji.
+
+    Args:
+        interaction (discord.Interaction): The interaction instance.
+        message (str): The message to report.
+        status (Status): The status.
+        ephemeral (bool, optional): Whether to make the response ephemeral. Defaults to True.
+    """
+
+    await interaction.response.send_message(f"{status} {message}", ephemeral=ephemeral)

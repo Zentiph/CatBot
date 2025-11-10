@@ -209,7 +209,7 @@ COLORS.update(WHITES)
 COLORS.update(GRAYS)
 
 
-def is_hex_value(hex6: str) -> bool:
+def is_hex_value(hex6: str, /) -> bool:
     """
     Determine if `hex6` is a valid hex value.
 
@@ -222,7 +222,7 @@ def is_hex_value(hex6: str) -> bool:
     return bool(re.match(r"^[A-Fa-f0-9]{6}$", hex6.strip("#")))
 
 
-def is_rgb_value(value: int) -> bool:
+def is_rgb_value(value: int, /) -> bool:
     """
     Determine if `value` is a valid RGB value.
 
@@ -250,7 +250,7 @@ def random_rgb(*, seed: str | None = None) -> tuple[int, int, int]:
     return random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)
 
 
-def invert_rgb(r: int, g: int, b: int) -> tuple[int, int, int]:
+def invert_rgb(r: int, g: int, b: int, /) -> tuple[int, int, int]:
     """
     Invert `r`, `g`, and `b`.
 
@@ -267,7 +267,7 @@ def invert_rgb(r: int, g: int, b: int) -> tuple[int, int, int]:
     return abs(255 - r), abs(255 - g), abs(255 - b)
 
 
-def invert_hex(hex6: str) -> str:
+def invert_hex(hex6: str, /) -> str:
     """
     Invert the `hex6`.
 
@@ -282,7 +282,7 @@ def invert_hex(hex6: str) -> str:
     return rgb2hex(ir, ig, ib)
 
 
-def hex2rgb(hex6: str) -> tuple[int, int, int]:
+def hex2rgb(hex6: str, /) -> tuple[int, int, int]:
     """
     Translate `hex6` into RGB.
 
@@ -296,7 +296,7 @@ def hex2rgb(hex6: str) -> tuple[int, int, int]:
     return tuple(int(hex6[i : i + 2], 16) for i in (0, 2, 4))  # type: ignore
 
 
-def rgb2hex(r: int, g: int, b: int) -> str:
+def rgb2hex(r: int, g: int, b: int, /) -> str:
     """
     Translate `r`, `g`, and `b` to hex.
 

@@ -179,7 +179,8 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
 
         color = discord.Color(int(hex.strip().strip("#"), 16))
         existing_role = find_existing_role(
-            create_role_name(interaction.user), interaction.guild.roles  # type: ignore
+            create_role_name(interaction.user),
+            interaction.guild.roles,  # type: ignore
         )
 
         if existing_role:
@@ -228,7 +229,8 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
 
         color = discord.Color.from_rgb(r, g, b)
         existing_role = find_existing_role(
-            create_role_name(interaction.user), interaction.guild.roles  # type: ignore
+            create_role_name(interaction.user),
+            interaction.guild.roles,  # type: ignore
         )
 
         if existing_role:
@@ -278,7 +280,8 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
 
         color = discord.Color(int(COLORS[name], 16))
         existing_role = find_existing_role(
-            create_role_name(interaction.user), interaction.guild.roles  # type: ignore
+            create_role_name(interaction.user),
+            interaction.guild.roles,  # type: ignore
         )
 
         if existing_role:
@@ -315,7 +318,8 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         r, g, b = random_rgb(seed=seed)
         color = discord.Color.from_rgb(r, g, b)
         existing_role = find_existing_role(
-            create_role_name(interaction.user), interaction.guild.roles  # type: ignore
+            create_role_name(interaction.user),
+            interaction.guild.roles,  # type: ignore
         )
 
         if existing_role:
@@ -361,12 +365,16 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
 
         color = role.color
         existing_role = find_existing_role(
-            create_role_name(interaction.user), interaction.guild.roles  # type: ignore
+            create_role_name(interaction.user),
+            interaction.guild.roles,  # type: ignore
         )
 
         if existing_role:
             await edit_color_role(
-                existing_role, color, interaction.user, (color.r, color.g, color.b)  # type: ignore
+                existing_role,
+                color,
+                interaction.user,
+                (color.r, color.g, color.b),  # type: ignore
             )
             await interaction.response.send_message(
                 f"{emojis.CHECKMARK} Your role color has been updated to {(color.r, color.g, color.b)}.",
@@ -396,7 +404,8 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         logging.info("/color role reset invoked by %s", interaction.user)
 
         existing_role = find_existing_role(
-            create_role_name(interaction.user), interaction.guild.roles  # type: ignore
+            create_role_name(interaction.user),
+            interaction.guild.roles,  # type: ignore
         )
 
         if not existing_role:
@@ -422,7 +431,8 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         logging.info("/color role reassign invoked by %s", interaction.user)
 
         existing_role = find_existing_role(
-            create_role_name(interaction.user), interaction.guild.roles  # type: ignore
+            create_role_name(interaction.user),
+            interaction.guild.roles,  # type: ignore
         )
 
         if not existing_role:

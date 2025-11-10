@@ -1,4 +1,11 @@
+# pylint:disable=all
+
 from enum import StrEnum
+from typing import Final
+import discord
+
+__author__: Final[str]
+__license__: Final[str]
 
 class Status(StrEnum):
     SUCCESS = ":white_check_mark:"
@@ -21,3 +28,12 @@ class Visual(StrEnum):
     ALERT = ":exclamation:"
     RANDOM = ":twisted_rightwards_arrows:"
     MATH = ":hash:"
+
+async def report(
+    interaction: discord.Interaction,
+    message: str,
+    status: Status,
+    /,
+    *,
+    ephemeral: bool = True,
+) -> None: ...

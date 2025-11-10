@@ -9,7 +9,7 @@ __author__ = "Gavin Borne"
 __license__ = "MIT"
 
 
-async def promote_role(role: discord.Role) -> None:
+async def promote_role(role: discord.Role, /) -> None:
     """Promote the role as high as possible.
 
     Args:
@@ -53,7 +53,7 @@ async def promote_role(role: discord.Role) -> None:
         logging.error("Failed to move role due to an error: %s", e, exc_info=True)
 
 
-def find_role(role: str, guild: discord.Guild) -> discord.Role | None:
+def find_role(role: str, guild: discord.Guild, /) -> discord.Role | None:
     """Find an role in a guild.
 
     Args:
@@ -65,3 +65,37 @@ def find_role(role: str, guild: discord.Guild) -> discord.Role | None:
     """
 
     return discord.utils.find(lambda r: r.name == role, guild.roles)
+
+
+async def update_role_color(role: discord.Role, color: discord.Color, /) -> None:
+    """Update the given role's color.
+
+    Args:
+        role (discord.Role): The role to edit.
+        color (discord.Color): The new color.
+    """
+
+    await role.edit(color=color)
+    logging.info(
+        "Role %s has had its color changed to %s",
+        role.name,
+        repr((color.r, color.g, color.b)),
+    )
+
+
+async def add_new_role_to_member(
+    member: discord.Member, name: str, color: discord.Color, /
+) -> None:
+    """Create a new role and give it to the member.
+
+    Args:
+        member (discord.Member): The member to give the role to.
+        name (str): The name of the role.
+        color (discord.Color): The color of the role.
+    """
+
+    new_role = await member.guild.create_role(name=name, color=color)
+    await member.add_roles(new_role)
+    await promote_role(new_role)
+
+    logging.info("New role %s created and assigned to %s", name, member)

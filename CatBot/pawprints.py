@@ -3,6 +3,7 @@
 import logging
 from enum import StrEnum
 
+
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
