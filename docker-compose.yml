@@ -17,8 +17,11 @@ services:
   #   restart: unless-stopped
 
   bot:
+    # production
+    image: catbot:latest
     build: .
     env_file: .env
+    restart: unless-stopped
     # depends_on: [db, redis]
     # keep logs modest so they don't fill disk
     logging:
@@ -26,4 +29,19 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    profiles:
+      - prod
+
+  bot-test:
+    image: catbot:latest
+    build: .
+    env_file: .env.test
     restart: unless-stopped
+    entrypoint: [ "/bin/sh", "-lc", "python -m CatBot --tokenoverride \"$$TESTING_TOKEN\" --testing" ]
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    profiles:
+      - test

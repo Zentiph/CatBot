@@ -18,5 +18,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # copy src
 COPY CatBot/ ./CatBot/
 
-# running __main__.py
-CMD ["python", "-m", "CatBot"]
+# args provided at runtime will be appended
+ENTRYPOINT ["python", "-m", "CatBot"]
+CMD []
