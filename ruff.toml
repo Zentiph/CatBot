@@ -1,0 +1,69 @@
+# ruff.toml — very strict on formatting, correctness, and pythonic style.
+
+# Global options
+line-length = 88
+target-version = "py311"
+
+preview = true
+
+# Be aggressive: style, correctness, pythonic idioms.
+select = [
+    "E",    # pycodestyle (formatting)
+    "W",    # pycodestyle (warnings)
+    "F",    # pyflakes (correctness)
+    "C90",  # mccabe (complexity)
+    "I",    # isort (import sorting)
+    "N",    # pep8-naming
+    "D",    # pydocstyle (docstrings)
+    "UP",   # pyupgrade (modern syntax)
+    "ANN",  # type annotations
+    "B",    # bugbear (bugs & design)
+    "A",    # builtins (shadowing, etc.)
+    "ARG",  # unused arguments
+    "C4",   # comprehensions (python-y loops)
+    "SIM",  # simplify
+    "ISC",  # implicit string concat
+    "Q",    # quotes
+    "S",    # bandit (security)
+    "DTZ",  # timezone-aware datetimes
+    "PTH",  # pathlib over os.path
+    "FBT",  # boolean traps
+    "TRY",  # better exception handling
+    "PERF", # performance anti-patterns
+    "ERA",  # commented-out code
+    "YTT",  # sys.version checks
+    "PL",   # pylint-like checks
+    "RUF",  # Ruff-specific rules
+]
+
+# Turn off only the most annoying / conflicting ones.
+ignore = [
+    "D203", # no blank line before class (Black/Ruff-formatter style)
+    "D213", # summary on same line as opening quotes
+]
+
+[lint.isort]
+combine-as-imports = true
+force-sort-within-sections = true
+known-first-party = ["your_package_name"]
+
+[lint.pydocstyle]
+# Pick your poison: "google", "numpy", or "pep257".
+convention = "google"
+
+[lint.per-file-ignores]
+# Tests can be a bit looser.
+"tests/**/*.py" = [
+    "D",    # allow missing docstrings in tests
+    "S101", # allow assert in tests
+    "ANN",  # looser typing in tests
+]
+
+[format]
+# Ruff formatter: strict, Black-ish.
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+skip-magic-trailing-comma = false
+docstring-code-format = true
+docstring-code-line-length = 88
