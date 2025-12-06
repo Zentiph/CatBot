@@ -1,8 +1,6 @@
 """Color tools and color role assignment commands."""
 
-__author__ = "Gavin Borne"
-__license__ = "MIT"
-
+from __future__ import annotations
 
 import logging
 from typing import Literal
@@ -11,9 +9,15 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from ....pawprints import cog_setup_log_msg
-from ...interaction import add_new_role_to_member, find_role, report, update_role_color
-from ...ui.emoji import Status
+from ....pawprints import cog_setup_log_msg, log_app_command
+from ...interaction import (
+    add_new_role_to_member,
+    find_role,
+    generate_response_embed,
+    report,
+    update_role_color,
+)
+from ...ui.emoji import Status, Visual
 from .color_tools import (
     BLUES,
     BROWNS,
@@ -27,13 +31,128 @@ from .color_tools import (
     WHITES,
     YELLOWS,
     create_color_role_name,
+    generate_color_image,
+    get_color_key,
+    hex2rgb,
     hex_is_valid,
+    invert_rgb,
     random_rgb,
+    rgb2hex,
     rgb_component_is_valid,
 )
 
-# TODO make some kind of general func call logger that will grab the command
-# name and param automatically and fill it out
+__author__ = "Gavin Borne"
+__license__ = "MIT"
+
+
+# TODO this whole file can probably be modularized heavily
+
+
+# TODO: make a generic UserUniqueView class that can only be
+# interacted with by the original user
+class ColorView(discord.ui.View):
+    """View for interactive color actions (invert, revert, etc)."""
+
+    def __init__(
+        self,
+        user: discord.abc.User,
+        /,
+        *,
+        hex6: str,
+        rgb: tuple[int, int, int],
+        timeout: float | None = 60.0,
+    ) -> None:
+        """Create a new ColorView.
+
+        Args:
+            user (discord.User): The user that spawned the interaction.
+            hex6 (str): The original hex color.
+            rgb (tuple[int, int, int]): The original RGB color.
+            timeout (float | None, optional): The timeout of the view. Defaults to 60.0.
+        """
+        super().__init__(timeout=timeout)
+        self.user_id = user.id
+
+        self.original_hex = hex6.strip("#").lower()  # sanitize hex
+        self.original_r, self.original_g, self.original_b = rgb
+
+        self.current_hex = self.original_hex
+        self.current_r = self.original_r
+        self.current_g = self.original_g
+        self.current_b = self.original_b
+
+    async def __check_user(self, interaction: discord.Interaction, /) -> bool:
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message(
+                "You can't interact with another user's embed!", ephemeral=True
+            )
+            return False
+        return True
+
+    async def __update_message(
+        self, interaction: discord.Interaction, /, *, title: str, description: str
+    ) -> None:
+        embed, files = build_color_embed(
+            title=title,
+            description=description,
+            hex6=self.current_hex,
+            r=self.current_r,
+            g=self.current_g,
+            b=self.current_b,
+        )
+
+        await interaction.response.edit_message(
+            embed=embed, attachments=files, view=self
+        )
+
+    @discord.ui.button(label="Invert", style=discord.ButtonStyle.primary)
+    async def invert_button(
+        self, interaction: discord.Interaction, _button: discord.ui.Button[ColorView]
+    ) -> None:
+        """Invert the color and update the embed.
+
+        Args:
+            interaction (discord.Interaction): The interaction instance.
+        """
+        if not await self.__check_user(interaction):
+            return
+
+        nr, ng, nb = invert_rgb(self.current_r, self.current_g, self.current_b)
+        new_hex = rgb2hex(nr, ng, nb)
+
+        self.current_r, self.current_g, self.current_b = nr, ng, nb
+        self.current_hex = new_hex
+
+        await self.__update_message(
+            interaction,
+            title=f"Inverted color of #{self.original_hex}",
+            description="Here's your inverted color.",
+        )
+
+    # TODO: darken, lighten, complement, assign as color role, etc buttons
+
+    @discord.ui.button(label="Revert", style=discord.ButtonStyle.secondary)
+    async def revert_button(
+        self, interaction: discord.Interaction, _button: discord.ui.Button[ColorView]
+    ) -> None:
+        """Revert the current color to the original.
+
+        Args:
+            interaction (discord.Interaction): The interaction instance.
+        """
+        if not await self.__check_user(interaction):
+            return
+
+        self.current_hex = self.original_hex
+        self.current_r = self.original_r
+        self.current_g = self.original_g
+        self.current_b = self.original_b
+
+        await self.__update_message(
+            interaction,
+            title=f"#{self.original_hex} Info",
+            description="Here's some information about your color.",
+        )
 
 
 async def handle_forbidden_exception(interaction: discord.Interaction, /) -> None:
@@ -64,6 +183,46 @@ async def handle_http_exception(
     logging.error("Failed to create role due to an unexpected error: %s", err)
 
 
+def build_color_embed(
+    *, title: str, description: str, hex6: str, r: int, g: int, b: int
+) -> tuple[discord.Embed, list[discord.File]]:
+    """Create the embeds and files needed to display color info.
+
+    Args:
+        title (str): _description_
+        description (str): _description_
+        hex6 (str): _description_
+        r (int): _description_
+        g (int): _description_
+        b (int): _description_
+
+    Returns:
+        tuple[discord.Embed, list[discord.File]]: _description_
+    """
+    hex6 = hex6.strip("#").lower()  # normalize hex
+
+    image = generate_color_image(hex6)
+    filename = f"{hex6}.png"
+    color_file = discord.File(fp=image, filename=filename)
+
+    embed, icon = generate_response_embed(
+        title=f"{Visual.ART_PALETTE} {title}",
+        description=description,
+        color=discord.Color.from_rgb(r, g, b),
+    )
+
+    embed.add_field(name="Hex", value=f"#{hex6}")
+    embed.add_field(name="RGB", value=f"{(r, g, b)}")
+
+    key = get_color_key(hex6)
+    if key:
+        embed.add_field(name="Color Name", value=key)
+
+    embed.set_image(url=f"attachment://{filename}")
+
+    return embed, [color_file, icon]
+
+
 class ColorCog(commands.Cog, name="Color Role Commands"):
     """Cog containing color role commands."""
 
@@ -85,18 +244,12 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         name="color_role",
         description="Assign yourself a custom color role",
     )
-    invert_group = app_commands.Group(
-        name="invert", description="Invert a color", parent=color_group
-    )
-    info_group = app_commands.Group(
-        name="info", description="Get information about a color", parent=color_group
-    )
 
     @color_role_group.command(
         name="hex", description="Assign yourself a custom color role with hex"
     )
     @app_commands.describe(hex6="Hex value (#RRGGBB)")
-    async def assign_hex(
+    async def color_role_hex(
         self,
         interaction: discord.Interaction,
         hex6: str,
@@ -105,7 +258,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
 
         This role is created if it does not exist, or if it does, it is updated.
         """
-        logging.debug("/color_role hex hex6=%r invoked by %s", hex6, interaction.user)
+        log_app_command(interaction)
 
         if isinstance(interaction.user, discord.User) or interaction.guild is None:
             await report(
@@ -161,16 +314,14 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         g="Green component (0-255)",
         b="Blue component (0-255)",
     )
-    async def assign_rgb(
+    async def color_role_rgb(
         self, interaction: discord.Interaction, r: int, g: int, b: int
     ) -> None:
         """Assign the user a new RGB color.
 
         This role is created if it does not exist, or if it does, it is updated.
         """
-        logging.debug(
-            "/color_role rgb r=%s g=%s b=%s invoked by %s", r, g, b, interaction.user
-        )
+        log_app_command(interaction)
 
         if isinstance(interaction.user, discord.User) or interaction.guild is None:
             await report(
@@ -222,16 +373,16 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         name="name", description="Assign yourself a custom color with a color name"
     )
     @app_commands.describe(name="Color name (use /color list for a list of colors)")
-    async def assign_color_name(
+    async def color_role_name(
         self, interaction: discord.Interaction, name: str
     ) -> None:
         """Assign the user a new color using a color name.
 
         This role is created if it does not exist, or if it does, it is updated.
         """
-        name = name.lower()
+        log_app_command(interaction)
 
-        logging.debug("/color_role name name=%r invoked by %s", name, interaction.user)
+        name = name.lower()
 
         if isinstance(interaction.user, discord.User) or interaction.guild is None:
             await report(
@@ -283,12 +434,12 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
     @color_role_group.command(
         name="random", description="Assign yourself a random color"
     )
-    async def assign_random(self, interaction: discord.Interaction) -> None:
+    async def color_role_random(self, interaction: discord.Interaction) -> None:
         """Assign the user a random color.
 
         This role is created if it does not exist, or if it does, it is updated.
         """
-        logging.debug("/color_role random invoked by %s", interaction.user)
+        log_app_command(interaction)
 
         if isinstance(interaction.user, discord.User) or interaction.guild is None:
             await report(
@@ -330,19 +481,17 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             await handle_http_exception(interaction, e)
 
     @color_role_group.command(
-        name="copy_color", description="Copy a role's color and assign it to yourself"
+        name="copy", description="Copy a role's color and assign it to yourself"
     )
     @app_commands.describe(role="Role to copy the color of")
-    async def copy_role(
+    async def color_role_copy(
         self, interaction: discord.Interaction, role: discord.Role
     ) -> None:
         """Copy `roles`'s color and assign it to the user as a color role.
 
         This role is created if it does not exist, or if it does, it is updated.
         """
-        logging.debug(
-            "/color_role copy_color role=%s invoked by %s", role, interaction.user
-        )
+        log_app_command(interaction)
 
         if isinstance(interaction.user, discord.User) or interaction.guild is None:
             await report(
@@ -395,9 +544,9 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
     @color_role_group.command(
         name="reset", description="Reset your color to the default (empty) color"
     )
-    async def reset_color(self, interaction: discord.Interaction) -> None:
+    async def color_role_reset(self, interaction: discord.Interaction) -> None:
         """Reset the user's color."""
-        logging.debug("/color_role reset invoked by %s", interaction.user)
+        log_app_command(interaction)
 
         if isinstance(interaction.user, discord.User) or interaction.guild is None:
             await report(
@@ -423,9 +572,9 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         name="reassign",
         description="Checks if you are missing your role and reassigns it if so",
     )
-    async def reassign(self, interaction: discord.Interaction) -> None:
+    async def color_role_reassign(self, interaction: discord.Interaction) -> None:
         """Check if the user is missing their role, and reassign it if so."""
-        logging.debug("/color_role reassign invoked by %s", interaction.user)
+        log_app_command(interaction)
 
         if isinstance(interaction.user, discord.User) or interaction.guild is None:
             await report(
@@ -494,14 +643,14 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             "grey": GRAYS,
         }
 
-        logging.info("/color list group=%s invoked by %s", group, interaction.user)
+        log_app_command(interaction)
 
         colors = group_map[group]
 
-        embed, icon = generate_authored_embed_with_icon(
-            embed_title=f"{emojis.ART_PALETTE} {group.title()} Colors",
-            embed_description=f"Here's a list of supported {group} color names.",
-            embed_color=discord.Color(int(colors[group], 16)),
+        embed, icon = generate_response_embed(
+            title=f"{Visual.ART_PALETTE} {group.title()} Colors",
+            description=f"Here's a list of supported {group} color names.",
+            color=discord.Color(int(colors[group], 16)),
         )
 
         colors_str = ""
@@ -512,321 +661,165 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
 
         await interaction.response.send_message(embed=embed, file=icon)
 
-    @info_group.command(name="rgb", description="Get info about an RGB color")
+    @color_group.command(name="rgb", description="Get info about an RGB color")
     @app_commands.describe(
         r="Red value (0-255)", g="Green value (0-255)", b="Blue value (0-255)"
     )
-    async def rgb_info(
+    async def color_rgb(
         self, interaction: discord.Interaction, r: int, g: int, b: int
     ) -> None:
         """Get info about the RGB value."""
-        logging.info(
-            "/color info rgb r=%s g=%s b=%s invoked by %s", r, g, b, interaction.user
-        )
+        log_app_command(interaction)
 
-        if not all(is_rgb_value(v) for v in (r, g, b)):
-            await interaction.response.send_message(
-                f"{emojis.X} Invalid RGB value provided. Supported range: 0-255",
-                ephemeral=True,
+        if not all(rgb_component_is_valid(v) for v in (r, g, b)):
+            await report(
+                interaction,
+                "Invalid RGB value provided. Supported range: 0-255",
+                Status.FAILURE,
             )
             return
 
-        hex = rgb2hex(r, g, b)
-        image = generate_color_image(hex)
-        filename = f"{hex}.png"
-        file = discord.File(fp=image, filename=filename)
+        hex6 = rgb2hex(r, g, b)
 
-        embed, icon = generate_authored_embed_with_icon(
-            embed_title=f"{emojis.ART_PALETTE} {(r, g, b)} Info",
-            embed_description="Here's some information about your color.",
-            embed_color=discord.Color.from_rgb(r, g, b),
+        embed, files = build_color_embed(
+            title=f"{(r, g, b)} Info",
+            description="Here's some information about your color.",
+            hex6=hex6,
+            r=r,
+            g=g,
+            b=b,
         )
 
-        embed.add_field(name="Hex", value=f"#{hex}")
+        view = ColorView(interaction.user, hex6=hex6, rgb=(r, g, b))
 
-        key = get_color_key(hex)
-        if key:
-            embed.add_field(name="Color Name", value=key)
+        await interaction.response.send_message(embed=embed, files=files, view=view)
 
-        embed.set_image(url=f"attachment://{filename}")
-
-        await interaction.response.send_message(embed=embed, files=(file, icon))
-
-    @info_group.command(name="hex", description="Get info about a hex color")
-    @app_commands.describe(hex="Hex value (#000000-#ffffff)")
-    async def hex_info(self, interaction: discord.Interaction, hex: str) -> None:
+    @color_group.command(name="hex", description="Get info about a hex color")
+    @app_commands.describe(hex6="Hex value (#000000-#ffffff)")
+    async def color_hex(self, interaction: discord.Interaction, hex6: str) -> None:
         """Get info about the hex value."""
-        logging.info(
-            "/color info hex hex=%s invoked by %s", repr(hex), interaction.user
-        )
+        log_app_command(interaction)
 
-        if not is_hex_value(hex):
-            await interaction.response.send_message(
-                f"{emojis.X} Invalid hex value provided. Supported range: 000000-ffffff",
-                ephemeral=True,
+        if not hex_is_valid(hex6):
+            await report(
+                interaction,
+                "Invalid hex value provided. Supported range: 000000-ffffff",
+                Status.FAILURE,
             )
             return
 
-        hex = hex.strip("#").lower()
-        r, g, b = hex2rgb(hex)
-        image = generate_color_image(hex)
-        filename = f"{hex}.png"
-        file = discord.File(fp=image, filename=filename)
+        hex6 = hex6.strip("#").lower()
+        r, g, b = hex2rgb(hex6)
 
-        embed, icon = generate_authored_embed_with_icon(
-            embed_title=f"{emojis.ART_PALETTE} #{hex} Info",
-            embed_description="Here's some information about your color.",
-            embed_color=discord.Color.from_rgb(r, g, b),
+        embed, files = build_color_embed(
+            title=f"#{hex6} Info",
+            description="Here's some information about your color.",
+            hex6=hex6,
+            r=r,
+            g=g,
+            b=b,
         )
 
-        embed.add_field(name="RGB", value=f"{(r, g, b)}")
+        view = ColorView(interaction.user, hex6=hex6, rgb=(r, g, b))
 
-        key = get_color_key(hex)
-        if key:
-            embed.add_field(name="Color Name", value=key)
+        await interaction.response.send_message(embed=embed, files=files, view=view)
 
-        embed.set_image(url=f"attachment://{filename}")
-
-        await interaction.response.send_message(embed=embed, files=(file, icon))
-
-    @info_group.command(name="name", description="Get info about a color name")
-    @app_commands.describe(
-        name="Color name (use /color-list for a list of supported colors)"
-    )
-    async def name_info(self, interaction: discord.Interaction, name: str) -> None:
+    @color_group.command(name="name", description="Get info about a color name")
+    @app_commands.describe(name="Color name (use /list for a list of supported colors)")
+    async def color_name(self, interaction: discord.Interaction, name: str) -> None:
         """Get info about the hex value."""
-        logging.info(
-            "/color info name name=%s invoked by %s", repr(name), interaction.user
-        )
+        log_app_command(interaction)
 
         name = name.lower()
 
         if name not in COLORS:
-            await interaction.response.send_message(
-                f"{emojis.X} Invalid color name provided. "
-                "Use /color color-list for a list of supported colors",
-                ephemeral=True,
+            await report(
+                interaction,
+                "Invalid color name provided. "
+                "Use /color list for a list of supported colors!",
+                Status.FAILURE,
             )
             return
 
-        hex = COLORS[name]
-        r, g, b = hex2rgb(hex)
-        image = generate_color_image(hex)
-        filename = f"{hex}.png"
-        file = discord.File(fp=image, filename=filename)
+        hex6 = COLORS[name]
+        r, g, b = hex2rgb(hex6)
 
-        embed, icon = generate_authored_embed_with_icon(
-            embed_title=f"{emojis.ART_PALETTE} {name.title()} Info",
-            embed_description="Here's some information about your color.",
-            embed_color=discord.Color.from_rgb(r, g, b),
+        embed, files = build_color_embed(
+            title=f"#{hex6} Info",
+            description="Here's some information about your color.",
+            hex6=hex6,
+            r=r,
+            g=g,
+            b=b,
         )
 
-        embed.add_field(name="Hex", value=f"#{hex}")
-        embed.add_field(name="RGB", value=f"{(r, g, b)}")
-        embed.set_image(url=f"attachment://{filename}")
+        view = ColorView(interaction.user, hex6=hex6, rgb=(r, g, b))
 
-        await interaction.response.send_message(embed=embed, files=(file, icon))
+        await interaction.response.send_message(embed=embed, files=files, view=view)
 
-    @info_group.command(name="role", description="Get info about a role's color")
+    # TODO: maybe change this name to prevent confusion with color_role group
+    @color_group.command(name="role", description="Get info about a role's color")
     @app_commands.describe(role="Role to get the color info of")
-    async def role_info(
+    async def color_role(
         self, interaction: discord.Interaction, role: discord.Role
     ) -> None:
         """Get info about `role`'s color."""
-        logging.info("/color info role role=%s invoked by %s", role, interaction.user)
+        log_app_command(interaction)
+
+        if isinstance(interaction.user, discord.User) or interaction.guild is None:
+            await report(
+                interaction,
+                "This command can only be used in a server!",
+                Status.FAILURE,
+            )
+            return
 
         if role not in interaction.guild.roles:
-            await interaction.response.send_message(
-                f"{emojis.X} The role was not found in this guild.", ephemeral=True
+            await report(
+                interaction, "The role was not found in this guild.", Status.FAILURE
             )
             return
 
         r, g, b = role.color.r, role.color.g, role.color.b
-        hex = rgb2hex(r, g, b)
-        image = generate_color_image(hex)
-        filename = f"{hex}.png"
-        file = discord.File(fp=image, filename=filename)
+        hex6 = rgb2hex(r, g, b)
 
-        embed, icon = generate_authored_embed_with_icon(
-            embed_title=f"{emojis.ART_PALETTE} {role.name} Color Info",
-            embed_description="Here's some information about your role's color.",
-            embed_color=role.color,
+        embed, files = build_color_embed(
+            title=f"#{hex6} Info",
+            description=f"Here's some information about {role.name}'s color.",
+            hex6=hex6,
+            r=r,
+            g=g,
+            b=b,
         )
 
-        embed.add_field(name="Hex", value=f"#{hex}")
-        embed.add_field(name="RGB", value=f"{(r, g, b)}")
+        view = ColorView(interaction.user, hex6=hex6, rgb=(r, g, b))
 
-        key = get_color_key(hex)
-        if key:
-            embed.add_field(name="Color Name", value=key)
-
-        embed.set_image(url=f"attachment://{filename}")
-
-        await interaction.response.send_message(embed=embed, files=(file, icon))
+        await interaction.response.send_message(embed=embed, files=files, view=view)
 
     @color_group.command(name="random", description="Generate a random color.")
     @app_commands.describe(seed="Optional seed to use when generating the color")
-    async def random_color(
-        self, interaction: discord.Interaction, seed: Union[str, None] = None
-    ) -> None:
+    async def color_random(self, interaction: discord.Interaction) -> None:
         """Generate a random color."""
-        logging.info("/color random invoked by %s", interaction.user)
+        log_app_command(interaction)
 
-        r, g, b = random_rgb(seed=seed)
-        hex = rgb2hex(r, g, b)
+        r, g, b = random_rgb()
+        hex6 = rgb2hex(r, g, b)
 
-        image = generate_color_image(hex)
-        filename = f"{hex}.png"
-        file = discord.File(fp=image, filename=filename)
-
-        embed, icon = generate_authored_embed_with_icon(
-            embed_title=f"{emojis.ART_PALETTE} Random Color",
-            embed_description="Here's your randomly generated color.",
-            embed_color=discord.Color.from_rgb(r, g, b),
+        embed, files = build_color_embed(
+            title=f"#{hex6} Info",
+            description="Here's some information about your randomly generated color.",
+            hex6=hex6,
+            r=r,
+            g=g,
+            b=b,
         )
 
-        embed.add_field(name="RGB", value=f"{(r, g, b)}")
-        embed.add_field(name="Hex", value=f"#{hex}")
+        view = ColorView(interaction.user, hex6=hex6, rgb=(r, g, b))
 
-        key = get_color_key(hex)
-        if key:
-            embed.add_field(name="Color Name", value=key)
-
-        embed.set_image(url=f"attachment://{filename}")
-
-        await interaction.response.send_message(embed=embed, files=(file, icon))
-
-    @invert_group.command(name="rgb", description="Invert the RGB color")
-    @app_commands.describe(
-        r="Red value (0-255)", g="Green value (0-255)", b="Blue value (0-255)"
-    )
-    async def invert_rgb(
-        self, interaction: discord.Interaction, r: int, g: int, b: int
-    ) -> None:
-        """Invert the RGB value."""
-        logging.info(
-            "/color invert rgb r=%s g=%s b=%s invoked by %s", r, g, b, interaction.user
-        )
-
-        if not all(is_rgb_value(v) for v in (r, g, b)):
-            await interaction.response.send_message(
-                f"{emojis.X} Invalid RGB value provided. Supported range: 0-255",
-                ephemeral=True,
-            )
-            return
-
-        nr, ng, nb = invert_rgb(r, g, b)
-        hex = rgb2hex(nr, ng, nb)
-
-        image = generate_color_image(hex)
-        filename = f"{hex}.png"
-        file = discord.File(fp=image, filename=filename)
-
-        embed, icon = generate_authored_embed_with_icon(
-            embed_title=f"{emojis.ART_PALETTE} Inverted color of ({r}, {g}, {b})",
-            embed_description="Here's your inverted color.",
-            embed_color=discord.Color.from_rgb(nr, ng, nb),
-        )
-
-        embed.add_field(name="RGB", value=f"{(nr, ng, nb)}")
-        embed.add_field(name="Hex", value=f"#{hex}")
-
-        key = get_color_key(hex)
-        if key:
-            embed.add_field(name="Color Name", value=key)
-
-        embed.set_image(url=f"attachment://{filename}")
-
-        await interaction.response.send_message(embed=embed, files=(file, icon))
-
-    @invert_group.command(name="hex", description="Invert the hex color")
-    @app_commands.describe(hex="Hex color")
-    async def invert_hex(self, interaction: discord.Interaction, hex: str) -> None:
-        """Invert `hex`."""
-        logging.info(
-            "/color invert hex hex=%s invoked by %s", repr(hex), interaction.user
-        )
-
-        if not is_hex_value(hex):
-            await interaction.response.send_message(
-                f"{emojis.X} Invalid hex value provided. Supported range: 000000-ffffff",
-                ephemeral=True,
-            )
-            return
-
-        hex = hex.strip("#").lower()
-        rgb = hex2rgb(hex)
-        nr, ng, nb = invert_rgb(*rgb)
-        new_hex = rgb2hex(nr, ng, nb)
-
-        image = generate_color_image(new_hex)
-        filename = f"{new_hex}.png"
-        file = discord.File(fp=image, filename=filename)
-
-        embed, icon = generate_authored_embed_with_icon(
-            embed_title=f"{emojis.ART_PALETTE} Inverted color of #{hex}",
-            embed_description="Here's your inverted color.",
-            embed_color=discord.Color.from_rgb(nr, ng, nb),
-        )
-
-        embed.add_field(name="Hex", value=f"#{hex}")
-        embed.add_field(name="RGB", value=f"{(nr, ng, nb)}")
-
-        key = get_color_key(hex)
-        if key:
-            embed.add_field(name="Color Name", value=key)
-
-        embed.set_image(url=f"attachment://{filename}")
-
-        await interaction.response.send_message(embed=embed, files=(file, icon))
-
-    @invert_group.command(name="name", description="Invert the color name")
-    @app_commands.describe(name="Color name (use /color-list for a list of colors)")
-    async def invert_color_name(
-        self, interaction: discord.Interaction, name: str
-    ) -> None:
-        """Invert the color name."""
-        logging.info(
-            "/color invert name name=%s invoked by %s", repr(name), interaction.user
-        )
-
-        name = name.lower()
-
-        if name not in COLORS:
-            await interaction.response.send_message(
-                f"{emojis.X} Invalid color name provided. Use /color-list for a list of supported colors",
-                ephemeral=True,
-            )
-            return
-
-        hex = COLORS[name]
-        rgb = hex2rgb(hex)
-        nr, ng, nb = invert_rgb(*rgb)
-        new_hex = rgb2hex(nr, ng, nb)
-
-        image = generate_color_image(new_hex)
-        filename = f"{new_hex}.png"
-        file = discord.File(fp=image, filename=filename)
-
-        embed, icon = generate_authored_embed_with_icon(
-            embed_title=f"{emojis.ART_PALETTE} Inverted color of #{hex}",
-            embed_description="Here's your inverted color.",
-            embed_color=discord.Color.from_rgb(nr, ng, nb),
-        )
-
-        embed.add_field(name="Hex", value=f"#{hex}")
-        embed.add_field(name="RGB", value=f"{(nr, ng, nb)}")
-
-        key = get_color_key(new_hex)
-        if key:
-            embed.add_field(name="Color Name", value=key)
-
-        embed.set_image(url=f"attachment://{filename}")
-
-        await interaction.response.send_message(embed=embed, files=(file, icon))
+        await interaction.response.send_message(embed=embed, files=files, view=view)
 
 
-async def setup(bot: commands.Bot):
+async def setup(bot: commands.Bot) -> None:
     """Set up the ColorCog.
 
     :param bot: Bot to add the cog to.

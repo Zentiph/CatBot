@@ -343,7 +343,7 @@ def create_color_role_name(member: discord.Member, /) -> str:
     return f"{member.name}'s Color"
 
 
-def generate_color_image(hex6: str) -> BytesIO:
+def generate_color_image(hex6: str, /) -> BytesIO:
     """Generate a solid color image from the given hex color.
 
     Args:

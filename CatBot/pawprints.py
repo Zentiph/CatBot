@@ -113,7 +113,7 @@ def config_logging(
     )
 
 
-def cog_setup_log_msg(cog_name: str, bot: commands.Bot) -> str:
+def cog_setup_log_msg(cog_name: str, bot: commands.Bot, /) -> str:
     """Create a log message for setting up a cog.
 
     Args:
@@ -133,7 +133,7 @@ def cog_setup_log_msg(cog_name: str, bot: commands.Bot) -> str:
     )
 
 
-def log_app_command(interaction: discord.Interaction) -> None:
+def log_app_command(interaction: discord.Interaction, /) -> None:
     """Log an app command interaction (debug only).
 
     Args:
