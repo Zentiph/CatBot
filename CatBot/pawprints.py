@@ -1,8 +1,9 @@
 """Logging utility for CatBot."""
 
-import logging
 from enum import StrEnum
+import logging
 
+from discord.ext import commands
 
 __author__ = "Gavin Borne"
 __license__ = "MIT"
@@ -36,7 +37,8 @@ class AnsiColor(StrEnum):
 class AnsiColorFormatter(logging.Formatter):
     """A formatter that colors logs based on their level using ANSI color codes."""
 
-    def _format_by_level(self, fmt: str, level: int, /) -> str:
+    @staticmethod
+    def _format_by_level(fmt: str, level: int, /) -> str:
         match level:
             case logging.DEBUG:
                 return AnsiColor.DEBUG + fmt + AnsiColor.RESET
@@ -52,6 +54,22 @@ class AnsiColorFormatter(logging.Formatter):
                 return fmt
 
     def format(self, record: logging.LogRecord) -> str:
+        """Format the specified record as text.
+
+        The record's attribute dictionary is used as the operand to a string formatting
+        operation which yields the returned string. Before formatting the dictionary, a
+        couple of preparatory steps are carried out. The message attribute of the record
+        is computed using LogRecord.getMessage(). If the formatting string uses the time
+        (as determined by a call to usesTime(), formatTime() is called to format the
+        event time. If there is exception information, it is formatted using
+        formatException() and appended to the message.
+
+        Args:
+            record (logging.LogRecord): The record to format.
+
+        Returns:
+            str: The formatted record as a string.
+        """
         return self._format_by_level(super().format(record), record.levelno)
 
 
@@ -75,7 +93,6 @@ def config_logging(
         date_fmt (str, optional): The logging date format to use.
             Defaults to DEFAULT_DATE_FMT.
     """
-
     handlers: list[logging.Handler] = []
     if console_logging:
         stream_handler = logging.StreamHandler()
@@ -92,4 +109,24 @@ def config_logging(
     logging.info(
         f"CatBot logging config: logfile={logfile}, debug={debug},"
         f"no-console-logging={not console_logging}, colored-logs={colored_logs}"
+    )
+
+
+def cog_setup_log_msg(cog_name: str, bot: commands.Bot) -> str:
+    """Create a log message for setting up a cog.
+
+    Args:
+        cog_name (str): The name of the cog being loaded.
+        bot (commands.Bot): The bot being used by the cog.
+
+    Returns:
+        str: The log message.
+    """
+    if bot.user is None:
+        logging.error("Unexpected logout")
+        return f"Could not load {cog_name}"
+
+    return (
+        f"{cog_name} loaded | bot={bot.user} ({bot.user.id}) |"
+        f"guilds={len(bot.guilds)} | commands={len(bot.commands)}"
     )

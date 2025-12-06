@@ -4,6 +4,7 @@
 line-length = 88
 target-version = "py311"
 
+[lint]
 preview = true
 
 # Be aggressive: style, correctness, pythonic idioms.
@@ -38,8 +39,9 @@ select = [
 
 # Turn off only the most annoying / conflicting ones.
 ignore = [
-    "D203", # no blank line before class (Black/Ruff-formatter style)
-    "D213", # summary on same line as opening quotes
+    "D203",    # no blank line before class (Black/Ruff-formatter style)
+    "D213",    # summary on same line as opening quotes
+    "PLR6301", # must use self in class methods (annoying for discord.py slash commands)
 ]
 
 [lint.isort]
@@ -48,7 +50,6 @@ force-sort-within-sections = true
 known-first-party = ["your_package_name"]
 
 [lint.pydocstyle]
-# Pick your poison: "google", "numpy", or "pep257".
 convention = "google"
 
 [lint.per-file-ignores]
@@ -58,6 +59,10 @@ convention = "google"
     "S101", # allow assert in tests
     "ANN",  # looser typing in tests
 ]
+"**/*.pyi" = ["PL"]
+
+[lint.pylint]
+max-args = 8
 
 [format]
 # Ruff formatter: strict, Black-ish.

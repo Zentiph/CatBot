@@ -1,7 +1,9 @@
 # pylint:disable=all
-import logging
 from enum import StrEnum
+import logging
 from typing import Final
+
+from discord.ext import commands
 
 __author__: Final[str]
 __license__: Final[str]
@@ -31,3 +33,4 @@ def config_logging(
     fmt: str = DEFAULT_FMT,
     date_fmt: str = DEFAULT_DATE_FMT,
 ) -> None: ...
+def cog_setup_log_msg(cog_name: str, bot: commands.Bot) -> str: ...

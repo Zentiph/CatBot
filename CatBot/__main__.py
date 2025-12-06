@@ -1,13 +1,12 @@
-"""
-The entrypoint to run CatBot from.
-"""
+"""The entrypoint to run CatBot from."""
 
-import asyncio
-import logging
-import pkgutil
 from argparse import ArgumentParser, BooleanOptionalAction
+import asyncio
 from importlib import import_module
+import logging
+import os
 from pathlib import Path
+import pkgutil
 from sys import exit as ex
 
 import discord
@@ -15,7 +14,7 @@ from discord import app_commands
 from discord.ext import commands
 from requests import Timeout
 
-from CatBot import env, pawprints
+from catbot import pawprints
 
 __author__ = "Gavin Borne"
 __license__ = "MIT"
@@ -34,7 +33,6 @@ def init_bot() -> commands.Bot:
     Returns:
         commands.Bot: The bot instance.
     """
-
     intents = discord.Intents.default()
     intents.message_content = True
     intents.members = True
@@ -48,7 +46,6 @@ def init_arg_parser() -> ArgumentParser:
     Returns:
         ArgumentParser: The argument parser.
     """
-
     arg_parser = ArgumentParser(description="Run CatBot with optional arguments")
     arg_parser.add_argument(
         "--log-file",
@@ -89,22 +86,23 @@ args = parser.parse_args()
 
 @bot.event
 async def on_ready() -> None:
-    """
-    Sync and register slash commands.
-    """
-
+    """Sync and register slash commands."""
     await bot.tree.sync()
 
     if args.debug:
         await bot.change_presence(activity=discord.Game(name="⚠ TESTING ⚠"))
         logging.warning(
-            "The application has been started in testing mode; ignore if this is intentional"
+            "The application has been started in testing mode; "
+            "ignore if this is intentional"
         )
     else:
         await bot.change_presence(activity=discord.Game(name="/help"))
 
-    logging.info(f"Logged in as {bot.user.name} and slash commands synced")  # type: ignore
-    logging.info("---------------------------------------------")
+    if bot.user is None:
+        logging.error("Log in failed")
+        return
+
+    logging.info(f"Logged in as {bot.user.name} and slash commands synced\n")
 
 
 @bot.tree.error
@@ -118,7 +116,7 @@ async def on_app_command_error(
         error (app_commands.AppCommandError): The error.
     """
 
-    async def try_response(message: str, ephemeral: bool = True) -> None:
+    async def try_response(message: str, /, *, ephemeral: bool = True) -> None:
         try:
             await interaction.response.send_message(message, ephemeral=ephemeral)
         except discord.errors.InteractionResponded:
@@ -132,13 +130,15 @@ async def on_app_command_error(
 
     if isinstance(error, app_commands.errors.CheckFailure):  # Restricted command
         logging.info(
-            f"Unauthorized user {interaction.user} attempted to use a restricted command",
+            f"Unauthorized user {interaction.user} attempted"
+            " to use a restricted command",
         )
         await try_response("You do not have permission to use this command.")
 
     elif isinstance(error, discord.Forbidden):
         logging.warning(
-            "Attempted to perform a command with inadequate permissions allotted to the bot"
+            "Attempted to perform a command with inadequate "
+            "permissions allotted to the bot"
         )
         await try_response("I do not have permissions to perform this command.")
 
@@ -152,7 +152,7 @@ async def on_app_command_error(
         logging.warning("Timeout error occurred during HTTP request")
         await try_response(
             "An attempt to communicate with an external API "
-            + "has taken too long, and has been canceled."
+            "has taken too long, and has been canceled."
         )
 
 
@@ -163,7 +163,6 @@ async def load_group(to: commands.Bot, base_pkg: str) -> None:
         to (commands.Bot): The bot to load the extensions to.
         base_pkg (str): The base package of the extension group.
     """
-
     pkg = import_module(base_pkg)
     for _, module_name, _ in pkgutil.iter_modules(pkg.__path__):
         full_name = f"{base_pkg}.{module_name}"
@@ -179,12 +178,17 @@ async def load_group(to: commands.Bot, base_pkg: str) -> None:
                 "no setup(bot) function present, skipping"
             )
         except commands.errors.ExtensionNotFound:
-            logging.error(f"Extension not found: {full_name}")
+            logging.exception(f"Extension not found: {full_name}")
         except commands.errors.ExtensionFailed:
             logging.exception(f"Failed to load extension: {full_name}")
 
 
 async def setup(logfile: Path) -> None:
+    """Run setup for the bot.
+
+    Args:
+        logfile (Path): The file to output logs to.
+    """
     logfile.parent.mkdir(parents=True, exist_ok=True)
     logfile.write_text("", encoding="utf-8")  # clear
 
@@ -200,12 +204,8 @@ async def setup(logfile: Path) -> None:
     await load_group(bot, "rand")
 
 
-def main():
-    """
-    Read command-line arguments, setup the bot and logging,
-    run any other setup, and run the bot.
-    """
-
+def main() -> None:
+    """Read CLI args, setup the bot and logging, then run the bot."""
     logfile_path = Path(args.log_file)
     if not logfile_path.is_file():
         ex(f"Could not find file '{args.log_file}'")
@@ -217,31 +217,11 @@ def main():
         debug=args.debug,
     )
 
-    try:
-        dot_env = env.DotEnv(".env")
-    except env.EnvSyntaxError:
-        logging.error("The provided .env has syntax errors", exc_info=True)
-        ex(
-            "Error: Tried to load a .env with invalid syntax. "
-            "Check the logs for more details."
-        )
-    except ValueError:
-        logging.error(
-            "Tried to load a .env file from a file without .env extension",
-            exc_info=True,
-        )
-        ex(
-            "Error: Tried to load a .env file from a file without the .env extension."
-            " Check the logs for more details."
-        )
-    except FileNotFoundError:
-        logging.error("Tried to load a .env file that does not exist", exc_info=True)
-        ex(
-            "Error: Tried to load a .env file that does not exist. "
-            "Check the logs for more details."
-        )
-
-    token = args.token_override if args.token_override is not None else dot_env["TOKEN"]
+    token = (
+        args.token_override if args.token_override is not None else os.getenv("TOKEN")
+    )
+    if not isinstance(token, str):
+        ex("Could not parse token")
 
     asyncio.run(setup(logfile_path))
     bot.run(token)
