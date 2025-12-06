@@ -11,9 +11,9 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from ...pawprints import cog_setup_log_msg
-from ...role_tools import add_new_role_to_member, find_role, update_role_color
-from ...ui.emoji import Status, report
+from ....pawprints import cog_setup_log_msg
+from ...interaction import add_new_role_to_member, find_role, report, update_role_color
+from ...ui.emoji import Status
 from .color_tools import (
     BLUES,
     BROWNS,
