@@ -3,6 +3,7 @@
 from enum import StrEnum
 import logging
 
+import discord
 from discord.ext import commands
 
 __author__ = "Gavin Borne"
@@ -130,3 +131,19 @@ def cog_setup_log_msg(cog_name: str, bot: commands.Bot) -> str:
         f"{cog_name} loaded | bot={bot.user} ({bot.user.id}) |"
         f"guilds={len(bot.guilds)} | commands={len(bot.commands)}"
     )
+
+
+def log_app_command(interaction: discord.Interaction) -> None:
+    """Log an app command interaction (debug only).
+
+    Args:
+        interaction (discord.Interaction): The interaction instance of the command.
+    """
+    cmd_name = (
+        interaction.command.qualified_name if interaction.command else "unknown_command"
+    )
+
+    namespace = interaction.namespace
+    params = " ".join(f"{k}={getattr(namespace, k)!r}" for k in vars(namespace))
+
+    logging.debug("/%s %s invoked by %s", cmd_name, params, interaction.user)

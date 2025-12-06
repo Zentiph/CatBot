@@ -3,6 +3,7 @@ from enum import StrEnum
 import logging
 from typing import Final
 
+import discord
 from discord.ext import commands
 
 __author__: Final[str]
@@ -34,3 +35,4 @@ def config_logging(
     date_fmt: str = DEFAULT_DATE_FMT,
 ) -> None: ...
 def cog_setup_log_msg(cog_name: str, bot: commands.Bot) -> str: ...
+def log_app_command(interaction: discord.Interaction) -> None: ...
