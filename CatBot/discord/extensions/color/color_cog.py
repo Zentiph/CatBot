@@ -18,6 +18,7 @@ from ...interaction import (
     update_role_color,
 )
 from ...ui.emoji import Status, Visual
+from ...ui.views import RestrictedView
 from .color_tools import (
     BLUES,
     BROWNS,
@@ -45,9 +46,7 @@ __author__ = "Gavin Borne"
 __license__ = "MIT"
 
 
-# TODO: make a generic UserUniqueView class that can only be
-# interacted with by the original user
-class ColorView(discord.ui.View):
+class ColorView(RestrictedView):
     """View for interactive color actions (invert, revert, etc)."""
 
     def __init__(
@@ -67,7 +66,7 @@ class ColorView(discord.ui.View):
             rgb (tuple[int, int, int]): The original RGB color.
             timeout (float | None, optional): The timeout of the view. Defaults to 60.0.
         """
-        super().__init__(timeout=timeout)
+        super().__init__(user=user, timeout=timeout)
         self.user_id = user.id
 
         self.original_hex = hex6.strip("#").lower()  # sanitize hex
@@ -77,14 +76,6 @@ class ColorView(discord.ui.View):
         self.current_r = self.original_r
         self.current_g = self.original_g
         self.current_b = self.original_b
-
-    async def __check_user(self, interaction: discord.Interaction, /) -> bool:
-        if interaction.user.id != self.user_id:
-            await interaction.response.send_message(
-                "You can't interact with another user's embed!", ephemeral=True
-            )
-            return False
-        return True
 
     async def __update_message(
         self, interaction: discord.Interaction, /, *, title: str, description: str
@@ -111,7 +102,7 @@ class ColorView(discord.ui.View):
         Args:
             interaction (discord.Interaction): The interaction instance.
         """
-        if not await self.__check_user(interaction):
+        if not await self.validate_user(interaction):
             return
 
         nr, ng, nb = invert_rgb(self.current_r, self.current_g, self.current_b)
@@ -137,7 +128,7 @@ class ColorView(discord.ui.View):
         Args:
             interaction (discord.Interaction): The interaction instance.
         """
-        if not await self.__check_user(interaction):
+        if not await self.validate_user(interaction):
             return
 
         self.current_hex = self.original_hex

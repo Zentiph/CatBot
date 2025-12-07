@@ -1,4 +1,4 @@
 """Color commands."""
 
 # this file intentionally left empty.
-# python simply required a __init__ file for importing.
+# python requires a __init__ file for importing.
