@@ -45,9 +45,6 @@ __author__ = "Gavin Borne"
 __license__ = "MIT"
 
 
-# TODO this whole file can probably be modularized heavily
-
-
 # TODO: make a generic UserUniqueView class that can only be
 # interacted with by the original user
 class ColorView(discord.ui.View):
@@ -223,6 +220,45 @@ def build_color_embed(
     return embed, [color_file, icon]
 
 
+async def update_color_role(
+    member: discord.Member,
+    guild: discord.Guild,
+    color: discord.Color,
+    interaction: discord.Interaction,
+) -> None:
+    """Update the user's color role.
+
+    Args:
+        member (discord.Member): The member whose role to update.
+        guild (discord.Guild): The guild to update the role in.
+        color (discord.Color): The new role color.
+        interaction (discord.Interaction): The interaction instance.
+    """
+    existing_role = find_role(create_color_role_name(member), guild)
+
+    if existing_role:
+        await update_role_color(existing_role, color)
+        await report(
+            interaction,
+            f"Your role color has been updated to {color.to_rgb()}.",
+            Status.SUCCESS,
+        )
+        return
+
+    try:
+        await add_new_role_to_member(member, create_color_role_name(member), color)
+        await report(
+            interaction,
+            f"You have been assigned a role with the color {color.to_rgb()}.",
+            Status.SUCCESS,
+        )
+
+    except discord.Forbidden:
+        await handle_forbidden_exception(interaction)
+    except discord.HTTPException as e:
+        await handle_http_exception(interaction, e)
+
+
 class ColorCog(commands.Cog, name="Color Role Commands"):
     """Cog containing color role commands."""
 
@@ -277,34 +313,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             return
 
         color = discord.Color(int(hex6.strip().strip("#"), 16))
-        existing_role = find_role(
-            create_color_role_name(interaction.user),
-            interaction.guild,
-        )
-
-        if existing_role is not None:
-            await update_role_color(existing_role, color)
-            await report(
-                interaction,
-                f"Your role color has been updated to {hex6}.",
-                Status.SUCCESS,
-            )
-            return
-
-        try:
-            await add_new_role_to_member(
-                interaction.user, create_color_role_name(interaction.user), color
-            )
-            await report(
-                interaction,
-                f"You have been assigned a role with the color {hex6}.",
-                Status.SUCCESS,
-            )
-
-        except discord.Forbidden:
-            await handle_forbidden_exception(interaction)
-        except discord.HTTPException as e:
-            await handle_http_exception(interaction, e)
+        await update_color_role(interaction.user, interaction.guild, color, interaction)
 
     @color_role_group.command(
         name="rgb", description="Assign yourself a custom color role with RGB"
@@ -340,34 +349,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             return
 
         color = discord.Color.from_rgb(r, g, b)
-        existing_role = find_role(
-            create_color_role_name(interaction.user),
-            interaction.guild,
-        )
-
-        if existing_role:
-            await update_role_color(existing_role, color)
-            await report(
-                interaction,
-                f"Your role color has been updated to {(r, g, b)}.",
-                Status.SUCCESS,
-            )
-            return
-
-        try:
-            await add_new_role_to_member(
-                interaction.user, create_color_role_name(interaction.user), color
-            )
-            await report(
-                interaction,
-                f"You have been assigned a role with the color {(r, g, b)}.",
-                Status.SUCCESS,
-            )
-
-        except discord.Forbidden:
-            await handle_forbidden_exception(interaction)
-        except discord.HTTPException as e:
-            await handle_http_exception(interaction, e)
+        await update_color_role(interaction.user, interaction.guild, color, interaction)
 
     @color_role_group.command(
         name="name", description="Assign yourself a custom color with a color name"
@@ -402,34 +384,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             return
 
         color = discord.Color(int(COLORS[name], 16))
-        existing_role = find_role(
-            create_color_role_name(interaction.user),
-            interaction.guild,
-        )
-
-        if existing_role:
-            await update_role_color(existing_role, color)
-            await report(
-                interaction,
-                f"Your role color has been updated to {name}.",
-                Status.SUCCESS,
-            )
-            return
-
-        try:
-            await add_new_role_to_member(
-                interaction.user, create_color_role_name(interaction.user), color
-            )
-            await report(
-                interaction,
-                f"You have been assigned a role with the color {name}.",
-                Status.SUCCESS,
-            )
-
-        except discord.Forbidden:
-            await handle_forbidden_exception(interaction)
-        except discord.HTTPException as e:
-            await handle_http_exception(interaction, e)
+        await update_color_role(interaction.user, interaction.guild, color, interaction)
 
     @color_role_group.command(
         name="random", description="Assign yourself a random color"
@@ -451,34 +406,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
 
         r, g, b = random_rgb()
         color = discord.Color.from_rgb(r, g, b)
-        existing_role = find_role(
-            create_color_role_name(interaction.user),
-            interaction.guild,
-        )
-
-        if existing_role:
-            await update_role_color(existing_role, color)
-            await report(
-                interaction,
-                f"Your role color has been updated to {(r, g, b)}.",
-                Status.SUCCESS,
-            )
-            return
-
-        try:
-            await add_new_role_to_member(
-                interaction.user, create_color_role_name(interaction.user), color
-            )
-            await report(
-                interaction,
-                f"You have been assigned a role with color {(r, g, b)}.",
-                Status.SUCCESS,
-            )
-
-        except discord.Forbidden:
-            await handle_forbidden_exception(interaction)
-        except discord.HTTPException as e:
-            await handle_http_exception(interaction, e)
+        await update_color_role(interaction.user, interaction.guild, color, interaction)
 
     @color_role_group.command(
         name="copy", description="Copy a role's color and assign it to yourself"
@@ -508,38 +436,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             return
 
         color = role.color
-        existing_role = find_role(
-            create_color_role_name(interaction.user),
-            interaction.guild,
-        )
-
-        if existing_role:
-            await update_role_color(
-                existing_role,
-                color,
-            )
-            await report(
-                interaction,
-                f"Your role color has been updated to {(color.r, color.g, color.b)}.",
-                Status.SUCCESS,
-            )
-            return
-
-        try:
-            await add_new_role_to_member(
-                interaction.user, create_color_role_name(interaction.user), color
-            )
-            await report(
-                interaction,
-                "You have been assigned a role with color "
-                f"{(color.r, color.g, color.b)}.",
-                Status.SUCCESS,
-            )
-
-        except discord.Forbidden:
-            await handle_forbidden_exception(interaction)
-        except discord.HTTPException as e:
-            await handle_http_exception(interaction, e)
+        await update_color_role(interaction.user, interaction.guild, color, interaction)
 
     @color_role_group.command(
         name="reset", description="Reset your color to the default (empty) color"
