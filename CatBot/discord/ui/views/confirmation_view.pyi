@@ -17,7 +17,7 @@ DENY_LABEL: Final[str]
 CONFIRM_BUTTON_STYLE: Final[discord.ButtonStyle]
 DENY_BUTTON_STYLE: Final[discord.ButtonStyle]
 
-class Confirmation(ui.View):
+class ConfirmationView(ui.View):
     def __init__(
         self,
         interaction: discord.Interaction,
@@ -40,9 +40,9 @@ class Confirmation(ui.View):
     ) -> None: ...
     @discord.ui.button(label=CONFIRM_LABEL, style=CONFIRM_BUTTON_STYLE)
     async def confirm(
-        self, interaction: discord.Interaction, button: ui.Button[Confirmation]
+        self, interaction: discord.Interaction, button: ui.Button[ConfirmationView]
     ) -> None: ...
     @discord.ui.button(label=DENY_LABEL, style=DENY_BUTTON_STYLE)
     async def deny(
-        self, interaction: discord.Interaction, button: ui.Button[Confirmation]
+        self, interaction: discord.Interaction, button: ui.Button[ConfirmationView]
     ) -> None: ...

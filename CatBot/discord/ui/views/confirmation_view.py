@@ -26,7 +26,7 @@ CONFIRM_BUTTON_STYLE = discord.ButtonStyle.green
 DENY_BUTTON_STYLE = discord.ButtonStyle.red
 
 
-class Confirmation(ui.View):
+class ConfirmationView(ui.View):
     """A view for responding to a confirmation-based interaction."""
 
     def __init__(
@@ -90,13 +90,13 @@ class Confirmation(ui.View):
 
     @discord.ui.button(label=CONFIRM_LABEL, style=CONFIRM_BUTTON_STYLE)
     async def confirm(
-        self, interaction: discord.Interaction, button: ui.Button[Confirmation]
+        self, interaction: discord.Interaction, button: ui.Button[ConfirmationView]
     ) -> None:
         """This function will run on confirmation.
 
         Args:
             interaction (discord.Interaction): The interaction instance.
-            button (ui.Button): The confirmation button.
+            button (ui.Button[ConfirmationView]): The confirmation button.
         """
         button.disabled = True
         await interaction.response.defer()
@@ -118,13 +118,13 @@ class Confirmation(ui.View):
 
     @discord.ui.button(label=DENY_LABEL, style=DENY_BUTTON_STYLE)
     async def deny(
-        self, interaction: discord.Interaction, button: ui.Button[Confirmation]
+        self, interaction: discord.Interaction, button: ui.Button[ConfirmationView]
     ) -> None:
         """This function will run on confirmation.
 
         Args:
             interaction (discord.Interaction): The interaction instance.
-            button (ui.Button): The confirmation button.
+            button (ui.Button[ConfirmationView]): The confirmation button.
         """
         button.disabled = True
         await interaction.response.defer()
