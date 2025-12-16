@@ -72,9 +72,6 @@ class LightenModal(discord.ui.Modal, title="Lighten Color"):
         Args:
             interaction (discord.Interaction): The interaction instance.
         """
-        if not await self.view.validate_user(interaction):
-            return
-
         try:
             percentage = float(str(self.amount))
         except ValueError:
@@ -138,9 +135,6 @@ class DarkenModal(discord.ui.Modal, title="Darken Color"):
         Args:
             interaction (discord.Interaction): The interaction instance.
         """
-        if not await self.view.validate_user(interaction):
-            return
-
         try:
             percentage = float(str(self.amount))
         except ValueError:
@@ -199,7 +193,6 @@ class ColorView(RestrictedView):
             timeout (float | None, optional): The timeout of the view. Defaults to 60.0.
         """
         super().__init__(user=user, timeout=timeout)
-        self.user_id = user.id
 
         self.original_hex = hex6.strip("#").lower()  # sanitize hex
         self.original_r, self.original_g, self.original_b = rgb
@@ -208,22 +201,6 @@ class ColorView(RestrictedView):
         self.current_r = self.original_r
         self.current_g = self.original_g
         self.current_b = self.original_b
-
-    async def __update_message(
-        self, interaction: discord.Interaction, /, *, title: str, description: str
-    ) -> None:
-        embed, files = build_color_embed(
-            title=title,
-            description=description,
-            hex6=self.current_hex,
-            r=self.current_r,
-            g=self.current_g,
-            b=self.current_b,
-        )
-
-        await interaction.response.edit_message(
-            embed=embed, attachments=files, view=self
-        )
 
     @discord.ui.button(label="Invert", style=discord.ButtonStyle.primary)
     async def invert_button(
@@ -234,21 +211,19 @@ class ColorView(RestrictedView):
         Args:
             interaction (discord.Interaction): The interaction instance.
         """
-        if not await self.validate_user(interaction):
-            return
-
         nr, ng, nb = invert_rgb(self.current_r, self.current_g, self.current_b)
-        new_hex = rgb2hex(nr, ng, nb)
-
         self.current_r, self.current_g, self.current_b = nr, ng, nb
-        old_hex = self.current_hex
-        self.current_hex = new_hex
+        old_hex, self.current_hex = self.current_hex, rgb2hex(nr, ng, nb)
 
-        await self.__update_message(
-            interaction,
+        embed, files = build_color_embed(
             title=f"Inverted color of #{old_hex}",
             description="Here's your inverted color.",
+            hex6=self.current_hex,
+            r=self.current_r,
+            g=self.current_g,
+            b=self.current_b,
         )
+        await self.edit(interaction, embed=embed, attachments=files, view=self)
 
     # TODO: complement, assign as color role, etc buttons
 
@@ -261,9 +236,6 @@ class ColorView(RestrictedView):
         Args:
             interaction (discord.Interaction): The interaction instance.
         """
-        if not await self.validate_user(interaction):
-            return
-
         await interaction.response.send_modal(LightenModal(self))
 
     @discord.ui.button(label="Darken", style=discord.ButtonStyle.primary)
@@ -275,9 +247,6 @@ class ColorView(RestrictedView):
         Args:
             interaction (discord.Interaction): The interaction instance.
         """
-        if not await self.validate_user(interaction):
-            return
-
         await interaction.response.send_modal(DarkenModal(self))
 
     @discord.ui.button(label="Revert", style=discord.ButtonStyle.secondary)
@@ -289,19 +258,20 @@ class ColorView(RestrictedView):
         Args:
             interaction (discord.Interaction): The interaction instance.
         """
-        if not await self.validate_user(interaction):
-            return
-
         self.current_hex = self.original_hex
         self.current_r = self.original_r
         self.current_g = self.original_g
         self.current_b = self.original_b
 
-        await self.__update_message(
-            interaction,
+        embed, files = build_color_embed(
             title=f"#{self.original_hex} Info",
             description="Here's some information about your color.",
+            hex6=self.current_hex,
+            r=self.current_r,
+            g=self.current_g,
+            b=self.current_b,
         )
+        await self.edit(interaction, embed=embed, attachments=files, view=self)
 
 
 async def handle_forbidden_exception(interaction: discord.Interaction, /) -> None:

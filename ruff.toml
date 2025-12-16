@@ -62,7 +62,7 @@ convention = "google"
 "**/*.pyi" = ["PL"]
 
 [lint.pylint]
-max-args = 8
+max-args = 10
 
 [format]
 # Ruff formatter: strict, Black-ish.
