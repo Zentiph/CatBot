@@ -1,6 +1,7 @@
 """Tools for responding to users."""
 
 from collections.abc import Sequence
+from io import BytesIO
 from pathlib import Path
 
 import discord
@@ -12,7 +13,7 @@ from ..ui.emoji import Status
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
-_file_cache: dict[str, discord.File] = {}
+_file_cache: dict[str, bytes] = {}
 
 
 class InvalidImageFormatError(ValueError):
@@ -74,16 +75,16 @@ async def safe_send(
         return await interaction.original_response()
     except discord.InteractionResponded:
         if content is None:
-            await interaction.followup.send(
+            return await interaction.followup.send(
                 ephemeral=ephemeral,
                 embed=embed,
                 embeds=embeds,
                 view=view,
                 file=file,
                 files=files,
+                wait=True,
             )
-            return None
-        await interaction.followup.send(
+        return await interaction.followup.send(
             content,
             ephemeral=ephemeral,
             embed=embed,
@@ -91,8 +92,8 @@ async def safe_send(
             view=view,
             file=file,
             files=files,
+            wait=True,
         )
-        return None
 
 
 async def safe_edit(
@@ -194,10 +195,12 @@ def generate_response_embed(
     if Path(icon_filepath).suffix.lower() not in {".png", ".jpg", ".jpeg"}:
         raise InvalidImageFormatError()
 
-    if not _file_cache[icon_filepath]:
-        _file_cache[icon_filepath] = discord.File(icon_filepath, filename=icon_filename)
+    data = _file_cache.get(icon_filepath)
+    if data is None:
+        data = Path(icon_filepath).read_bytes()
+        _file_cache[icon_filepath] = data
 
-    file = _file_cache[icon_filepath]
+    file = discord.File(BytesIO(data), filename=icon_filename)
     embed = discord.Embed(title=title, description=description, color=color)
     embed.set_author(name=author, icon_url=f"attachment://{icon_filename}")
 
