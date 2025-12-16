@@ -1,0 +1,47 @@
+services:
+  # not yet implemented, but planned!
+  # db:
+  #   image: postgres:16
+  #   environment:
+  #     POSTGRES_DB: botdb
+  #     POSTGRES_USER: botuser
+  #     POSTGRES_PASSWORD: change_me
+  #   volumes:
+  #     - ./pgdata:/var/lib/postgresql/data
+  #   restart: unless-stopped
+
+  # redis:
+  #   image: redis:7
+  #   volumes:
+  #     - ./redisdata:/data
+  #   restart: unless-stopped
+
+  bot:
+    # production
+    image: catbot:latest
+    build: .
+    env_file: .env
+    restart: unless-stopped
+    # depends_on: [db, redis]
+    # keep logs modest so they don't fill disk
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    profiles:
+      - prod
+
+  bot-test:
+    image: catbot:latest
+    build: .
+    env_file: .env.test
+    restart: no
+    entrypoint: [ "/bin/sh", "-lc", "python -m catbot --token-override \"$$TESTING_TOKEN\" --debug" ]
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    profiles:
+      - test

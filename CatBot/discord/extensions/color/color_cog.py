@@ -241,11 +241,12 @@ class ColorView(RestrictedView):
         new_hex = rgb2hex(nr, ng, nb)
 
         self.current_r, self.current_g, self.current_b = nr, ng, nb
+        old_hex = self.current_hex
         self.current_hex = new_hex
 
         await self.__update_message(
             interaction,
-            title=f"Inverted color of #{self.original_hex}",
+            title=f"Inverted color of #{old_hex}",
             description="Here's your inverted color.",
         )
 
@@ -845,7 +846,6 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         await interaction.response.send_message(embed=embed, files=files, view=view)
 
     @color_group.command(name="random", description="Generate a random color.")
-    @app_commands.describe(seed="Optional seed to use when generating the color")
     async def color_random(self, interaction: discord.Interaction) -> None:
         """Generate a random color."""
         log_app_command(interaction)
