@@ -18,7 +18,7 @@ from ...interaction import (
     update_role_color,
 )
 from ...ui.emoji import Status, Visual
-from ...ui.views import RestrictedView
+from ...views import RestrictedView
 from .color_tools import (
     BLUES,
     BROWNS,

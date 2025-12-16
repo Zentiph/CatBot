@@ -3,7 +3,7 @@
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
-__all__ = ["DEFAULT_EMBED_COLOR", "emoji", "views"]
+__all__ = ["DEFAULT_EMBED_COLOR", "emoji"]
 
-from . import emoji, views
+from . import emoji
 from .constants import DEFAULT_EMBED_COLOR

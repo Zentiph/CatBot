@@ -4,8 +4,8 @@ from abc import ABC
 
 import discord
 
-from ...interaction import report
-from ..emoji import Status
+from ..interaction import report
+from ..ui.emoji import Status
 
 __author__ = "Gavin Borne"
 __license__ = "MIT"

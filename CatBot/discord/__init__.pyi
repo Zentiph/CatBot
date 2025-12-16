@@ -5,7 +5,7 @@ __license__: Final[str]
 
 __all__: Final[list[str]]
 
-from . import interaction as interaction, ui as ui
+from . import interaction as interaction, ui as ui, views as views
 from .info import (
     DEPENDENCIES as DEPENDENCIES,
     DISCORD_DOT_PY_VERSION as DISCORD_DOT_PY_VERSION,

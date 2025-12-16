@@ -13,9 +13,10 @@ __all__ = [
     "get_uptime",
     "interaction",
     "ui",
+    "views",
 ]
 
-from . import interaction, ui
+from . import interaction, ui, views
 from .info import (
     DEPENDENCIES,
     DISCORD_DOT_PY_VERSION,
