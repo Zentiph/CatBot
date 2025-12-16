@@ -32,21 +32,7 @@ DISCORD_DOT_PY_VERSION = (
 """The current discord.py version running CatBot."""
 
 
-def _get_version() -> str:
-    path = Path("changelog.md")
-    if not path.is_file():
-        raise FileNotFoundError(path)
-
-    # get the version from the changelog
-    with path.open(encoding="utf-8") as file:
-        line = file.readline()
-        while not line.startswith("## v"):
-            line = file.readline()
-
-        return line.split(" ")[1].strip()
-
-
-VERSION = _get_version()
+VERSION = "v0.11.1"
 """The current release version of CatBot."""
 
 
