@@ -14,6 +14,9 @@ from typing import Any
 import discord
 from discord import ui
 
+from ..interaction import safe_send
+from .restricted_view import RestrictedView
+
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
@@ -26,11 +29,13 @@ CONFIRM_BUTTON_STYLE = discord.ButtonStyle.green
 DENY_BUTTON_STYLE = discord.ButtonStyle.red
 
 
-class ConfirmationView(ui.View):
+class ConfirmationView(RestrictedView):
     """A view for responding to a confirmation-based interaction."""
 
     def __init__(
         self,
+        interaction: discord.Interaction,
+        /,
         *,
         confirmation_message: str,
         denial_message: str,
@@ -38,10 +43,11 @@ class ConfirmationView(ui.View):
         """A view for responding to a confirmation-based interaction.
 
         Args:
+            interaction (discord.Interaction): The interaction instance.
             confirmation_message (str): The message to respond with on confirmation.
             denial_message (str): The message to respond with on denial.
         """
-        super().__init__(timeout=15)  # seconds
+        super().__init__(user=interaction.user, timeout=15)  # seconds
 
         self.__confirm_msg = confirmation_message
         self.__deny_msg = denial_message
@@ -113,7 +119,7 @@ class ConfirmationView(ui.View):
         # was ephemeral, and match its ephemerality
         # OR
         # add params to make the confirm and/or deny messages ephemeral or not
-        await interaction.followup.send(self.__confirm_msg, ephemeral=True)
+        await safe_send(interaction, self.__confirm_msg, ephemeral=True)
         self.stop()
 
     @discord.ui.button(label=DENY_LABEL, style=DENY_BUTTON_STYLE)
@@ -137,5 +143,5 @@ class ConfirmationView(ui.View):
                     "Confirmation function raised an error: %s", e, exc_info=True
                 )
 
-        await interaction.followup.send(self.__deny_msg, ephemeral=True)
+        await safe_send(interaction, self.__deny_msg, ephemeral=True)
         self.stop()
