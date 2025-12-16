@@ -150,7 +150,7 @@ class RestrictedView(ABC, discord.ui.View):
                 await self.__message.edit(view=self)
 
 
-class RestrictedModal(ABC, discord.ui.Modal, Generic[RV]):
+class RestrictedModal(Generic[RV], ABC, discord.ui.Modal):
     """A modal that restricts people except the interaction user from using it."""
 
     def __init__(self, view: RV, /, *, title: str) -> None:
