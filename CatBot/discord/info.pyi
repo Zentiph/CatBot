@@ -10,6 +10,8 @@ START_TIME: Final[datetime]
 HOST: Final[str]
 PYTHON_VERSION: Final[str]
 DISCORD_DOT_PY_VERSION: Final[str]
+BOT_APP_ID: Final[int]
+PROTOTYPE_BOT_APP_ID: Final[int]
 VERSION: Final[str]
 DEPENDENCIES: Final[list[str]]
 

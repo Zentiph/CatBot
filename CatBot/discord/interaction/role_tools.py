@@ -7,6 +7,8 @@ import discord
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
+from .. import BOT_APP_ID
+
 
 async def promote_role(role: discord.Role, /) -> None:
     """Promote the role as high as possible.
@@ -16,7 +18,7 @@ async def promote_role(role: discord.Role, /) -> None:
     """
     guild = role.guild
     try:
-        bot_highest_role = guild.me.top_role
+        bot_highest_role = (guild.me or await guild.fetch_member(BOT_APP_ID)).top_role
         if bot_highest_role.position > role.position:
             await role.edit(position=bot_highest_role.position - 1)
             logging.info(
