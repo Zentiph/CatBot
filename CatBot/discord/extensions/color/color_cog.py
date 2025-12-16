@@ -78,7 +78,6 @@ class LightenModal(RestrictedModal["ColorView"]):
             )
             return
 
-        percentage = max(0.0, min(100.0, percentage))
         lightened = self.view.current_color.lighten(percentage)
         self.view.current_color = lightened
 
@@ -127,7 +126,6 @@ class DarkenModal(RestrictedModal["ColorView"]):
             )
             return
 
-        percentage = max(0.0, min(100.0, percentage))
         darkened = self.view.current_color.darken(percentage)
         self.view.current_color = darkened
 
@@ -353,6 +351,12 @@ async def update_color_role(
     existing_role = find_role(create_color_role_name(member), guild)
 
     if existing_role:
+        if existing_role.color == color:
+            await report(
+                interaction, "This is already your role color!", Status.FAILURE
+            )
+            return
+
         await update_role_color(existing_role, color)
         await report(
             interaction,
