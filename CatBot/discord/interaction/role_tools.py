@@ -7,7 +7,7 @@ import discord
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
-from .. import BOT_APP_ID
+from ..info import BOT_APP_ID
 
 
 async def promote_role(role: discord.Role, /) -> None:
