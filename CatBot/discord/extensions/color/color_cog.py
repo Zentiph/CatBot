@@ -19,7 +19,7 @@ from ...interaction import (
     update_role_color,
 )
 from ...ui.emoji import Status, Visual
-from ...views import RestrictedView
+from ...views import RestrictedModal, RestrictedView
 from .color_tools import (
     BLUES,
     BROWNS,
@@ -47,7 +47,7 @@ __author__ = "Gavin Borne"
 __license__ = "MIT"
 
 
-class LightenModal(discord.ui.Modal, title="Lighten Color"):
+class LightenModal(RestrictedModal["ColorView"]):
     """Modal to ask the user how much to lighten the color."""
 
     amount: discord.ui.TextInput[LightenModal] = discord.ui.TextInput(
@@ -64,8 +64,7 @@ class LightenModal(discord.ui.Modal, title="Lighten Color"):
         Args:
             view (ColorView): The view associated with the modal.
         """
-        super().__init__()
-        self.view = view
+        super().__init__(view, title="Lighten Color")
 
     async def on_submit(self, interaction: discord.Interaction, /) -> None:
         """Update the embed after the user submits a percentage.
@@ -110,7 +109,7 @@ class LightenModal(discord.ui.Modal, title="Lighten Color"):
         )
 
 
-class DarkenModal(discord.ui.Modal, title="Darken Color"):
+class DarkenModal(RestrictedModal["ColorView"]):
     """Modal to ask the user how much to darken the color."""
 
     amount: discord.ui.TextInput[DarkenModal] = discord.ui.TextInput(
@@ -127,8 +126,7 @@ class DarkenModal(discord.ui.Modal, title="Darken Color"):
         Args:
             view (ColorView): The view associated with the modal.
         """
-        super().__init__()
-        self.view = view
+        super().__init__(view, title="Darken Color")
 
     async def on_submit(self, interaction: discord.Interaction, /) -> None:
         """Update the embed after the user submits a percentage.
@@ -711,8 +709,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         )
 
         view = ColorView(interaction.user, hex6=hex6, rgb=(r, g, b))
-
-        await interaction.response.send_message(embed=embed, files=files, view=view)
+        await view.send(interaction, embed=embed, files=files)
 
     @color_group.command(name="hex", description="Get info about a hex color")
     @app_commands.describe(hex6="Hex value (#000000-#ffffff)")
@@ -741,8 +738,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         )
 
         view = ColorView(interaction.user, hex6=hex6, rgb=(r, g, b))
-
-        await interaction.response.send_message(embed=embed, files=files, view=view)
+        await view.send(interaction, embed=embed, files=files)
 
     @color_group.command(name="name", description="Get info about a color name")
     @app_commands.describe(name="Color name (use /list for a list of supported colors)")
@@ -774,8 +770,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         )
 
         view = ColorView(interaction.user, hex6=hex6, rgb=(r, g, b))
-
-        await interaction.response.send_message(embed=embed, files=files, view=view)
+        await view.send(interaction, embed=embed, files=files)
 
     # TODO: maybe change this name to prevent confusion with color_role group
     @color_group.command(name="role", description="Get info about a role's color")
@@ -813,8 +808,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         )
 
         view = ColorView(interaction.user, hex6=hex6, rgb=(r, g, b))
-
-        await interaction.response.send_message(embed=embed, files=files, view=view)
+        await view.send(interaction, embed=embed, files=files)
 
     @color_group.command(name="random", description="Generate a random color.")
     async def color_random(self, interaction: discord.Interaction) -> None:
@@ -834,14 +828,9 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         )
 
         view = ColorView(interaction.user, hex6=hex6, rgb=(r, g, b))
-
-        await interaction.response.send_message(embed=embed, files=files, view=view)
+        await view.send(interaction, embed=embed, files=files)
 
 
 async def setup(bot: commands.Bot) -> None:
-    """Set up the ColorCog.
-
-    :param bot: Bot to add the cog to.
-    :type bot: commands.Bot
-    """
+    """Set up the cog."""
     await bot.add_cog(ColorCog(bot))
