@@ -183,6 +183,7 @@ class ColorView(RestrictedView):
         hex6: str,
         rgb: tuple[int, int, int],
         timeout: float | None = 60.0,
+        in_server: bool,
     ) -> None:
         """Create a new ColorView.
 
@@ -191,6 +192,8 @@ class ColorView(RestrictedView):
             hex6 (str): The original hex color.
             rgb (tuple[int, int, int]): The original RGB color.
             timeout (float | None, optional): The timeout of the view. Defaults to 60.0.
+            in_server (bool): Whether this view is being accessed in
+                a server (True) or DM (False).
         """
         super().__init__(user=user, timeout=timeout)
 
@@ -202,7 +205,13 @@ class ColorView(RestrictedView):
         self.current_g = self.original_g
         self.current_b = self.original_b
 
-    @discord.ui.button(label="Invert", style=discord.ButtonStyle.primary)
+        if in_server:
+            item = discord.utils.get(self.children, custom_id="color:set_role")
+            if isinstance(item, discord.ui.Button):
+                # enable "Set As Color Role" button in servers
+                item.disabled = False
+
+    @discord.ui.button(label="Invert", style=discord.ButtonStyle.primary, row=0)
     async def invert_button(
         self, interaction: discord.Interaction, _button: discord.ui.Button[ColorView]
     ) -> None:
@@ -225,9 +234,40 @@ class ColorView(RestrictedView):
         )
         await safe_edit(interaction, embed=embed, attachments=files, view=self)
 
-    # TODO: complement, assign as color role, etc buttons
+    # TODO: complement, etc buttons
 
-    @discord.ui.button(label="Lighten", style=discord.ButtonStyle.primary)
+    @discord.ui.button(
+        label="Set As Color Role",
+        style=discord.ButtonStyle.primary,
+        row=2,
+        disabled=True,  # changed in __init__ if in a server
+        custom_id="color:set_role",
+    )
+    async def set_as_role(
+        self, interaction: discord.Interaction, _button: discord.ui.Button[ColorView]
+    ) -> None:
+        """Set the current color as the user's color role.
+
+        Args:
+            interaction (discord.Interaction): The interaction instance.
+        """
+        if interaction.guild is None or not isinstance(
+            interaction.user, discord.Member
+        ):
+            await report(
+                interaction, "This button only works in servers.", Status.FAILURE
+            )
+            return
+
+        await update_color_role(
+            interaction.user,
+            interaction.guild,
+            discord.Color.from_rgb(self.current_r, self.current_g, self.current_b),
+            f"#{self.current_hex}",
+            interaction,
+        )
+
+    @discord.ui.button(label="Lighten", style=discord.ButtonStyle.primary, row=1)
     async def lighten_button(
         self, interaction: discord.Interaction, _button: discord.ui.Button[ColorView]
     ) -> None:
@@ -238,7 +278,7 @@ class ColorView(RestrictedView):
         """
         await interaction.response.send_modal(LightenModal(self))
 
-    @discord.ui.button(label="Darken", style=discord.ButtonStyle.primary)
+    @discord.ui.button(label="Darken", style=discord.ButtonStyle.primary, row=1)
     async def darken_button(
         self, interaction: discord.Interaction, _button: discord.ui.Button[ColorView]
     ) -> None:
@@ -733,7 +773,12 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             b=b,
         )
 
-        view = ColorView(interaction.user, hex6=hex6, rgb=(r, g, b))
+        view = ColorView(
+            interaction.user,
+            hex6=hex6,
+            rgb=(r, g, b),
+            in_server=(interaction.guild is not None),
+        )
         await view.send(interaction, embed=embed, files=files, ephemeral=False)
 
     @color_group.command(name="hex", description="Get info about a hex color")
@@ -762,7 +807,12 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             b=b,
         )
 
-        view = ColorView(interaction.user, hex6=hex6, rgb=(r, g, b))
+        view = ColorView(
+            interaction.user,
+            hex6=hex6,
+            rgb=(r, g, b),
+            in_server=(interaction.guild is not None),
+        )
         await view.send(interaction, embed=embed, files=files, ephemeral=False)
 
     @color_group.command(name="name", description="Get info about a color name")
@@ -796,10 +846,14 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             b=b,
         )
 
-        view = ColorView(interaction.user, hex6=hex6, rgb=(r, g, b))
+        view = ColorView(
+            interaction.user,
+            hex6=hex6,
+            rgb=(r, g, b),
+            in_server=(interaction.guild is not None),
+        )
         await view.send(interaction, embed=embed, files=files, ephemeral=False)
 
-    # TODO: maybe change this name to prevent confusion with color_role group
     @color_group.command(name="role", description="Get info about a role's color")
     @app_commands.describe(role="Role to get the color info of")
     async def color_role(
@@ -834,7 +888,12 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             b=b,
         )
 
-        view = ColorView(interaction.user, hex6=hex6, rgb=(r, g, b))
+        view = ColorView(
+            interaction.user,
+            hex6=hex6,
+            rgb=(r, g, b),
+            in_server=True,
+        )
         await view.send(interaction, embed=embed, files=files, ephemeral=False)
 
     @color_group.command(name="random", description="Generate a random color.")
@@ -854,7 +913,12 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             b=b,
         )
 
-        view = ColorView(interaction.user, hex6=hex6, rgb=(r, g, b))
+        view = ColorView(
+            interaction.user,
+            hex6=hex6,
+            rgb=(r, g, b),
+            in_server=(interaction.guild is not None),
+        )
         await view.send(interaction, embed=embed, files=files, ephemeral=False)
 
 
