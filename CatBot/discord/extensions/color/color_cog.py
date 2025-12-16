@@ -46,6 +46,138 @@ __author__ = "Gavin Borne"
 __license__ = "MIT"
 
 
+class LightenModal(discord.ui.Modal, title="Lighten Color"):
+    """Modal to ask the user how much to lighten the color."""
+
+    amount: discord.ui.TextInput[LightenModal] = discord.ui.TextInput(
+        label="Lighten amount (%)",
+        placeholder="e.g. 20",
+        min_length=1,
+        max_length=3,
+        required=True,
+    )
+
+    def __init__(self, view: ColorView) -> None:
+        """Create a new color lighten modal.
+
+        Args:
+            view (ColorView): The view associated with the modal.
+        """
+        super().__init__()
+        self.view = view
+
+    async def on_submit(self, interaction: discord.Interaction, /) -> None:
+        """Update the embed after the user submits a percentage.
+
+        Args:
+            interaction (discord.Interaction): The interaction instance.
+        """
+        if not await self.view.validate_user(interaction):
+            return
+
+        try:
+            percentage = float(str(self.amount))
+        except ValueError:
+            await interaction.response.send_message(
+                "Please enter a valid percentage.", ephemeral=True
+            )
+            return
+
+        percentage = max(0.0, min(100.0, percentage))
+        alpha = percentage / 100.0
+
+        # lerp towards light (255, 255, 255)
+        r = int(self.view.current_r + (255 - self.view.current_r) * alpha)
+        g = int(self.view.current_g + (255 - self.view.current_g) * alpha)
+        b = int(self.view.current_b + (255 - self.view.current_b) * alpha)
+
+        hex6 = rgb2hex(r, g, b)
+
+        self.view.current_r = r
+        self.view.current_g = g
+        self.view.current_b = b
+        self.view.current_hex = hex6
+
+        embed, files = build_color_embed(
+            title=f"Lightened {percentage:.0f}% from #{self.view.original_hex}",
+            description="Here's your lightened color.",
+            hex6=hex6,
+            r=r,
+            g=g,
+            b=b,
+        )
+
+        await interaction.response.edit_message(
+            embed=embed, attachments=files, view=self.view
+        )
+
+
+class DarkenModal(discord.ui.Modal, title="Darken Color"):
+    """Modal to ask the user how much to darken the color."""
+
+    amount: discord.ui.TextInput[DarkenModal] = discord.ui.TextInput(
+        label="Darken amount (%)",
+        placeholder="e.g. 20",
+        min_length=1,
+        max_length=3,
+        required=True,
+    )
+
+    def __init__(self, view: ColorView) -> None:
+        """Create a new color darken modal.
+
+        Args:
+            view (ColorView): The view associated with the modal.
+        """
+        super().__init__()
+        self.view = view
+
+    async def on_submit(self, interaction: discord.Interaction, /) -> None:
+        """Update the embed after the user submits a percentage.
+
+        Args:
+            interaction (discord.Interaction): The interaction instance.
+        """
+        if not await self.view.validate_user(interaction):
+            return
+
+        try:
+            percentage = float(str(self.amount))
+        except ValueError:
+            await interaction.response.send_message(
+                "Please enter a valid percentage.", ephemeral=True
+            )
+            return
+
+        percentage = max(0.0, min(100.0, percentage))
+        alpha = percentage / 100.0
+
+        # lerp towards dark (0, 0, 0)
+        r = int(self.view.current_r * (1 - alpha))
+        g = int(self.view.current_g * (1 - alpha))
+        b = int(self.view.current_b * (1 - alpha))
+
+        hex6 = rgb2hex(r, g, b)
+
+        self.view.current_r = r
+        self.view.current_g = g
+        self.view.current_b = b
+        self.view.current_hex = hex6
+
+        embed, files = build_color_embed(
+            title=f"Darkened {percentage:.0f}% from #{self.view.original_hex}",
+            description="Here's your darkened color.",
+            hex6=hex6,
+            r=r,
+            g=g,
+            b=b,
+        )
+
+        await interaction.response.edit_message(
+            embed=embed, attachments=files, view=self.view
+        )
+
+
 class ColorView(RestrictedView):
     """View for interactive color actions (invert, revert, etc)."""
 
@@ -117,7 +249,35 @@ class ColorView(RestrictedView):
             description="Here's your inverted color.",
         )
 
-    # TODO: darken, lighten, complement, assign as color role, etc buttons
+    # TODO: complement, assign as color role, etc buttons
+
+    @discord.ui.button(label="Lighten", style=discord.ButtonStyle.primary)
+    async def lighten_button(
+        self, interaction: discord.Interaction, _button: discord.ui.Button[ColorView]
+    ) -> None:
+        """Lighten the color and update the embed.
+
+        Args:
+            interaction (discord.Interaction): The interaction instance.
+        """
+        if not await self.validate_user(interaction):
+            return
+
+        await interaction.response.send_modal(LightenModal(self))
+
+    @discord.ui.button(label="Darken", style=discord.ButtonStyle.primary)
+    async def darken_button(
+        self, interaction: discord.Interaction, _button: discord.ui.Button[ColorView]
+    ) -> None:
+        """Darken the color and update the embed.
+
+        Args:
+            interaction (discord.Interaction): The interaction instance.
+        """
+        if not await self.validate_user(interaction):
+            return
+
+        await interaction.response.send_modal(DarkenModal(self))
 
     @discord.ui.button(label="Revert", style=discord.ButtonStyle.secondary)
     async def revert_button(
