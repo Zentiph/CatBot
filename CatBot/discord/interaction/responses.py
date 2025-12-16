@@ -35,7 +35,7 @@ async def safe_send(
     view: discord.ui.View = MISSING,
     file: discord.File = MISSING,
     files: Sequence[discord.File] = MISSING,
-    delete_after: float = MISSING,
+    delete_after: float | None = None,
 ) -> discord.Message | None:
     """Safely send a response to an interaction, handling double-responds.
 
@@ -46,17 +46,17 @@ async def safe_send(
         ephemeral (bool, optional): Whether the message should be ephemeral.
             Defaults to True.
         embed (discord.Embed, optional): A single embed to include. Defaults to
-            `MISSING`.
+            MISSING.
         embeds (Sequence[discord.Embed], optional): Multiple embeds to include.
-            Defaults to `MISSING`.
+            Defaults to MISSING.
         view (discord.ui.View, optional): A view to attach to the message. Defaults
-            to `MISSING`.
+            to MISSING.
         file (discord.File, optional): A single file to include. Defaults to
-            `MISSING`.
+            MISSING.
         files (Sequence[discord.File], optional): Multiple files to include.
-            Defaults to `MISSING`.
+            Defaults to MISSING.
         delete_after (float, optional): Delete the message after this many seconds.
-            Defaults to `MISSING`.
+            Defaults to None.
 
     Returns:
         discord.Message | None: The original response of the interaction if applicable.
@@ -114,15 +114,15 @@ async def safe_edit(
             should be edited.
         content (str | None, optional): New message content. Defaults to None.
         embed (discord.Embed, optional): A single embed to set. Defaults to
-            `MISSING`.
+            MISSING.
         embeds (Sequence[discord.Embed], optional): Multiple embeds to set.
-            Defaults to `MISSING`.
+            Defaults to MISSING.
         attachments (Sequence[discord.Attachment | discord.File], optional): New
-            attachments for the message. Defaults to `MISSING`.
+            attachments for the message. Defaults to MISSING.
         view (discord.ui.View, optional): A view to attach/update on the message.
-            Defaults to `MISSING`.
+            Defaults to MISSING.
         allowed_mentions (discord.AllowedMentions, optional): Controls mention
-            parsing for the edited message. Defaults to `MISSING`.
+            parsing for the edited message. Defaults to MISSING.
 
     Raises:
         discord.HTTPException: If Discord rejects the edit.

@@ -16,6 +16,7 @@ from ...interaction import (
     generate_response_embed,
     report,
     safe_edit,
+    safe_send,
     update_role_color,
 )
 from ...ui.emoji import Status, Visual
@@ -677,7 +678,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
 
         embed.add_field(name=f"{group.title()} Colors", value=colors_str)
 
-        await interaction.response.send_message(embed=embed, file=icon)
+        await safe_send(interaction, embed=embed, file=icon)
 
     @color_group.command(name="rgb", description="Get info about an RGB color")
     @app_commands.describe(
@@ -709,7 +710,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         )
 
         view = ColorView(interaction.user, hex6=hex6, rgb=(r, g, b))
-        await view.send(interaction, embed=embed, files=files)
+        await view.send(interaction, embed=embed, files=files, ephemeral=False)
 
     @color_group.command(name="hex", description="Get info about a hex color")
     @app_commands.describe(hex6="Hex value (#000000-#ffffff)")
@@ -738,7 +739,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         )
 
         view = ColorView(interaction.user, hex6=hex6, rgb=(r, g, b))
-        await view.send(interaction, embed=embed, files=files)
+        await view.send(interaction, embed=embed, files=files, ephemeral=False)
 
     @color_group.command(name="name", description="Get info about a color name")
     @app_commands.describe(name="Color name (use /list for a list of supported colors)")
@@ -770,7 +771,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         )
 
         view = ColorView(interaction.user, hex6=hex6, rgb=(r, g, b))
-        await view.send(interaction, embed=embed, files=files)
+        await view.send(interaction, embed=embed, files=files, ephemeral=False)
 
     # TODO: maybe change this name to prevent confusion with color_role group
     @color_group.command(name="role", description="Get info about a role's color")
@@ -808,7 +809,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         )
 
         view = ColorView(interaction.user, hex6=hex6, rgb=(r, g, b))
-        await view.send(interaction, embed=embed, files=files)
+        await view.send(interaction, embed=embed, files=files, ephemeral=False)
 
     @color_group.command(name="random", description="Generate a random color.")
     async def color_random(self, interaction: discord.Interaction) -> None:
@@ -828,7 +829,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         )
 
         view = ColorView(interaction.user, hex6=hex6, rgb=(r, g, b))
-        await view.send(interaction, embed=embed, files=files)
+        await view.send(interaction, embed=embed, files=files, ephemeral=False)
 
 
 async def setup(bot: commands.Bot) -> None:
