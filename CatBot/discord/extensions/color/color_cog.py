@@ -236,6 +236,28 @@ class ColorView(RestrictedView):
 
     # TODO: complement, etc buttons
 
+    @discord.ui.button(label="Lighten", style=discord.ButtonStyle.primary, row=1)
+    async def lighten_button(
+        self, interaction: discord.Interaction, _button: discord.ui.Button[ColorView]
+    ) -> None:
+        """Lighten the color and update the embed.
+
+        Args:
+            interaction (discord.Interaction): The interaction instance.
+        """
+        await interaction.response.send_modal(LightenModal(self))
+
+    @discord.ui.button(label="Darken", style=discord.ButtonStyle.primary, row=1)
+    async def darken_button(
+        self, interaction: discord.Interaction, _button: discord.ui.Button[ColorView]
+    ) -> None:
+        """Darken the color and update the embed.
+
+        Args:
+            interaction (discord.Interaction): The interaction instance.
+        """
+        await interaction.response.send_modal(DarkenModal(self))
+
     @discord.ui.button(
         label="Set As Color Role",
         style=discord.ButtonStyle.primary,
@@ -267,29 +289,7 @@ class ColorView(RestrictedView):
             interaction,
         )
 
-    @discord.ui.button(label="Lighten", style=discord.ButtonStyle.primary, row=1)
-    async def lighten_button(
-        self, interaction: discord.Interaction, _button: discord.ui.Button[ColorView]
-    ) -> None:
-        """Lighten the color and update the embed.
-
-        Args:
-            interaction (discord.Interaction): The interaction instance.
-        """
-        await interaction.response.send_modal(LightenModal(self))
-
-    @discord.ui.button(label="Darken", style=discord.ButtonStyle.primary, row=1)
-    async def darken_button(
-        self, interaction: discord.Interaction, _button: discord.ui.Button[ColorView]
-    ) -> None:
-        """Darken the color and update the embed.
-
-        Args:
-            interaction (discord.Interaction): The interaction instance.
-        """
-        await interaction.response.send_modal(DarkenModal(self))
-
-    @discord.ui.button(label="Revert", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(label="Revert", style=discord.ButtonStyle.secondary, row=2)
     async def revert_button(
         self, interaction: discord.Interaction, _button: discord.ui.Button[ColorView]
     ) -> None:
