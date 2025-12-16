@@ -21,7 +21,7 @@ async def promote_role(role: discord.Role, /) -> None:
         bot_highest_role = (guild.me or await guild.fetch_member(BOT_APP_ID)).top_role
         if bot_highest_role.position > role.position:
             await role.edit(position=bot_highest_role.position - 1)
-            logging.info(
+            logging.debug(
                 "Attempting to move role %s below the bot's highest role", role.name
             )
 
@@ -36,12 +36,12 @@ async def promote_role(role: discord.Role, /) -> None:
 
             # double-check correct position
             if updated_role.position == bot_highest_role.position - 1:
-                logging.info("Role %s is now correctly positioned", role.name)
+                logging.debug("Role %s is now correctly positioned", role.name)
             else:
                 logging.warning(
-                    "Role %s did not move to the correct position", role.name
+                    "Role %s did not move to the correct position, retrying...",
+                    role.name,
                 )
-                logging.info("Retrying role movement...")
                 await role.edit(position=bot_highest_role.position - 1)
 
         else:
@@ -74,7 +74,7 @@ async def update_role_color(role: discord.Role, color: discord.Color, /) -> None
         color (discord.Color): The new color.
     """
     await role.edit(color=color)
-    logging.info(
+    logging.debug(
         "Role %s has had its color changed to %r",
         role.name,
         (color.r, color.g, color.b),
@@ -95,4 +95,4 @@ async def add_new_role_to_member(
     await member.add_roles(new_role)
     await promote_role(new_role)
 
-    logging.info("New role %s created and assigned to %s", name, member)
+    logging.debug("New role %s created and assigned to %s", name, member)
