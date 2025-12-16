@@ -1,6 +1,7 @@
 """Tools for responding to users."""
 
 from collections.abc import Sequence
+from pathlib import Path
 
 import discord
 from discord.utils import MISSING
@@ -10,6 +11,8 @@ from ..ui.emoji import Status
 
 __author__ = "Gavin Borne"
 __license__ = "MIT"
+
+_file_cache: dict[str, discord.File] = {}
 
 
 class InvalidImageFormatError(ValueError):
@@ -188,16 +191,13 @@ def generate_response_embed(
     Returns:
         tuple[discord.Embed, discord.File]: The embed created and the icon file.
     """
-    if not any(
-        (
-            icon_filepath.endswith("jpg"),
-            icon_filepath.endswith(".jpeg"),
-            icon_filepath.endswith(".png"),
-        )
-    ):
+    if Path(icon_filepath).suffix.lower() not in {".png", ".jpg", ".jpeg"}:
         raise InvalidImageFormatError()
 
-    file = discord.File(icon_filepath, filename=icon_filename)
+    if not _file_cache[icon_filepath]:
+        _file_cache[icon_filepath] = discord.File(icon_filepath, filename=icon_filename)
+
+    file = _file_cache[icon_filepath]
     embed = discord.Embed(title=title, description=description, color=color)
     embed.set_author(name=author, icon_url=f"attachment://{icon_filename}")
 
