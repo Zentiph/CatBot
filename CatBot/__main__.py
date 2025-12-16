@@ -163,9 +163,14 @@ async def load_group(to: commands.Bot, base_pkg: str) -> None:
         to (commands.Bot): The bot to load the extensions to.
         base_pkg (str): The base package of the extension group.
     """
-    pkg = import_module(base_pkg)
-    for _, module_name, _ in pkgutil.iter_modules(pkg.__path__):
-        full_name = f"{base_pkg}.{module_name}"
+    root = "catbot.discord.extensions"
+    pkg = import_module(root + "." + base_pkg)
+
+    for _, module_name, is_pkg in pkgutil.iter_modules(pkg.__path__):
+        if is_pkg:
+            continue  # skip sub packages
+
+        full_name = f"{root}.{base_pkg}.{module_name}"
         try:
             await to.load_extension(full_name)
             logging.info(f"Loaded extension: {full_name}")
@@ -177,7 +182,7 @@ async def load_group(to: commands.Bot, base_pkg: str) -> None:
                 f"Couldn't load extension: {full_name}, "
                 "no setup(bot) function present, skipping"
             )
-        except commands.errors.ExtensionNotFound:
+        except (commands.errors.ExtensionNotFound, ModuleNotFoundError):
             logging.exception(f"Extension not found: {full_name}")
         except commands.errors.ExtensionFailed:
             logging.exception(f"Failed to load extension: {full_name}")
@@ -192,23 +197,20 @@ async def setup(logfile: Path) -> None:
     logfile.parent.mkdir(parents=True, exist_ok=True)
     logfile.write_text("", encoding="utf-8")  # clear
 
-    if args.debug:
-        await load_group(bot, "experimental")
-
     await load_group(bot, "color")
-    await load_group(bot, "date_time")
-    await load_group(bot, "fun")
-    await load_group(bot, "help")
-    await load_group(bot, "management")
-    await load_group(bot, "math")
-    await load_group(bot, "rand")
+    # await load_group(bot, "date_time")
+    # await load_group(bot, "fun")
+    # await load_group(bot, "help")
+    # await load_group(bot, "management")
+    # await load_group(bot, "math")
+    # await load_group(bot, "rand")
 
 
 def main() -> None:
     """Read CLI args, setup the bot and logging, then run the bot."""
     logfile_path = Path(args.log_file)
     if not logfile_path.is_file():
-        ex(f"Could not find file '{args.log_file}'")
+        logfile_path.touch()
 
     pawprints.config_logging(
         args.log_file,
