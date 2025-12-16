@@ -346,6 +346,7 @@ async def update_color_role(
     member: discord.Member,
     guild: discord.Guild,
     color: discord.Color,
+    color_repr: str,
     interaction: discord.Interaction,
 ) -> None:
     """Update the user's color role.
@@ -354,6 +355,7 @@ async def update_color_role(
         member (discord.Member): The member whose role to update.
         guild (discord.Guild): The guild to update the role in.
         color (discord.Color): The new role color.
+        color_repr (str): A string representation of the new color.
         interaction (discord.Interaction): The interaction instance.
     """
     existing_role = find_role(create_color_role_name(member), guild)
@@ -362,7 +364,7 @@ async def update_color_role(
         await update_role_color(existing_role, color)
         await report(
             interaction,
-            f"Your role color has been updated to {color.to_rgb()}.",
+            f"Your role color has been updated to {color_repr}.",
             Status.SUCCESS,
         )
         return
@@ -371,7 +373,7 @@ async def update_color_role(
         await add_new_role_to_member(member, create_color_role_name(member), color)
         await report(
             interaction,
-            f"You have been assigned a role with the color {color.to_rgb()}.",
+            f"You have been assigned a role with the color {color_repr}.",
             Status.SUCCESS,
         )
 
@@ -399,7 +401,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
 
     color_group = app_commands.Group(name="color", description="color commands")
     color_role_group = app_commands.Group(
-        name="color_role",
+        name="colorrole",
         description="Assign yourself a custom color role",
     )
 
@@ -435,7 +437,9 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             return
 
         color = discord.Color(int(hex6.strip().strip("#"), 16))
-        await update_color_role(interaction.user, interaction.guild, color, interaction)
+        await update_color_role(
+            interaction.user, interaction.guild, color, hex6, interaction
+        )
 
     @color_role_group.command(
         name="rgb", description="Assign yourself a custom color role with RGB"
@@ -471,7 +475,9 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             return
 
         color = discord.Color.from_rgb(r, g, b)
-        await update_color_role(interaction.user, interaction.guild, color, interaction)
+        await update_color_role(
+            interaction.user, interaction.guild, color, str((r, g, b)), interaction
+        )
 
     @color_role_group.command(
         name="name", description="Assign yourself a custom color with a color name"
@@ -506,7 +512,9 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             return
 
         color = discord.Color(int(COLORS[name], 16))
-        await update_color_role(interaction.user, interaction.guild, color, interaction)
+        await update_color_role(
+            interaction.user, interaction.guild, color, name, interaction
+        )
 
     @color_role_group.command(
         name="random", description="Assign yourself a random color"
@@ -528,7 +536,13 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
 
         r, g, b = random_rgb()
         color = discord.Color.from_rgb(r, g, b)
-        await update_color_role(interaction.user, interaction.guild, color, interaction)
+        await update_color_role(
+            interaction.user,
+            interaction.guild,
+            color,
+            f"{color.to_rgb()!s} (random)",
+            interaction,
+        )
 
     @color_role_group.command(
         name="copy", description="Copy a role's color and assign it to yourself"
@@ -558,7 +572,13 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             return
 
         color = role.color
-        await update_color_role(interaction.user, interaction.guild, color, interaction)
+        await update_color_role(
+            interaction.user,
+            interaction.guild,
+            color,
+            f"{color.to_rgb()!s} (copied from {role.name})",
+            interaction,
+        )
 
     @color_role_group.command(
         name="reset", description="Reset your color to the default (empty) color"
@@ -585,7 +605,11 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             return
 
         await existing_role.edit(color=discord.Color(int("000000", 16)))
-        await report(interaction, "Your role's color has been reset.", Status.SUCCESS)
+        await report(
+            interaction,
+            "Your role's color has been reset to invisible.",
+            Status.SUCCESS,
+        )
 
     @color_role_group.command(
         name="reassign",
@@ -678,7 +702,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
 
         embed.add_field(name=f"{group.title()} Colors", value=colors_str)
 
-        await safe_send(interaction, embed=embed, file=icon)
+        await safe_send(interaction, embed=embed, file=icon, ephemeral=False)
 
     @color_group.command(name="rgb", description="Get info about an RGB color")
     @app_commands.describe(
@@ -742,7 +766,9 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         await view.send(interaction, embed=embed, files=files, ephemeral=False)
 
     @color_group.command(name="name", description="Get info about a color name")
-    @app_commands.describe(name="Color name (use /list for a list of supported colors)")
+    @app_commands.describe(
+        name="Color name (use /color list for a list of supported colors)"
+    )
     async def color_name(self, interaction: discord.Interaction, name: str) -> None:
         """Get info about the hex value."""
         log_app_command(interaction)
