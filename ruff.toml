@@ -42,6 +42,7 @@ ignore = [
     "D203",    # no blank line before class (Black/Ruff-formatter style)
     "D213",    # summary on same line as opening quotes
     "PLR6301", # must use self in class methods (annoying for discord.py slash commands)
+    "TRY003",  # "long" error messages
 ]
 
 [lint.isort]

@@ -1,5 +1,8 @@
 """Color tools and color role assignment commands."""
 
+# TODO implement more color info stuff for Color3 methods
+# like relative luminance and hsl
+
 from __future__ import annotations
 
 import logging
@@ -22,26 +25,20 @@ from ...interaction import (
 from ...ui.emoji import Status, Visual
 from ...views import RestrictedModal, RestrictedView
 from .color_tools import (
-    BLUES,
-    BROWNS,
-    COLORS,
-    GRAYS,
-    GREENS,
-    ORANGES,
-    PINKS,
-    PURPLES,
-    REDS,
-    WHITES,
-    YELLOWS,
+    CSS_BLUES,
+    CSS_BROWNS,
+    CSS_COLOR_NAME_TO_HEX,
+    CSS_GRAYS,
+    CSS_GREENS,
+    CSS_ORANGES,
+    CSS_PINKS,
+    CSS_PURPLES,
+    CSS_REDS,
+    CSS_WHITES,
+    CSS_YELLOWS,
+    Color3,
     create_color_role_name,
     generate_color_image,
-    get_color_key,
-    hex2rgb,
-    hex_is_valid,
-    invert_rgb,
-    random_rgb,
-    rgb2hex,
-    rgb_component_is_valid,
 )
 
 __author__ = "Gavin Borne"
@@ -82,27 +79,14 @@ class LightenModal(RestrictedModal["ColorView"]):
             return
 
         percentage = max(0.0, min(100.0, percentage))
-        alpha = percentage / 100.0
-
-        # lerp towards light (255, 255, 255)
-        r = int(self.view.current_r + (255 - self.view.current_r) * alpha)
-        g = int(self.view.current_g + (255 - self.view.current_g) * alpha)
-        b = int(self.view.current_b + (255 - self.view.current_b) * alpha)
-
-        hex6 = rgb2hex(r, g, b)
-
-        self.view.current_r = r
-        self.view.current_g = g
-        self.view.current_b = b
-        self.view.current_hex = hex6
+        lightened = self.view.current_color.lighten(percentage)
+        self.view.current_color = lightened
 
         embed, files = build_color_embed(
-            title=f"Lightened {percentage:.0f}% from #{self.view.original_hex}",
+            title=f"Lightened {percentage:.0f}% from "
+            f"#{self.view.original_color.as_hex6()}",
             description="Here's your lightened color.",
-            hex6=hex6,
-            r=r,
-            g=g,
-            b=b,
+            color=lightened,
         )
 
         await interaction.response.edit_message(
@@ -144,27 +128,14 @@ class DarkenModal(RestrictedModal["ColorView"]):
             return
 
         percentage = max(0.0, min(100.0, percentage))
-        alpha = percentage / 100.0
-
-        # lerp towards dark (0, 0, 0)
-        r = int(self.view.current_r * (1 - alpha))
-        g = int(self.view.current_g * (1 - alpha))
-        b = int(self.view.current_b * (1 - alpha))
-
-        hex6 = rgb2hex(r, g, b)
-
-        self.view.current_r = r
-        self.view.current_g = g
-        self.view.current_b = b
-        self.view.current_hex = hex6
+        darkened = self.view.current_color.darken(percentage)
+        self.view.current_color = darkened
 
         embed, files = build_color_embed(
-            title=f"Darkened {percentage:.0f}% from #{self.view.original_hex}",
+            title=f"Darkened {percentage:.0f}% from "
+            f"#{self.view.original_color.as_hex6()}",
             description="Here's your darkened color.",
-            hex6=hex6,
-            r=r,
-            g=g,
-            b=b,
+            color=darkened,
         )
 
         await interaction.response.edit_message(
@@ -180,8 +151,7 @@ class ColorView(RestrictedView):
         user: discord.abc.User,
         /,
         *,
-        hex6: str,
-        rgb: tuple[int, int, int],
+        color: Color3,
         timeout: float | None = 60.0,
         in_server: bool,
     ) -> None:
@@ -189,21 +159,15 @@ class ColorView(RestrictedView):
 
         Args:
             user (discord.User): The user that spawned the interaction.
-            hex6 (str): The original hex color.
-            rgb (tuple[int, int, int]): The original RGB color.
+            color (Color3): The original color.
             timeout (float | None, optional): The timeout of the view. Defaults to 60.0.
             in_server (bool): Whether this view is being accessed in
                 a server (True) or DM (False).
         """
         super().__init__(user=user, timeout=timeout)
 
-        self.original_hex = hex6.strip("#").lower()  # sanitize hex
-        self.original_r, self.original_g, self.original_b = rgb
-
-        self.current_hex = self.original_hex
-        self.current_r = self.original_r
-        self.current_g = self.original_g
-        self.current_b = self.original_b
+        self.original_color = color
+        self.current_color = self.original_color
 
         if in_server:
             item = discord.utils.get(self.children, custom_id="color:set_role")
@@ -220,17 +184,14 @@ class ColorView(RestrictedView):
         Args:
             interaction (discord.Interaction): The interaction instance.
         """
-        nr, ng, nb = invert_rgb(self.current_r, self.current_g, self.current_b)
-        self.current_r, self.current_g, self.current_b = nr, ng, nb
-        old_hex, self.current_hex = self.current_hex, rgb2hex(nr, ng, nb)
+        inverted = self.current_color.invert()
+        old_hex = self.current_color.as_hex6()
+        self.current_color = inverted
 
         embed, files = build_color_embed(
             title=f"Inverted color of #{old_hex}",
             description="Here's your inverted color.",
-            hex6=self.current_hex,
-            r=self.current_r,
-            g=self.current_g,
-            b=self.current_b,
+            color=inverted,
         )
         await safe_edit(interaction, embed=embed, attachments=files, view=self)
 
@@ -284,8 +245,8 @@ class ColorView(RestrictedView):
         await update_color_role(
             interaction.user,
             interaction.guild,
-            discord.Color.from_rgb(self.current_r, self.current_g, self.current_b),
-            f"#{self.current_hex}",
+            discord.Color.from_rgb(*self.current_color.as_rgb()),
+            f"#{self.current_color.as_hex6()}",
             interaction,
         )
 
@@ -298,18 +259,12 @@ class ColorView(RestrictedView):
         Args:
             interaction (discord.Interaction): The interaction instance.
         """
-        self.current_hex = self.original_hex
-        self.current_r = self.original_r
-        self.current_g = self.original_g
-        self.current_b = self.original_b
+        self.current_color = self.original_color
 
         embed, files = build_color_embed(
-            title=f"#{self.original_hex} Info",
+            title=f"#{self.original_color.as_hex6()} Info",
             description="Here's some information about your color.",
-            hex6=self.current_hex,
-            r=self.current_r,
-            g=self.current_g,
-            b=self.current_b,
+            color=self.original_color,
         )
         await safe_edit(interaction, embed=embed, attachments=files, view=self)
 
@@ -343,39 +298,36 @@ async def handle_http_exception(
 
 
 def build_color_embed(
-    *, title: str, description: str, hex6: str, r: int, g: int, b: int
+    *, title: str, description: str, color: Color3
 ) -> tuple[discord.Embed, list[discord.File]]:
     """Create the embeds and files needed to display color info.
 
     Args:
-        title (str): _description_
-        description (str): _description_
-        hex6 (str): _description_
-        r (int): _description_
-        g (int): _description_
-        b (int): _description_
+        title (str): The title of the embed.
+        description (str): The description of the embed.
+        color (Color3): The color.
 
     Returns:
-        tuple[discord.Embed, list[discord.File]]: _description_
+        tuple[discord.Embed, list[discord.File]]: The embed and required files.
     """
-    hex6 = hex6.strip("#").lower()  # normalize hex
+    hex6 = color.as_hex6()
 
-    image = generate_color_image(hex6)
+    image = generate_color_image(color)
     filename = f"{hex6}.png"
     color_file = discord.File(fp=image, filename=filename)
 
     embed, icon = generate_response_embed(
         title=f"{Visual.ART_PALETTE} {title}",
         description=description,
-        color=discord.Color.from_rgb(r, g, b),
+        color=color.as_discord_color(),
     )
 
     embed.add_field(name="Hex", value=f"#{hex6}")
-    embed.add_field(name="RGB", value=f"{(r, g, b)}")
+    embed.add_field(name="RGB", value=f"{color.as_rgb()}")
 
-    key = get_color_key(hex6)
-    if key:
-        embed.add_field(name="Color Name", value=key)
+    name = Color3.get_color_name(hex6)
+    if name:
+        embed.add_field(name="Color Name", value=name)
 
     embed.set_image(url=f"attachment://{filename}")
 
@@ -468,7 +420,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             )
             return
 
-        if not hex_is_valid(hex6):
+        if not Color3.validate_hex(hex6):
             await report(
                 interaction,
                 "Invalid hex value provided. Supported range: 000000-ffffff",
@@ -506,7 +458,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             )
             return
 
-        if not all(rgb_component_is_valid(c) for c in (r, g, b)):
+        if not Color3.validate_rgb(r, g, b):
             await report(
                 interaction,
                 "Invalid RGB component provided. Supported range: 0-255",
@@ -542,16 +494,16 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             )
             return
 
-        if name not in COLORS:
+        if name not in CSS_COLOR_NAME_TO_HEX:
             await report(
                 interaction,
                 "Invalid color name provided. "
-                "Use /color_list for a list of supported colors.",
+                "Use /color list for a list of supported colors.",
                 Status.FAILURE,
             )
             return
 
-        color = discord.Color(int(COLORS[name], 16))
+        color = discord.Color(int(CSS_COLOR_NAME_TO_HEX[name], 16))
         await update_color_role(
             interaction.user, interaction.guild, color, name, interaction
         )
@@ -574,8 +526,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             )
             return
 
-        r, g, b = random_rgb()
-        color = discord.Color.from_rgb(r, g, b)
+        color = Color3.random().as_discord_color()
         await update_color_role(
             interaction.user,
             interaction.guild,
@@ -713,17 +664,17 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
     ) -> None:
         """Provide a list of supported color names."""
         group_map = {
-            "red": REDS,
-            "orange": ORANGES,
-            "yellow": YELLOWS,
-            "green": GREENS,
-            "blue": BLUES,
-            "purple": PURPLES,
-            "pink": PINKS,
-            "brown": BROWNS,
-            "white": WHITES,
-            "gray": GRAYS,
-            "grey": GRAYS,
+            "red": CSS_REDS,
+            "orange": CSS_ORANGES,
+            "yellow": CSS_YELLOWS,
+            "green": CSS_GREENS,
+            "blue": CSS_BLUES,
+            "purple": CSS_PURPLES,
+            "pink": CSS_PINKS,
+            "brown": CSS_BROWNS,
+            "white": CSS_WHITES,
+            "gray": CSS_GRAYS,
+            "grey": CSS_GRAYS,
         }
 
         log_app_command(interaction)
@@ -754,7 +705,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         """Get info about the RGB value."""
         log_app_command(interaction)
 
-        if not all(rgb_component_is_valid(v) for v in (r, g, b)):
+        if not Color3.validate_rgb(r, g, b):
             await report(
                 interaction,
                 "Invalid RGB value provided. Supported range: 0-255",
@@ -762,21 +713,17 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             )
             return
 
-        hex6 = rgb2hex(r, g, b)
+        color = Color3(r, g, b)
 
         embed, files = build_color_embed(
             title=f"{(r, g, b)} Info",
             description="Here's some information about your color.",
-            hex6=hex6,
-            r=r,
-            g=g,
-            b=b,
+            color=color,
         )
 
         view = ColorView(
             interaction.user,
-            hex6=hex6,
-            rgb=(r, g, b),
+            color=color,
             in_server=(interaction.guild is not None),
         )
         await view.send(interaction, embed=embed, files=files, ephemeral=False)
@@ -787,7 +734,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         """Get info about the hex value."""
         log_app_command(interaction)
 
-        if not hex_is_valid(hex6):
+        if not Color3.validate_hex(hex6):
             await report(
                 interaction,
                 "Invalid hex value provided. Supported range: 000000-ffffff",
@@ -796,21 +743,17 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             return
 
         hex6 = hex6.strip("#").lower()
-        r, g, b = hex2rgb(hex6)
+        color = Color3.from_hex6(hex6)
 
         embed, files = build_color_embed(
             title=f"#{hex6} Info",
             description="Here's some information about your color.",
-            hex6=hex6,
-            r=r,
-            g=g,
-            b=b,
+            color=color,
         )
 
         view = ColorView(
             interaction.user,
-            hex6=hex6,
-            rgb=(r, g, b),
+            color=color,
             in_server=(interaction.guild is not None),
         )
         await view.send(interaction, embed=embed, files=files, ephemeral=False)
@@ -825,7 +768,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
 
         name = name.lower()
 
-        if name not in COLORS:
+        if name not in CSS_COLOR_NAME_TO_HEX:
             await report(
                 interaction,
                 "Invalid color name provided. "
@@ -834,22 +777,18 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             )
             return
 
-        hex6 = COLORS[name]
-        r, g, b = hex2rgb(hex6)
+        hex6 = CSS_COLOR_NAME_TO_HEX[name]
+        color = Color3.from_hex6(hex6)
 
         embed, files = build_color_embed(
             title=f"#{hex6} Info",
             description="Here's some information about your color.",
-            hex6=hex6,
-            r=r,
-            g=g,
-            b=b,
+            color=color,
         )
 
         view = ColorView(
             interaction.user,
-            hex6=hex6,
-            rgb=(r, g, b),
+            color=color,
             in_server=(interaction.guild is not None),
         )
         await view.send(interaction, embed=embed, files=files, ephemeral=False)
@@ -876,22 +815,17 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             )
             return
 
-        r, g, b = role.color.r, role.color.g, role.color.b
-        hex6 = rgb2hex(r, g, b)
+        color = Color3(role.color.r, role.color.g, role.color.b)
 
         embed, files = build_color_embed(
-            title=f"#{hex6} Info",
+            title=f"#{color.as_hex6()} Info",
             description=f"Here's some information about {role.name}'s color.",
-            hex6=hex6,
-            r=r,
-            g=g,
-            b=b,
+            color=color,
         )
 
         view = ColorView(
             interaction.user,
-            hex6=hex6,
-            rgb=(r, g, b),
+            color=color,
             in_server=True,
         )
         await view.send(interaction, embed=embed, files=files, ephemeral=False)
@@ -901,22 +835,17 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         """Generate a random color."""
         log_app_command(interaction)
 
-        r, g, b = random_rgb()
-        hex6 = rgb2hex(r, g, b)
+        color = Color3.random()
 
         embed, files = build_color_embed(
-            title=f"#{hex6} Info",
+            title=f"#{color.as_hex6()} Info",
             description="Here's some information about your randomly generated color.",
-            hex6=hex6,
-            r=r,
-            g=g,
-            b=b,
+            color=color,
         )
 
         view = ColorView(
             interaction.user,
-            hex6=hex6,
-            rgb=(r, g, b),
+            color=color,
             in_server=(interaction.guild is not None),
         )
         await view.send(interaction, embed=embed, files=files, ephemeral=False)
