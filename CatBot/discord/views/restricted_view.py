@@ -78,6 +78,7 @@ class RestrictedView(ABC, discord.ui.View):
         embeds: Sequence[discord.Embed] = MISSING,
         file: discord.File = MISSING,
         files: Sequence[discord.File] = MISSING,
+        delete_after: float | None = None,
     ) -> None:
         """Send this view in a message.
 
@@ -98,6 +99,8 @@ class RestrictedView(ABC, discord.ui.View):
                 `MISSING`.
             files (Sequence[discord.File], optional): Multiple files to include.
                 Defaults to `MISSING`.
+            delete_after (float, optional): Delete the message after this many seconds.
+                Defaults to None.
         """
         self.__message = await safe_send(
             interaction,
@@ -108,6 +111,7 @@ class RestrictedView(ABC, discord.ui.View):
             file=file,
             files=files,
             view=self,
+            delete_after=delete_after,
         )
 
     async def interaction_check(self, interaction: discord.Interaction, /) -> bool:

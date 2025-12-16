@@ -23,7 +23,7 @@ async def safe_send(
     view: discord.ui.View = MISSING,
     file: discord.File = MISSING,
     files: Sequence[discord.File] = MISSING,
-    delete_after: float = MISSING,
+    delete_after: float | None = None,
 ) -> discord.Message | None: ...
 async def safe_edit(
     interaction: discord.Interaction,

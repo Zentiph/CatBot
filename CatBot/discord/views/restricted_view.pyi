@@ -35,6 +35,7 @@ class RestrictedView(ABC, discord.ui.View):
         embed: discord.Embed = MISSING,
         embeds: Sequence[discord.Embed] = MISSING,
         files: Sequence[discord.File] = MISSING,
+        delete_after: float | None = None,
     ) -> None: ...
     async def interaction_check(self, interaction: discord.Interaction, /) -> bool: ...
 
