@@ -9,10 +9,12 @@ __all__ = [
     "generate_response_embed",
     "promote_role",
     "report",
+    "safe_edit",
+    "safe_send",
     "update_role_color",
 ]
 
-from .responses import generate_response_embed, report
+from .responses import generate_response_embed, report, safe_edit, safe_send
 from .role_tools import (
     add_new_role_to_member,
     find_role,

@@ -15,6 +15,7 @@ from ...interaction import (
     find_role,
     generate_response_embed,
     report,
+    safe_edit,
     update_role_color,
 )
 from ...ui.emoji import Status, Visual
@@ -223,7 +224,7 @@ class ColorView(RestrictedView):
             g=self.current_g,
             b=self.current_b,
         )
-        await self.edit(interaction, embed=embed, attachments=files, view=self)
+        await safe_edit(interaction, embed=embed, attachments=files, view=self)
 
     # TODO: complement, assign as color role, etc buttons
 
@@ -271,7 +272,7 @@ class ColorView(RestrictedView):
             g=self.current_g,
             b=self.current_b,
         )
-        await self.edit(interaction, embed=embed, attachments=files, view=self)
+        await safe_edit(interaction, embed=embed, attachments=files, view=self)
 
 
 async def handle_forbidden_exception(interaction: discord.Interaction, /) -> None:

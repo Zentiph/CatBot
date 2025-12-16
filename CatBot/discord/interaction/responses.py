@@ -1,6 +1,9 @@
 """Tools for responding to users."""
 
+from collections.abc import Sequence
+
 import discord
+from discord.utils import MISSING
 
 from ..ui import DEFAULT_EMBED_COLOR
 from ..ui.emoji import Status
@@ -15,6 +18,130 @@ class InvalidImageFormatError(ValueError):
     def __init__(self) -> None:
         """Create a new InvalidImageFormatError."""
         super().__init__("Image format should be .jpg or .png")
+
+
+async def safe_send(
+    interaction: discord.Interaction,
+    /,
+    content: str | None = None,
+    *,
+    ephemeral: bool = True,
+    embed: discord.Embed = MISSING,
+    embeds: Sequence[discord.Embed] = MISSING,
+    view: discord.ui.View = MISSING,
+    file: discord.File = MISSING,
+    files: Sequence[discord.File] = MISSING,
+    delete_after: float = MISSING,
+) -> discord.Message | None:
+    """Safely send a response to an interaction, handling double-responds.
+
+    Args:
+        interaction (discord.Interaction): The interaction instance to respond to.
+        content (str | None, optional): The message content. If None, content is
+            omitted for followup sends. Defaults to None.
+        ephemeral (bool, optional): Whether the message should be ephemeral.
+            Defaults to True.
+        embed (discord.Embed, optional): A single embed to include. Defaults to
+            `MISSING`.
+        embeds (Sequence[discord.Embed], optional): Multiple embeds to include.
+            Defaults to `MISSING`.
+        view (discord.ui.View, optional): A view to attach to the message. Defaults
+            to `MISSING`.
+        file (discord.File, optional): A single file to include. Defaults to
+            `MISSING`.
+        files (Sequence[discord.File], optional): Multiple files to include.
+            Defaults to `MISSING`.
+        delete_after (float, optional): Delete the message after this many seconds.
+            Defaults to `MISSING`.
+
+    Returns:
+        discord.Message | None: The original response of the interaction if applicable.
+    """
+    try:
+        await interaction.response.send_message(
+            content,
+            ephemeral=ephemeral,
+            embed=embed,
+            embeds=embeds,
+            view=view,
+            file=file,
+            files=files,
+            delete_after=delete_after,
+        )
+        return await interaction.original_response()
+    except discord.InteractionResponded:
+        if content is None:
+            await interaction.followup.send(
+                ephemeral=ephemeral,
+                embed=embed,
+                embeds=embeds,
+                view=view,
+                file=file,
+                files=files,
+            )
+            return None
+        await interaction.followup.send(
+            content,
+            ephemeral=ephemeral,
+            embed=embed,
+            embeds=embeds,
+            view=view,
+            file=file,
+            files=files,
+        )
+        return None
+
+
+async def safe_edit(
+    interaction: discord.Interaction,
+    /,
+    *,
+    content: str | None = None,
+    embed: discord.Embed = MISSING,
+    embeds: Sequence[discord.Embed] = MISSING,
+    attachments: Sequence[discord.Attachment | discord.File] = MISSING,
+    view: discord.ui.View = MISSING,
+    allowed_mentions: discord.AllowedMentions = MISSING,
+) -> None:
+    """Safely edit the message associated with an interaction, handling response state.
+
+    Args:
+        interaction (discord.Interaction): The interaction instance whose message
+            should be edited.
+        content (str | None, optional): New message content. Defaults to None.
+        embed (discord.Embed, optional): A single embed to set. Defaults to
+            `MISSING`.
+        embeds (Sequence[discord.Embed], optional): Multiple embeds to set.
+            Defaults to `MISSING`.
+        attachments (Sequence[discord.Attachment | discord.File], optional): New
+            attachments for the message. Defaults to `MISSING`.
+        view (discord.ui.View, optional): A view to attach/update on the message.
+            Defaults to `MISSING`.
+        allowed_mentions (discord.AllowedMentions, optional): Controls mention
+            parsing for the edited message. Defaults to `MISSING`.
+
+    Raises:
+        discord.HTTPException: If Discord rejects the edit.
+        discord.Forbidden: If the bot lacks permissions to edit the message.
+    """
+    try:
+        await interaction.response.edit_message(
+            content=content,
+            embed=embed,
+            embeds=embeds,
+            attachments=attachments,
+            view=view,
+            allowed_mentions=allowed_mentions,
+        )
+    except discord.InteractionResponded:
+        await interaction.edit_original_response(
+            content=content,
+            embed=embed,
+            embeds=embeds,
+            attachments=attachments,
+            view=view,
+            allowed_mentions=allowed_mentions,
+        )
 
 
 async def report(
@@ -34,7 +161,7 @@ async def report(
         ephemeral (bool, optional): Whether to make the response ephemeral.
             Defaults to True.
     """
-    await interaction.response.send_message(f"{status} {message}", ephemeral=ephemeral)
+    await safe_send(interaction, f"{status} {message}", ephemeral=ephemeral)
 
 
 def generate_response_embed(
@@ -43,7 +170,7 @@ def generate_response_embed(
     description: str | None = None,
     color: int | discord.Color | None = DEFAULT_EMBED_COLOR,
     author: str | None = "CatBot",
-    icon_filepath: str = "static/images/profile.jpg",  # TODO: see if this path works
+    icon_filepath: str = "static/images/profile.jpg",
     icon_filename: str = "image.png",
 ) -> tuple[discord.Embed, discord.File]:
     """Generate an embed, returning it and its required icon file.
