@@ -37,7 +37,6 @@ from .color_tools import (
     CSS_WHITES,
     CSS_YELLOWS,
     Color3,
-    create_color_role_name,
     generate_color_image,
 )
 
@@ -393,6 +392,18 @@ async def update_color_role(
         await handle_forbidden_exception(interaction)
     except discord.HTTPException as e:
         await handle_http_exception(interaction, e)
+
+
+def create_color_role_name(member: discord.Member, /) -> str:
+    """Generate the color role name for the given member.
+
+    Args:
+        member (discord.Member): The member.
+
+    Returns:
+        str: The member's color role name.
+    """
+    return f"{member.id}'s Color Role"
 
 
 class ColorCog(commands.Cog, name="Color Role Commands"):

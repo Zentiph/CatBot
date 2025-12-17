@@ -680,18 +680,6 @@ class Color3:
         )
 
 
-def create_color_role_name(member: discord.Member, /) -> str:
-    """Generate the color role name for the given member.
-
-    Args:
-        member (discord.Member): The member.
-
-    Returns:
-        str: The member's color role name.
-    """
-    return f"{member.name}'s Color"
-
-
 def generate_color_image(color: Color3, /) -> BytesIO:
     """Generate a solid color image from the given color.
 
