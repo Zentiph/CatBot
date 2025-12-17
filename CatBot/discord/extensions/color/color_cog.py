@@ -73,8 +73,17 @@ class LightenModal(RestrictedModal["ColorView"]):
         try:
             percentage = float(str(self.amount))
         except ValueError:
-            await interaction.response.send_message(
-                "Please enter a valid percentage.", ephemeral=True
+            await report(
+                interaction, "Please enter a valid percentage.", Status.FAILURE
+            )
+            return
+
+        percent_max = 100
+        if percentage < 0 or percentage > percent_max:
+            await report(
+                interaction,
+                "The percentage entered must be between 0% and 100%.",
+                Status.FAILURE,
             )
             return
 
@@ -88,9 +97,7 @@ class LightenModal(RestrictedModal["ColorView"]):
             color=lightened,
         )
 
-        await interaction.response.edit_message(
-            embed=embed, attachments=files, view=self.view
-        )
+        await safe_edit(interaction, embed=embed, attachments=files, view=self.view)
 
 
 class DarkenModal(RestrictedModal["ColorView"]):
@@ -123,6 +130,15 @@ class DarkenModal(RestrictedModal["ColorView"]):
         except ValueError:
             await interaction.response.send_message(
                 "Please enter a valid percentage.", ephemeral=True
+            )
+            return
+
+        percent_max = 100
+        if percentage < 0 or percentage > percent_max:
+            await report(
+                interaction,
+                "The percentage entered must be between 0% and 100%.",
+                Status.FAILURE,
             )
             return
 
