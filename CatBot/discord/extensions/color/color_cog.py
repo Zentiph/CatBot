@@ -2,6 +2,7 @@
 
 # TODO implement more color info stuff for Color3 methods
 # like relative luminance and hsl
+# TODO color palette generator
 
 from __future__ import annotations
 
