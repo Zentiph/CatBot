@@ -108,7 +108,7 @@ def config_logging(
     logging.basicConfig(level=level, handlers=handlers, format=fmt, datefmt=date_fmt)
 
     logging.info(
-        f"CatBot logging config: logfile={logfile}, debug={debug},"
+        f"CatBot logging config: logfile={logfile}, debug={debug}, "
         f"no-console-logging={not console_logging}, colored-logs={colored_logs}"
     )
 
