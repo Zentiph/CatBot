@@ -18,6 +18,7 @@ from ...interaction import (
     add_new_role_to_member,
     find_role,
     generate_response_embed,
+    get_guild_interaction_data,
     report,
     safe_edit,
     safe_send,
@@ -350,9 +351,8 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         log_app_command(interaction)
 
         # all colorrole actions require a guild + Member
-        if interaction.guild is None or not isinstance(
-            interaction.user, discord.Member
-        ):
+        data = get_guild_interaction_data(interaction)
+        if data is None:
             await report(
                 interaction,
                 "This command can only be used in a server!",
@@ -360,8 +360,8 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             )
             return
 
-        member = interaction.user
-        guild = interaction.guild
+        member = data.member
+        guild = data.guild
 
         if action == "reset":
             existing_role = find_role(_create_color_role_name(member), guild)
@@ -515,7 +515,9 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             color=color,
         )
         view = _ColorView(
-            interaction.user, color=color, in_server=(interaction.guild is not None)
+            interaction.user,
+            color=color,
+            in_server=(get_guild_interaction_data(interaction) is not None),
         )
         await view.send(interaction, embed=embed, files=files, ephemeral=False)
 
