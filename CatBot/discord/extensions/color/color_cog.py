@@ -77,6 +77,11 @@ def build_color_embed(
 
     embed.add_field(name="Hex", value=f"#{hex6}")
     embed.add_field(name="RGB", value=f"{color.as_rgb()}")
+    hsl = color.as_hsl()
+    embed.add_field(
+        name="HSL",
+        value=f"({hsl[0]:.0f}, {(hsl[1] * 100):.0f}%, {(hsl[2] * 100):.0f}%)",
+    )
 
     name = Color3.get_color_name(hex6)
     if name:
