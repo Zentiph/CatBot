@@ -1,5 +1,6 @@
 from collections.abc import Sequence
-from typing import Final
+from dataclasses import dataclass
+from typing import Final, Literal
 
 import discord
 from discord.utils import MISSING
@@ -9,6 +10,24 @@ from ..ui.emoji import Status
 
 __author__: Final[str]
 __license__: Final[str]
+
+GuildCheckData = tuple[discord.Member, discord.Guild]
+
+@dataclass(frozen=True)
+class InGuild:
+    """Data for an interaction that is in a guild."""
+
+    ok: Literal[True]
+    data: GuildCheckData
+
+@dataclass(frozen=True)
+class NotInGuild:
+    """Data for an interaction that is not in a guild."""
+
+    ok: Literal[False]
+    data: None = None
+
+EnsureGuildResult = InGuild | NotInGuild
 
 class InvalidImageFormatError(ValueError): ...
 
@@ -53,3 +72,4 @@ def generate_response_embed(
     icon_filepath: str = "static/images/profile.jpg",
     icon_filename: str = "image.png",
 ) -> tuple[discord.Embed, discord.File]: ...
+def ensure_in_guild(interaction: discord.Interaction, /) -> EnsureGuildResult: ...

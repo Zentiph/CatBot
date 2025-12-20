@@ -1,8 +1,10 @@
 """Tools for responding to users."""
 
 from collections.abc import Sequence
+from dataclasses import dataclass
 from io import BytesIO
 from pathlib import Path
+from typing import Literal
 
 import discord
 from discord.utils import MISSING
@@ -12,6 +14,28 @@ from ..ui.emoji import Status
 
 __author__ = "Gavin Borne"
 __license__ = "MIT"
+
+
+GuildCheckData = tuple[discord.Member, discord.Guild]
+
+
+@dataclass(frozen=True)
+class InGuild:
+    """Data for an interaction that is in a guild."""
+
+    ok: Literal[True]
+    data: GuildCheckData
+
+
+@dataclass(frozen=True)
+class NotInGuild:
+    """Data for an interaction that is not in a guild."""
+
+    ok: Literal[False]
+    data: None = None
+
+
+EnsureGuildResult = InGuild | NotInGuild
 
 _file_cache: dict[str, bytes] = {}
 
@@ -205,3 +229,19 @@ def generate_response_embed(
     embed.set_author(name=author, icon_url=f"attachment://{icon_filename}")
 
     return embed, file
+
+
+def ensure_in_guild(interaction: discord.Interaction, /) -> EnsureGuildResult:
+    """Ensure an interaction occurred in a guild.
+
+    Args:
+        interaction (discord.Interaction): The interaction to check.
+
+    Returns:
+        GuildCheckResult: Whether the interaction happened in a guild,
+            along with data such that: if the interaction happened in a guild, the user
+            as a discord.Member and the guild as a discord.Guild; if not, None.
+    """
+    if interaction.guild is None or not isinstance(interaction.user, discord.Member):
+        return NotInGuild(ok=False)
+    return InGuild(ok=True, data=(interaction.user, interaction.guild))

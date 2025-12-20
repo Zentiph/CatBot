@@ -5,6 +5,7 @@ __license__ = "MIT"
 
 __all__ = [
     "add_new_role_to_member",
+    "ensure_in_guild",
     "find_role",
     "generate_response_embed",
     "promote_role",
@@ -14,7 +15,13 @@ __all__ = [
     "update_role_color",
 ]
 
-from .responses import generate_response_embed, report, safe_edit, safe_send
+from .responses import (
+    ensure_in_guild,
+    generate_response_embed,
+    report,
+    safe_edit,
+    safe_send,
+)
 from .role_tools import (
     add_new_role_to_member,
     find_role,
