@@ -22,12 +22,6 @@ __license__ = "MIT"
 
 AsyncFunction = Callable[..., Awaitable[Any]]
 
-CONFIRM_LABEL = "Yes"
-DENY_LABEL = "No"
-
-CONFIRM_BUTTON_STYLE = discord.ButtonStyle.green
-DENY_BUTTON_STYLE = discord.ButtonStyle.red
-
 
 class ConfirmationView(RestrictedView):
     """A view for responding to a confirmation-based interaction."""
@@ -94,7 +88,7 @@ class ConfirmationView(RestrictedView):
         self.__deny_args = args
         self.__deny_kwargs = kwargs
 
-    @discord.ui.button(label=CONFIRM_LABEL, style=CONFIRM_BUTTON_STYLE)
+    @discord.ui.button(label="Yes", style=discord.ButtonStyle.green)
     async def confirm(
         self, interaction: discord.Interaction, button: ui.Button[ConfirmationView]
     ) -> None:
@@ -122,7 +116,7 @@ class ConfirmationView(RestrictedView):
         await safe_send(interaction, self.__confirm_msg, ephemeral=True)
         self.stop()
 
-    @discord.ui.button(label=DENY_LABEL, style=DENY_BUTTON_STYLE)
+    @discord.ui.button(label="No", style=discord.ButtonStyle.red)
     async def deny(
         self, interaction: discord.Interaction, button: ui.Button[ConfirmationView]
     ) -> None:

@@ -12,6 +12,8 @@ from PIL import Image
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
+RealNumber = int | float
+
 RGB_MAX = 255
 """The maximum value of an RGB component."""
 
@@ -368,14 +370,14 @@ CSS_GRAYS = {
 
 
 def _clamp(
-    t: float, minimum: float | None = None, maximum: float | None = None
-) -> float:
-    return min(maximum or 1.0, max(minimum or 0.0, t))
+    t: RealNumber, minimum: RealNumber = 0, maximum: RealNumber = 1
+) -> RealNumber:
+    return min(maximum or 1, max(minimum or 0, t))
 
 
-def _rem_euclid(a: float, b: float) -> float:
-    abs_b = abs(b)
-    return a - abs_b * (a // abs_b)
+def _rem_euclid(lhs: RealNumber, rhs: RealNumber) -> RealNumber:
+    abs_rhs = abs(rhs)
+    return lhs - abs_rhs * (lhs // abs_rhs)
 
 
 class ColorRangeError(ValueError):

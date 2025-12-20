@@ -50,19 +50,13 @@ ColorRoleKind = Literal["hex", "rgb", "name", "random", "copy"]
 ColorKind = Literal["hex", "rgb", "name", "role", "random"]
 
 
-def build_color_embed(
+def _create_color_role_name(member: discord.Member, /) -> str:
+    return f"{member.id}'s Color Role"
+
+
+def _build_color_embed(
     *, title: str, description: str, color: Color3
 ) -> tuple[discord.Embed, list[discord.File]]:
-    """Create the embeds and files needed to display color info.
-
-    Args:
-        title (str): The title of the embed.
-        description (str): The description of the embed.
-        color (Color3): The color.
-
-    Returns:
-        tuple[discord.Embed, list[discord.File]]: The embed and required files.
-    """
     hex6 = color.as_hex6()
 
     image = generate_color_image(color)
@@ -92,23 +86,14 @@ def build_color_embed(
     return embed, [color_file, icon]
 
 
-async def update_color_role(
+async def _update_color_role(
     member: discord.Member,
     guild: discord.Guild,
     color: discord.Color,
     color_repr: str,
     interaction: discord.Interaction,
 ) -> None:
-    """Update the user's color role.
-
-    Args:
-        member (discord.Member): The member whose role to update.
-        guild (discord.Guild): The guild to update the role in.
-        color (discord.Color): The new role color.
-        color_repr (str): A string representation of the new color.
-        interaction (discord.Interaction): The interaction instance.
-    """
-    existing_role = find_role(create_color_role_name(member), guild)
+    existing_role = find_role(_create_color_role_name(member), guild)
 
     if existing_role:
         if existing_role.color == color:
@@ -126,7 +111,7 @@ async def update_color_role(
         return
 
     try:
-        await add_new_role_to_member(member, create_color_role_name(member), color)
+        await add_new_role_to_member(member, _create_color_role_name(member), color)
         await report(
             interaction,
             f"You have been assigned a role with the color {color_repr}.",
@@ -134,55 +119,20 @@ async def update_color_role(
         )
 
     except discord.Forbidden:
-        await handle_forbidden_exception(interaction)
-    except discord.HTTPException as e:
-        await handle_http_exception(interaction, e)
+        await report(
+            interaction,
+            "I do not have permissions to create roles. "
+            "Contact server administration about this please!",
+            Status.ERROR,
+        )
+        logging.warning("Failed to create role due to lack of permissions")
+    except discord.HTTPException:
+        await report(interaction, "An error occurred. Please try again.", Status.ERROR)
+        logging.exception("Failed to create role due to an unexpected error: %s")
 
 
-def create_color_role_name(member: discord.Member, /) -> str:
-    """Generate the color role name for the given member.
-
-    Args:
-        member (discord.Member): The member.
-
-    Returns:
-        str: The member's color role name.
-    """
-    return f"{member.id}'s Color Role"
-
-
-async def handle_forbidden_exception(interaction: discord.Interaction, /) -> None:
-    """Handle discord.Forbidden exceptions for color roles.
-
-    Args:
-        interaction (discord.Interaction): The interaction instance.
-    """
-    await report(
-        interaction,
-        "I do not have permissions to create roles. "
-        "Contact server administration about this please!",
-        Status.ERROR,
-    )
-    logging.warning("Failed to create role due to lack of permissions")
-
-
-async def handle_http_exception(
-    interaction: discord.Interaction, err: discord.HTTPException, /
-) -> None:
-    """Handle unexpected discord.HTTPExceptions for color roles.
-
-    Args:
-        interaction (discord.Interaction): _description_
-        err (discord.HTTPException): _description_
-    """
-    await report(interaction, "An error occurred. Please try again.", Status.ERROR)
-    logging.error("Failed to create role due to an unexpected error: %s", err)
-
-
-class LightenModal(RestrictedModal["ColorView"]):
-    """Modal to ask the user how much to lighten the color."""
-
-    amount: discord.ui.TextInput[LightenModal] = discord.ui.TextInput(
+class _LightenModal(RestrictedModal["_ColorView"]):
+    amount: discord.ui.TextInput[_LightenModal] = discord.ui.TextInput(
         label="Lighten amount (%)",
         placeholder="e.g. 20",
         min_length=1,
@@ -190,20 +140,10 @@ class LightenModal(RestrictedModal["ColorView"]):
         required=True,
     )
 
-    def __init__(self, view: ColorView) -> None:
-        """Create a new color lighten modal.
-
-        Args:
-            view (ColorView): The view associated with the modal.
-        """
+    def __init__(self, view: _ColorView) -> None:
         super().__init__(view, title="Lighten Color")
 
     async def on_submit(self, interaction: discord.Interaction, /) -> None:
-        """Update the embed after the user submits a percentage.
-
-        Args:
-            interaction (discord.Interaction): The interaction instance.
-        """
         try:
             percentage = float(str(self.amount))
         except ValueError:
@@ -224,7 +164,7 @@ class LightenModal(RestrictedModal["ColorView"]):
         lightened = self.view.current_color.lighten(percentage)
         self.view.current_color = lightened
 
-        embed, files = build_color_embed(
+        embed, files = _build_color_embed(
             title=f"Lightened {percentage:.0f}% from "
             f"#{self.view.original_color.as_hex6()}",
             description="Here's your lightened color.",
@@ -234,10 +174,8 @@ class LightenModal(RestrictedModal["ColorView"]):
         await safe_edit(interaction, embed=embed, attachments=files, view=self.view)
 
 
-class DarkenModal(RestrictedModal["ColorView"]):
-    """Modal to ask the user how much to darken the color."""
-
-    amount: discord.ui.TextInput[DarkenModal] = discord.ui.TextInput(
+class _DarkenModal(RestrictedModal["_ColorView"]):
+    amount: discord.ui.TextInput[_DarkenModal] = discord.ui.TextInput(
         label="Darken amount (%)",
         placeholder="e.g. 20",
         min_length=1,
@@ -245,20 +183,10 @@ class DarkenModal(RestrictedModal["ColorView"]):
         required=True,
     )
 
-    def __init__(self, view: ColorView) -> None:
-        """Create a new color darken modal.
-
-        Args:
-            view (ColorView): The view associated with the modal.
-        """
+    def __init__(self, view: _ColorView) -> None:
         super().__init__(view, title="Darken Color")
 
     async def on_submit(self, interaction: discord.Interaction, /) -> None:
-        """Update the embed after the user submits a percentage.
-
-        Args:
-            interaction (discord.Interaction): The interaction instance.
-        """
         try:
             percentage = float(str(self.amount))
         except ValueError:
@@ -279,7 +207,7 @@ class DarkenModal(RestrictedModal["ColorView"]):
         darkened = self.view.current_color.darken(percentage)
         self.view.current_color = darkened
 
-        embed, files = build_color_embed(
+        embed, files = _build_color_embed(
             title=f"Darkened {percentage:.0f}% from "
             f"#{self.view.original_color.as_hex6()}",
             description="Here's your darkened color.",
@@ -291,9 +219,7 @@ class DarkenModal(RestrictedModal["ColorView"]):
         )
 
 
-class ColorView(RestrictedView):
-    """View for interactive color actions (invert, revert, etc)."""
-
+class _ColorView(RestrictedView):
     def __init__(
         self,
         user: discord.abc.User,
@@ -303,15 +229,6 @@ class ColorView(RestrictedView):
         timeout: float | None = 60.0,
         in_server: bool,
     ) -> None:
-        """Create a new ColorView.
-
-        Args:
-            user (discord.User): The user that spawned the interaction.
-            color (Color3): The original color.
-            timeout (float | None, optional): The timeout of the view. Defaults to 60.0.
-            in_server (bool): Whether this view is being accessed in
-                a server (True) or DM (False).
-        """
         super().__init__(user=user, timeout=timeout)
 
         self.original_color = color
@@ -325,18 +242,13 @@ class ColorView(RestrictedView):
 
     @discord.ui.button(label="Invert", style=discord.ButtonStyle.primary, row=0)
     async def invert_button(
-        self, interaction: discord.Interaction, _button: discord.ui.Button[ColorView]
+        self, interaction: discord.Interaction, _button: discord.ui.Button[_ColorView]
     ) -> None:
-        """Invert the color and update the embed.
-
-        Args:
-            interaction (discord.Interaction): The interaction instance.
-        """
         inverted = self.current_color.invert()
         old_hex = self.current_color.as_hex6()
         self.current_color = inverted
 
-        embed, files = build_color_embed(
+        embed, files = _build_color_embed(
             title=f"Inverted color of #{old_hex}",
             description="Here's your inverted color.",
             color=inverted,
@@ -345,25 +257,15 @@ class ColorView(RestrictedView):
 
     @discord.ui.button(label="Lighten", style=discord.ButtonStyle.primary, row=1)
     async def lighten_button(
-        self, interaction: discord.Interaction, _button: discord.ui.Button[ColorView]
+        self, interaction: discord.Interaction, _button: discord.ui.Button[_ColorView]
     ) -> None:
-        """Lighten the color and update the embed.
-
-        Args:
-            interaction (discord.Interaction): The interaction instance.
-        """
-        await interaction.response.send_modal(LightenModal(self))
+        await interaction.response.send_modal(_LightenModal(self))
 
     @discord.ui.button(label="Darken", style=discord.ButtonStyle.primary, row=1)
     async def darken_button(
-        self, interaction: discord.Interaction, _button: discord.ui.Button[ColorView]
+        self, interaction: discord.Interaction, _button: discord.ui.Button[_ColorView]
     ) -> None:
-        """Darken the color and update the embed.
-
-        Args:
-            interaction (discord.Interaction): The interaction instance.
-        """
-        await interaction.response.send_modal(DarkenModal(self))
+        await interaction.response.send_modal(_DarkenModal(self))
 
     @discord.ui.button(
         label="Set As Color Role",
@@ -373,13 +275,8 @@ class ColorView(RestrictedView):
         custom_id="color:set_role",
     )
     async def set_as_role(
-        self, interaction: discord.Interaction, _button: discord.ui.Button[ColorView]
+        self, interaction: discord.Interaction, _button: discord.ui.Button[_ColorView]
     ) -> None:
-        """Set the current color as the user's color role.
-
-        Args:
-            interaction (discord.Interaction): The interaction instance.
-        """
         if interaction.guild is None or not isinstance(
             interaction.user, discord.Member
         ):
@@ -388,7 +285,7 @@ class ColorView(RestrictedView):
             )
             return
 
-        await update_color_role(
+        await _update_color_role(
             interaction.user,
             interaction.guild,
             discord.Color.from_rgb(*self.current_color.as_rgb()),
@@ -398,16 +295,11 @@ class ColorView(RestrictedView):
 
     @discord.ui.button(label="Revert", style=discord.ButtonStyle.secondary, row=2)
     async def revert_button(
-        self, interaction: discord.Interaction, _button: discord.ui.Button[ColorView]
+        self, interaction: discord.Interaction, _button: discord.ui.Button[_ColorView]
     ) -> None:
-        """Revert the current color to the original.
-
-        Args:
-            interaction (discord.Interaction): The interaction instance.
-        """
         self.current_color = self.original_color
 
-        embed, files = build_color_embed(
+        embed, files = _build_color_embed(
             title=f"#{self.original_color.as_hex6()} Info",
             description="Here's some information about your color.",
             color=self.original_color,
@@ -472,7 +364,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         guild = interaction.guild
 
         if action == "reset":
-            existing_role = find_role(create_color_role_name(member), guild)
+            existing_role = find_role(_create_color_role_name(member), guild)
             if not existing_role:
                 await report(
                     interaction, "You do not have a color role!", Status.FAILURE
@@ -487,7 +379,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             return
 
         if action == "reassign":
-            existing_role = find_role(create_color_role_name(member), guild)
+            existing_role = find_role(_create_color_role_name(member), guild)
             if not existing_role:
                 await report(
                     interaction,
@@ -552,7 +444,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             discord_color = Color3.random().as_discord_color()
             color_repr = f"{discord_color.to_rgb()!s} (random)"
 
-        await update_color_role(member, guild, discord_color, color_repr, interaction)
+        await _update_color_role(member, guild, discord_color, color_repr, interaction)
 
     @app_commands.command(
         name="color", description="Color tools (info + interactive view)"
@@ -617,12 +509,12 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         else:  # random
             color = Color3.random()
 
-        embed, files = build_color_embed(
+        embed, files = _build_color_embed(
             title=f"#{color.as_hex6()} Info",
             description="Here's some information about your color.",
             color=color,
         )
-        view = ColorView(
+        view = _ColorView(
             interaction.user, color=color, in_server=(interaction.guild is not None)
         )
         await view.send(interaction, embed=embed, files=files, ephemeral=False)
