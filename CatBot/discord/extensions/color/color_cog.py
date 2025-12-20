@@ -641,7 +641,6 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             "brown",
             "white",
             "gray",
-            "grey",
         ],
     ) -> None:
         """Provide a list of supported color names."""
@@ -656,7 +655,6 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             "brown": CSS_BROWNS,
             "white": CSS_WHITES,
             "gray": CSS_GRAYS,
-            "grey": CSS_GRAYS,
         }
 
         log_app_command(interaction)
