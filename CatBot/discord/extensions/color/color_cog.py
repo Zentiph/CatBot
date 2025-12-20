@@ -311,7 +311,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
     """Cog containing color role commands."""
 
     def __init__(self, bot: commands.Bot) -> None:
-        """Create a new ColorCog.
+        """Create the ColorCog.
 
         Args:
             bot (commands.Bot): The bot to load the cog to.
@@ -334,7 +334,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         name="CSS color name",
         role="Role to copy the color from",
     )
-    async def colorrole(  # noqa: C901 PLR0911 PLR0912
+    async def colorrole(
         self,
         interaction: discord.Interaction,
         action: ColorRoleAction,
