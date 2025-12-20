@@ -670,8 +670,8 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         )
 
         colors_str = ""
-        for name_, value in colors.items():
-            colors_str += f"{name_.title()}  -  #{value}\n"
+        for name, value in colors.items():
+            colors_str += f"{name}  -  #{value}\n"
 
         embed.add_field(name=f"{group.title()} Colors", value=colors_str)
 
