@@ -1,9 +1,11 @@
 from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any, Final
+from typing import Any, Final, Literal
 
 __author__: Final[str]
 __license__: Final[str]
+
+STATUS_OK: Literal[200]
 
 class ApiError(RuntimeError): ...
 

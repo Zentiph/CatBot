@@ -5,14 +5,26 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Mapping
 from dataclasses import dataclass
+import os
+import time
 from typing import Any
+from urllib.parse import urlparse
 
 import requests
 
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
-_STATUS_OK = 200
+_DEFAULT_USER_AGENT = os.getenv(
+    "HTTP_USER_AGENT", "CatBot/0.0 (contact: zentiphdev@gmail.com)"
+)
+_DEFAULT_HEADERS = {"User-Agent": _DEFAULT_USER_AGENT}
+
+_PER_HOST_MIN_INTERVAL_SECONDS = float(os.getenv("HTTP_PER_HOST_MIN_INTERVAL", "0"))
+_last_request_time_by_host: dict[str, float] = {}
+
+STATUS_OK = 200
+"""The status code for an OK response."""
 
 
 class ApiError(RuntimeError):
@@ -26,6 +38,37 @@ class ApiJsonResponse:
     status_code: int
     json: Any
     url: str
+
+
+def _merge_headers(headers: Mapping[str, str] | None, /) -> dict[str, str]:
+    merged = dict(_DEFAULT_HEADERS)
+    if headers:
+        merged.update(headers)
+    return merged
+
+
+def _host_from_url(url: str, /) -> str:
+    try:
+        return urlparse(url).netloc.lower()
+    except Exception:
+        return ""
+
+
+def _throttle_host(url: str, /) -> None:
+    # best-effort per-host throttle (synchronous, runs inside worker thread)
+    if _PER_HOST_MIN_INTERVAL_SECONDS <= 0:
+        return
+
+    host = _host_from_url(url)
+    if not host:
+        return
+
+    now = time.monotonic()
+    last = _last_request_time_by_host.get(host, 0.0)
+    wait = _PER_HOST_MIN_INTERVAL_SECONDS - (now - last)
+    if wait > 0:
+        time.sleep(wait)
+    _last_request_time_by_host[host] = time.monotonic()
 
 
 async def http_get_json(
@@ -51,7 +94,12 @@ async def http_get_json(
     """
 
     def do() -> ApiJsonResponse:
-        response = requests.get(url, headers=headers, params=params, timeout=timeout)
+        _throttle_host(url)
+        merged_headers = _merge_headers(headers)
+
+        response = requests.get(
+            url, headers=merged_headers, params=params, timeout=timeout
+        )
         try:
             payload = response.json() if response.content else None
         except Exception as e:
@@ -80,8 +128,11 @@ async def http_get_bytes(
     """
 
     def do() -> bytes:
-        response = requests.get(url, headers=headers, timeout=timeout)
-        if response.status_code != _STATUS_OK:
+        _throttle_host(url)
+        merged_headers = _merge_headers(headers)
+
+        response = requests.get(url, headers=merged_headers, timeout=timeout)
+        if response.status_code != STATUS_OK:
             raise ApiError(
                 f"Failed to fetch bytes from {url} (status {response.status_code})"
             )

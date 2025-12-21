@@ -37,3 +37,4 @@ class Visual(StrEnum):
     ALERT = ":exclamation:"
     RANDOM = ":twisted_rightwards_arrows:"
     MATH = ":hash:"
+    PAWS = ":feet:"

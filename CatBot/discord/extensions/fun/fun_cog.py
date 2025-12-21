@@ -1,13 +1,18 @@
 """Fun commands."""
 
+from dataclasses import dataclass
+from io import BytesIO
+import logging
 import secrets
+from typing import Any
 
 import discord
 from discord import app_commands
 from discord.ext import commands
 from psutil import Process
 
-from ....pawprints import cog_setup_log_msg, log_app_command
+from ....util.http import STATUS_OK, ApiError, http_get_bytes, http_get_json
+from ....util.pawprints import cog_setup_log_msg, log_app_command
 from ...info import (
     DEPENDENCIES,
     DISCORD_DOT_PY_VERSION,
@@ -25,11 +30,267 @@ from ...interaction import (
 from ...ui import COIN_HEADS_COLOR, COIN_TAILS_COLOR
 from ...ui.emoji import Status, Visual
 
+_INAT_TAXA_URL = "https://api.inaturalist.org/v1/taxa"
+_INAT_OBS_URL = "https://api.inaturalist.org/v1/observations"
+_INAT_TAXA_AUTOCOMPLETE_URL = "https://api.inaturalist.org/v1/taxa/autocomplete"
+
+_AUTOCOMPLETE_CACHE: dict[str, list[app_commands.Choice[str]]] = {}
+_AUTOCOMPLETE_CACHE_MAX = 128
+_AUTOCOMPLETE_LABEL_MAX = 100
+_AUTOCOMPLETE_START_COUNT = 2
+_AUTOCOMPLETE_MAX_OPTIONS = 10
+
+
+@dataclass(frozen=True)
+class _AnimalResult:
+    kind: str
+    image_url: str
+    fact: str | None = None
+    source: str | None = None
+
 
 async def _ensure_full_user(
     client: discord.Client, user: discord.abc.User
 ) -> discord.User:
     return await client.fetch_user(user.id)
+
+
+def _first_non_whitespace_str(*values: object) -> str | None:
+    for v in values:
+        if isinstance(v, str) and v.strip():
+            return v
+    return None
+
+
+def _extract_inat_photo_url(photo_obj: object, /) -> str | None:
+    # iNat photos usually look like:
+    # {"url": "https://static.inaturalist.org/photos/.../square.jpg?...",
+    #  "attribution": "..."}
+    if not isinstance(photo_obj, dict):
+        return None
+    return _first_non_whitespace_str(
+        photo_obj.get("url"), photo_obj.get("original_url"), photo_obj.get("large_url")
+    )
+
+
+def _bump_inat_size(url: str, /) -> str:
+    # iNat usually returns .../square.jpg, but can be bumped to bigger sizes.
+    # this attempts to get the best quality possible, but if it doesn't match
+    # it simply returns the url as is.
+    return (
+        url.replace("/square.", "/large.")
+        .replace("/square.jpg", "/large.jpg")
+        .replace("/square.jpeg", "/large.jpeg")
+        .replace("/square.png", "/large.png")
+    )
+
+
+async def _fetch_inat_animal(kind: str, /) -> _AnimalResult:
+    q = kind.strip()
+    if not q:
+        raise ApiError("Animal name cannot be empty")
+
+    # find best matching taxon
+    taxa_response = await http_get_json(
+        _INAT_TAXA_URL, params={"q": q, "per_page": 5}, timeout=10
+    )
+    if taxa_response.status_code != STATUS_OK:
+        raise ApiError(
+            f"iNaturalist taxa search failed (status {taxa_response.status_code})"
+        )
+
+    taxa_json = taxa_response.json
+    results = taxa_json.get("results") if isinstance(taxa_json, dict) else None
+    if not isinstance(results, list) or not results:
+        raise ApiError(f"No iNaturalist results for '{kind}'")
+
+    taxon = results[0]
+    if not isinstance(taxon, dict):
+        raise ApiError(f"Unexpected iNaturalist taxa payload for '{kind}'")
+
+    taxon_id = taxon.get("id")
+    wiki_summary = _first_non_whitespace_str(taxon.get("wikipedia_summary"))
+    wiki_url = _first_non_whitespace_str(taxon.get("wikipedia_url"))
+    preferred_name = _first_non_whitespace_str(taxon.get("preferred_common_name"))
+    scientific_name = _first_non_whitespace_str(taxon.get("name"))
+
+    # try getting a good image
+    image_url: str | None = None
+
+    default_photo = taxon.get("default_photo")
+    if isinstance(default_photo, dict):
+        image_url = _extract_inat_photo_url(default_photo)
+
+    if not image_url:
+        taxon_photos = taxon.get("taxon_photos")
+        if isinstance(taxon_photos, list) and taxon_photos:
+            photo = taxon_photos[secrets.randbelow(len(taxon_photos))]
+            if isinstance(photo, dict):
+                image_url = _extract_inat_photo_url(photo.get("photo"))
+
+    # if no photo, fall back to observations for the taxon_id
+    if not image_url:
+        if not isinstance(taxon_id, int):
+            raise ApiError(f"iNaturalist returned no usable taxon id for '{kind}'")
+
+        obs_response = await http_get_json(
+            _INAT_OBS_URL,
+            params={
+                "taxon_id": taxon_id,
+                "per_page": 25,
+                "page": 1,
+                "order_by": "votes",
+                "photos": "true",
+            },
+            timeout=10,
+        )
+        if obs_response.status_code != STATUS_OK:
+            raise ApiError(
+                "iNaturalist observations lookup failed "
+                f"(status {obs_response.status_code})"
+            )
+
+        obs_json = obs_response.json
+        obs_results = obs_json.get("results") if isinstance(obs_json, dict) else None
+        if isinstance(obs_results, list) and obs_results:
+            obs = obs_results[secrets.randbelow(len(obs_results))]
+            if isinstance(obs, dict):
+                photos = obs.get("photos")
+                if isinstance(photos, list) and photos:
+                    # photo entries sometimes have url + attribution nested in "photo"
+                    # but sometimes "url" exists at the top level
+                    pick = photos[secrets.randbelow(len(photos))]
+                    if isinstance(pick, dict):
+                        image_url = _extract_inat_photo_url(
+                            pick
+                        ) or _extract_inat_photo_url(pick.get("photo"))
+    if not image_url:
+        raise ApiError(f"Could not find a photo for '{kind}' on iNaturalist")
+
+    image_url = _bump_inat_size(image_url)
+
+    # build a fact string (prefer wiki summary, fallback to names)
+    fact = wiki_summary or None
+    source = "iNaturalist"
+    if wiki_url:
+        source = f"iNaturalist (Wiki: {wiki_url})"
+
+    # if user typed a vague thing, the resolved names could help
+    if fact and (preferred_name or scientific_name):
+        header = " - ".join(
+            [name for name in [preferred_name, scientific_name] if name]
+        )
+        fact = f"**{header}**\n{fact}"
+
+    return _AnimalResult(
+        kind=preferred_name or scientific_name or kind.lower(),
+        image_url=image_url,
+        fact=fact,
+        source=source,
+    )
+
+
+async def _fetch_animal(kind: str, /) -> _AnimalResult:
+    kind = kind.strip().lower()
+    return await _fetch_inat_animal(kind)
+
+
+async def _send_animal_embed(
+    interaction: discord.Interaction, /, result: _AnimalResult, *, emoji: str
+) -> None:
+    image_bytes = await http_get_bytes(result.image_url, timeout=10)
+    image_fp = BytesIO(image_bytes)
+    filename = f"{result.kind}.png"
+    file = discord.File(fp=image_fp, filename=filename)
+
+    description_parts = []
+    if result.fact:
+        description_parts.append(result.fact)
+    if result.source:
+        description_parts.append(f"*Source: {result.source}*")
+
+    embed, icon = generate_response_embed(
+        title=f"{emoji} Random {result.kind.title()}",
+        description="\n\n".join(description_parts)
+        if description_parts
+        else "Here you go!",
+    )
+    embed.set_image(url=f"attachment://{filename}")
+
+    await safe_send(interaction, embed=embed, files=(file, icon))
+
+
+def _format_taxon_choice(taxon: dict[str, Any]) -> str | None:
+    preferred = _first_non_whitespace_str(taxon.get("preferred_common_name"))
+    sci = _first_non_whitespace_str(taxon.get("name"))
+    rank = _first_non_whitespace_str(taxon.get("rank"))
+    base: str | None
+
+    # ex: Axolotl — Ambystoma mexicanum (species)
+    if preferred and sci and preferred.lower() != sci.lower():
+        base = f"{preferred} — {sci}"
+    else:
+        base = preferred or sci
+
+    if not base:
+        return None
+
+    if rank:
+        base = f"{base} ({rank})"
+
+    if len(base) > _AUTOCOMPLETE_LABEL_MAX:
+        return base[: _AUTOCOMPLETE_LABEL_MAX - 3] + "..."
+    return base
+
+
+async def _animal_kind_autocomplete(
+    _interaction: discord.Interaction,
+    current: str,
+) -> list[app_commands.Choice[str]]:
+    q = current.strip()
+    if len(q) < _AUTOCOMPLETE_START_COUNT:
+        return []
+
+    cache_key = q.lower()
+    if cache_key in _AUTOCOMPLETE_CACHE:
+        return _AUTOCOMPLETE_CACHE[cache_key]
+
+    resp = await http_get_json(
+        _INAT_TAXA_AUTOCOMPLETE_URL,
+        params={"q": q, "per_page": 10},
+        timeout=5,
+    )
+
+    if resp.status_code != STATUS_OK:
+        return []
+
+    payload = resp.json
+    results = payload.get("results") if isinstance(payload, dict) else None
+    if not isinstance(results, list):
+        return []
+
+    choices: list[app_commands.Choice[str]] = []
+    for taxon in results:
+        if not isinstance(taxon, dict):
+            continue
+        label = _format_taxon_choice(taxon)
+        if not label:
+            continue
+
+        # value is what actually gets passed into /animal
+        # use scientific name when available because it's unambiguous
+        value = _first_non_whitespace_str(taxon.get("name")) or label
+        choices.append(app_commands.Choice(name=label, value=value))
+
+        if len(choices) >= _AUTOCOMPLETE_MAX_OPTIONS:
+            break
+
+    # cache with simple cap
+    if len(_AUTOCOMPLETE_CACHE) >= _AUTOCOMPLETE_CACHE_MAX:
+        _AUTOCOMPLETE_CACHE.clear()
+    _AUTOCOMPLETE_CACHE[cache_key] = choices
+
+    return choices
 
 
 class FunCog(commands.Cog, name="Fun Commands"):
@@ -151,7 +412,36 @@ class FunCog(commands.Cog, name="Fun Commands"):
 
         await interaction.response.send_message(embed=embed, file=icon)
 
-    # TODO: add more to /cat-pic, maybe /animal {animal} instead and add more APIs?
+    @app_commands.autocomplete(kind=_animal_kind_autocomplete)
+    @app_commands.command(
+        name="animal", description="Get an animal picture (and maybe a fact)!"
+    )
+    @app_commands.describe(kind="Which animal to fetch")
+    async def animal(self, interaction: discord.Interaction, kind: str) -> None:
+        """Get a random animal image and possibly a fact."""
+        log_app_command(interaction)
+
+        await interaction.response.defer(thinking=True)
+
+        try:
+            result = await _fetch_animal(kind)
+            await _send_animal_embed(interaction, result, emoji=Visual.PAWS)
+        except ApiError as e:
+            logging.warning("Animal API error: %s", e)
+            await report(
+                interaction,
+                f"{e}\nPlease try again later, or submit a "
+                "bug report if this keeps happening.",
+                Status.ERROR,
+            )
+        except Exception:
+            logging.exception("Unexpected error in /animal")
+            await report(
+                interaction,
+                "Something went wrong.\nPlease try again later, or submit a "
+                "bug report if this keeps happening.",
+                Status.ERROR,
+            )
 
     @app_commands.command(
         name="members", description="Get data regarding the members in this server"

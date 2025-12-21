@@ -3,6 +3,6 @@
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
-__all__ = ["pawprints"]
+__all__ = ["http", "pawprints"]
 
-from . import pawprints
+from . import http, pawprints
