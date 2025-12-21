@@ -51,7 +51,7 @@ _BAD_WORDS = re.compile(
     r"skull|skeleton|bones|bone|dead|deceased|roadkill|carcass|corpse|remains|"
     r"taxidermy|pelt|hide|fur|skin|mount|mounted|trophy|"
     r"scat|poop|feces|dropping|tracks|track|footprint|pawprint|"
-    r"specimen|museum|collection|preserved"
+    r"specimen|museum|collection|preserved|blood"
     r")\b",
     re.IGNORECASE,
 )
@@ -477,16 +477,16 @@ class FunCog(commands.Cog, name="Fun Commands"):
             embed, icon = generate_response_embed(
                 title=title, description=description, color=COIN_HEADS_COLOR
             )
-            coin = discord.File(fp="CatBot/images/coin_heads.png", filename="coin.png")
+            coin = discord.File(fp="static/images/coin_heads.png", filename="coin.png")
         else:
             embed, icon = generate_response_embed(
                 title=title, description=description, color=COIN_TAILS_COLOR
             )
-            coin = discord.File(fp="CatBot/images/coin_tails.png", filename="coin.png")
+            coin = discord.File(fp="static/images/coin_tails.png", filename="coin.png")
 
         embed.set_image(url="attachment://coin.png")
 
-        await safe_send(interaction, embed=embed, files=(coin, icon))
+        await safe_send(interaction, embed=embed, files=(coin, icon), ephemeral=False)
 
     @app_commands.command(name="profile", description="Get a user's profile picture")
     @app_commands.describe(user="User to get the profile picture of")
