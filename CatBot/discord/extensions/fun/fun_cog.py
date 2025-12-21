@@ -40,6 +40,8 @@ _AUTOCOMPLETE_LABEL_MAX = 100
 _AUTOCOMPLETE_START_COUNT = 2
 _AUTOCOMPLETE_MAX_OPTIONS = 10
 
+_MAX_FILENAME_LEN = 40
+
 
 @dataclass(frozen=True)
 class _AnimalResult:
@@ -50,9 +52,15 @@ class _AnimalResult:
 
 
 async def _ensure_full_user(
-    client: discord.Client, user: discord.abc.User
+    client: discord.Client, user: discord.Member | discord.User
 ) -> discord.User:
     return await client.fetch_user(user.id)
+
+
+def _safe_filename(filename: str) -> str:
+    keep = [c.lower() if c.isalnum() else "_" for c in filename]
+    out = "".join(keep).strip("_")
+    return out[:_MAX_FILENAME_LEN] or "animal"
 
 
 def _first_non_whitespace_str(*values: object) -> str | None:
@@ -200,7 +208,7 @@ async def _send_animal_embed(
 ) -> None:
     image_bytes = await http_get_bytes(result.image_url, timeout=10)
     image_fp = BytesIO(image_bytes)
-    filename = f"{result.kind}.png"
+    filename = f"{_safe_filename(result.kind)}.png"
     file = discord.File(fp=image_fp, filename=filename)
 
     description_parts = []
@@ -257,7 +265,7 @@ async def _animal_kind_autocomplete(
 
     resp = await http_get_json(
         _INAT_TAXA_AUTOCOMPLETE_URL,
-        params={"q": q, "per_page": 10},
+        params={"q": q, "per_page": _AUTOCOMPLETE_MAX_OPTIONS},
         timeout=5,
     )
 
@@ -365,7 +373,9 @@ class FunCog(commands.Cog, name="Fun Commands"):
     @app_commands.command(name="profile", description="Get a user's profile picture")
     @app_commands.describe(user="User to get the profile picture of")
     async def profile(
-        self, interaction: discord.Interaction, user: discord.abc.User | None = None
+        self,
+        interaction: discord.Interaction,
+        user: discord.Member | discord.User | None = None,
     ) -> None:
         """Get a user's profile picture."""
         log_app_command(interaction)
@@ -385,7 +395,9 @@ class FunCog(commands.Cog, name="Fun Commands"):
     @app_commands.command(name="banner", description="Get a user's profile banner")
     @app_commands.describe(user="User to get the profile banner of")
     async def banner(
-        self, interaction: discord.Interaction, user: discord.abc.User | None = None
+        self,
+        interaction: discord.Interaction,
+        user: discord.Member | discord.User | None = None,
     ) -> None:
         """Get a user's profile banner."""
         log_app_command(interaction)

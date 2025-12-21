@@ -13,7 +13,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from ....pawprints import cog_setup_log_msg, log_app_command
+from ....util.pawprints import cog_setup_log_msg, log_app_command
 from ...interaction import (
     add_new_role_to_member,
     find_role,

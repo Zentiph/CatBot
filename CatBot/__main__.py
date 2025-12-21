@@ -199,7 +199,7 @@ async def setup(logfile: Path) -> None:
 
     await load_group(bot, "color")
     # await load_group(bot, "date_time")
-    # await load_group(bot, "fun")
+    await load_group(bot, "fun")
     # await load_group(bot, "help")
     # await load_group(bot, "management")
     # await load_group(bot, "math")
