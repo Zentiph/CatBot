@@ -5,5 +5,4 @@ __license__: Final[str]
 
 __all__: Final[list[str]]
 
-from . import discord as discord
-from .util import pawprints as pawprints
+from . import pawprints as pawprints

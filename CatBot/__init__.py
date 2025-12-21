@@ -6,4 +6,5 @@ __license__ = "MIT"
 __all__ = ["discord", "pawprints"]
 
 
-from . import discord, pawprints
+from . import discord
+from .util import pawprints
