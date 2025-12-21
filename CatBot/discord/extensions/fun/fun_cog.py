@@ -1,8 +1,10 @@
 """Fun commands."""
 
 from dataclasses import dataclass
+import html
 from io import BytesIO
 import logging
+import re
 import secrets
 from typing import Any
 
@@ -42,6 +44,18 @@ _AUTOCOMPLETE_MAX_OPTIONS = 10
 
 _MAX_FILENAME_LEN = 40
 
+_TAG_RE = re.compile(r"<[^>]+>")
+
+_BAD_WORDS = re.compile(
+    r"\b("
+    r"skull|skeleton|bones|bone|dead|deceased|roadkill|carcass|corpse|remains|"
+    r"taxidermy|pelt|hide|fur|skin|mount|mounted|trophy|"
+    r"scat|poop|feces|dropping|tracks|track|footprint|pawprint|"
+    r"specimen|museum|collection|preserved"
+    r")\b",
+    re.IGNORECASE,
+)
+
 
 @dataclass(frozen=True)
 class _AnimalResult:
@@ -60,7 +74,17 @@ async def _ensure_full_user(
 def _safe_filename(filename: str) -> str:
     keep = [c.lower() if c.isalnum() else "_" for c in filename]
     out = "".join(keep).strip("_")
+
     return out[:_MAX_FILENAME_LEN] or "animal"
+
+
+def _clean_wiki_summary(text: str) -> str:
+    # turn &amp; etc. into real characters
+    text = html.unescape(text)
+    # remove tags like <b>, <i>, <br>, ...
+    text = _TAG_RE.sub("", text)
+    # normalize whitespace a bit
+    return " ".join(text.split()).strip()
 
 
 def _first_non_whitespace_str(*values: object) -> str | None:
@@ -68,6 +92,22 @@ def _first_non_whitespace_str(*values: object) -> str | None:
         if isinstance(v, str) and v.strip():
             return v
     return None
+
+
+def _obs_looks_gross(obs: dict[str, Any]) -> bool:
+    # fields that sometimes carry context
+    text_fields = [
+        obs.get("species_guess"),
+        obs.get("description"),
+    ]
+
+    # tags are often useful
+    tags = obs.get("tags")
+    if isinstance(tags, list):
+        text_fields.extend([t for t in tags if isinstance(t, str)])
+
+    haystack = " ".join([t for t in text_fields if isinstance(t, str)])
+    return bool(_BAD_WORDS.search(haystack))
 
 
 def _extract_inat_photo_url(photo_obj: object, /) -> str | None:
@@ -122,19 +162,68 @@ async def _fetch_inat_animal(kind: str, /) -> _AnimalResult:
     preferred_name = _first_non_whitespace_str(taxon.get("preferred_common_name"))
     scientific_name = _first_non_whitespace_str(taxon.get("name"))
 
-    # try getting a good image
+    # try getting a good image (prefer observations for randomness)
     image_url: str | None = None
 
-    default_photo = taxon.get("default_photo")
-    if isinstance(default_photo, dict):
-        image_url = _extract_inat_photo_url(default_photo)
+    # observations first (most random)
+    if isinstance(taxon_id, int):
+        obs_response = await http_get_json(
+            _INAT_OBS_URL,
+            params={
+                "taxon_id": taxon_id,
+                "per_page": 60,
+                "page": 1,
+                "order_by": "random",
+                "photos": "true",
+                "quality_grade": "research",
+                "verifiable": "true",
+                "captive": "false",
+            },
+            timeout=10,
+        )
 
+        if obs_response.status_code == STATUS_OK:
+            obs_json = obs_response.json
+            obs_results = (
+                obs_json.get("results") if isinstance(obs_json, dict) else None
+            )
+
+            if isinstance(obs_results, list) and obs_results:
+                # try up to N random observations before giving up
+                for _ in range(15):
+                    obs = obs_results[secrets.randbelow(len(obs_results))]
+                    if not isinstance(obs, dict):
+                        continue
+                    if _obs_looks_gross(obs):
+                        continue
+
+                    photos = obs.get("photos")
+                    if not isinstance(photos, list) or not photos:
+                        continue
+
+                    pick = photos[secrets.randbelow(len(photos))]
+                    if not isinstance(pick, dict):
+                        continue
+
+                    image_url = _extract_inat_photo_url(
+                        pick
+                    ) or _extract_inat_photo_url(pick.get("photo"))
+                    if image_url:
+                        break
+
+    # then taxon_photos
     if not image_url:
         taxon_photos = taxon.get("taxon_photos")
         if isinstance(taxon_photos, list) and taxon_photos:
             photo = taxon_photos[secrets.randbelow(len(taxon_photos))]
             if isinstance(photo, dict):
                 image_url = _extract_inat_photo_url(photo.get("photo"))
+
+    # lastly default_photo (often constant)
+    if not image_url:
+        default_photo = taxon.get("default_photo")
+        if isinstance(default_photo, dict):
+            image_url = _extract_inat_photo_url(default_photo)
 
     # if no photo, fall back to observations for the taxon_id
     if not image_url:
@@ -177,8 +266,37 @@ async def _fetch_inat_animal(kind: str, /) -> _AnimalResult:
 
     image_url = _bump_inat_size(image_url)
 
+    # if wiki summary is missing, fetch the full taxon by id
+    if not wiki_summary and isinstance(taxon_id, int):
+        taxon_by_id_response = await http_get_json(
+            f"{_INAT_TAXA_URL}/{taxon_id}",
+            timeout=10,
+        )
+        if taxon_by_id_response.status_code == STATUS_OK:
+            by_id_json = taxon_by_id_response.json
+            by_id_results = (
+                by_id_json.get("results") if isinstance(by_id_json, dict) else None
+            )
+            if (
+                isinstance(by_id_results, list)
+                and by_id_results
+                and isinstance(by_id_results[0], dict)
+            ):
+                full_taxon = by_id_results[0]
+                wiki_summary = (
+                    _first_non_whitespace_str(full_taxon.get("wikipedia_summary"))
+                    or wiki_summary
+                )
+                wiki_url = (
+                    _first_non_whitespace_str(full_taxon.get("wikipedia_url"))
+                    or wiki_url
+                )
+
     # build a fact string (prefer wiki summary, fallback to names)
-    fact = wiki_summary or None
+    fact = _clean_wiki_summary(wiki_summary) if wiki_summary else None
+    if fact:
+        # escape asterisks to make safe for discord formatting
+        fact = fact.replace("*", r"\*")
     source = "iNaturalist"
     if wiki_url:
         source = f"iNaturalist (Wiki: {wiki_url})"
@@ -428,7 +546,10 @@ class FunCog(commands.Cog, name="Fun Commands"):
     @app_commands.command(
         name="animal", description="Get an animal picture (and maybe a fact)!"
     )
-    @app_commands.describe(kind="Which animal to fetch")
+    @app_commands.describe(
+        kind="Which animal to fetch (type your animal, "
+        "then wait for the autocomplete and pick the best-fitting option)"
+    )
     async def animal(self, interaction: discord.Interaction, kind: str) -> None:
         """Get a random animal image and possibly a fact."""
         log_app_command(interaction)
@@ -510,3 +631,8 @@ class FunCog(commands.Cog, name="Fun Commands"):
         )
 
         await interaction.response.send_message(embed=embed, file=icon)
+
+
+async def setup(bot: commands.Bot) -> None:
+    """Set up the cog."""
+    await bot.add_cog(FunCog(bot))
