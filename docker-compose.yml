@@ -31,6 +31,8 @@ services:
         max-file: "3"
     profiles:
       - prod
+    volumes:
+      - ./data:/app/data # so db data persists
 
   bot-test:
     image: catbot:latest
@@ -45,3 +47,5 @@ services:
         max-file: "3"
     profiles:
       - test
+    volumes:
+      - ./test_data:/app/data

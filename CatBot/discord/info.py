@@ -31,6 +31,9 @@ DISCORD_DOT_PY_VERSION = (
 )
 """The current discord.py version running CatBot."""
 
+CAT_GUILD_ID = 857065913568460801
+"""The ID of the cat guild."""
+
 BOT_APP_ID = 1303870147873996902
 """The app ID of CatBot."""
 

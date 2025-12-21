@@ -1,5 +1,7 @@
 """Fun commands."""
 
+# TODO modularize into multiple files
+
 from dataclasses import dataclass
 import html
 from io import BytesIO
@@ -55,6 +57,8 @@ _BAD_WORDS = re.compile(
     r")\b",
     re.IGNORECASE,
 )
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -150,7 +154,9 @@ async def _fetch_inat_animal(kind: str, /) -> _AnimalResult:
     taxa_json = taxa_response.json
     results = taxa_json.get("results") if isinstance(taxa_json, dict) else None
     if not isinstance(results, list) or not results:
-        raise ApiError(f"No iNaturalist results for '{kind}'")
+        raise ApiError(
+            f"No iNaturalist results for '{kind}'. Please try a different query."
+        )
 
     taxon = results[0]
     if not isinstance(taxon, dict):
@@ -560,7 +566,7 @@ class FunCog(commands.Cog, name="Fun Commands"):
             result = await _fetch_animal(kind)
             await _send_animal_embed(interaction, result, emoji=Visual.PAWS)
         except ApiError as e:
-            logging.warning("Animal API error: %s", e)
+            logger.warning("Animal API error: %s", e)
             await report(
                 interaction,
                 f"{e}\nPlease try again later, or submit a "
@@ -568,7 +574,7 @@ class FunCog(commands.Cog, name="Fun Commands"):
                 Status.ERROR,
             )
         except Exception:
-            logging.exception("Unexpected error in /animal")
+            logger.exception("Unexpected error in /animal")
             await report(
                 interaction,
                 "Something went wrong.\nPlease try again later, or submit a "

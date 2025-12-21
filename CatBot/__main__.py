@@ -15,6 +15,7 @@ from discord.ext import commands
 from requests import Timeout
 
 from catbot import pawprints
+from catbot.util import CatBot
 
 __author__ = "Gavin Borne"
 __license__ = "MIT"
@@ -25,19 +26,6 @@ APP_COMMAND_ERRORS = (
     OverflowError,
     Timeout,
 )
-
-
-def init_bot() -> commands.Bot:
-    """Initialize the bot.
-
-    Returns:
-        commands.Bot: The bot instance.
-    """
-    intents = discord.Intents.default()
-    intents.message_content = True
-    intents.members = True
-    intents.presences = True
-    return commands.Bot(command_prefix="!", intents=intents)
 
 
 def init_arg_parser() -> ArgumentParser:
@@ -79,7 +67,7 @@ def init_arg_parser() -> ArgumentParser:
     return arg_parser
 
 
-bot = init_bot()
+bot = CatBot()
 parser = init_arg_parser()
 args = parser.parse_args()
 
@@ -204,6 +192,8 @@ async def setup(logfile: Path) -> None:
     # await load_group(bot, "management")
     # await load_group(bot, "math")
     # await load_group(bot, "rand")
+
+    await load_group(bot, "metrics")
 
 
 def main() -> None:
