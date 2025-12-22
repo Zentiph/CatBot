@@ -38,6 +38,8 @@ _INAT_TAXA_URL = "https://api.inaturalist.org/v1/taxa"
 _INAT_OBS_URL = "https://api.inaturalist.org/v1/observations"
 _INAT_TAXA_AUTOCOMPLETE_URL = "https://api.inaturalist.org/v1/taxa/autocomplete"
 
+_OBSERVATION_IMAGE_FETCH_ATTEMPTS = 15
+
 _AUTOCOMPLETE_CACHE: dict[str, list[app_commands.Choice[str]]] = {}
 _AUTOCOMPLETE_CACHE_MAX = 128
 _AUTOCOMPLETE_LABEL_MAX = 100
@@ -137,6 +139,110 @@ def _bump_inat_size(url: str, /) -> str:
     )
 
 
+async def _fetch_inat_observation_image(taxon_id: int, /) -> str | None:
+    obs_response = await http_get_json(
+        _INAT_OBS_URL,
+        params={
+            "taxon_id": taxon_id,
+            "per_page": 60,
+            "page": 1,
+            "order_by": "random",
+            "photos": "true",
+            "quality_grade": "research",
+            "verifiable": "true",
+            "captive": "false",
+        },
+        timeout=10,
+    )
+
+    if obs_response.status_code == STATUS_OK:
+        obs_json = obs_response.json
+        obs_results = obs_json.get("results") if isinstance(obs_json, dict) else None
+
+        if isinstance(obs_results, list) and obs_results:
+            # try up to N random observations before giving up
+            for _ in range(_OBSERVATION_IMAGE_FETCH_ATTEMPTS):
+                obs = obs_results[secrets.randbelow(len(obs_results))]
+                if not isinstance(obs, dict):
+                    continue
+                if _obs_looks_gross(obs):
+                    continue
+
+                photos = obs.get("photos")
+                if not isinstance(photos, list) or not photos:
+                    continue
+
+                pick = photos[secrets.randbelow(len(photos))]
+                if not isinstance(pick, dict):
+                    continue
+
+                image_url = _extract_inat_photo_url(pick) or _extract_inat_photo_url(
+                    pick.get("photo")
+                )
+                if image_url:
+                    return image_url
+
+    return None
+
+
+async def _get_wiki_summary_and_url_from_full_taxon(
+    taxon_id: int, original_wiki_summary: str | None, original_wiki_url: str | None
+) -> tuple[str, str] | tuple[None, None]:
+    taxon_by_id_response = await http_get_json(
+        f"{_INAT_TAXA_URL}/{taxon_id}",
+        timeout=10,
+    )
+    if taxon_by_id_response.status_code == STATUS_OK:
+        by_id_json = taxon_by_id_response.json
+        by_id_results = (
+            by_id_json.get("results") if isinstance(by_id_json, dict) else None
+        )
+        if (
+            isinstance(by_id_results, list)
+            and by_id_results
+            and isinstance(by_id_results[0], dict)
+        ):
+            full_taxon = by_id_results[0]
+            return (
+                (
+                    _first_non_whitespace_str(full_taxon.get("wikipedia_summary"))
+                    or original_wiki_summary
+                    or ""
+                ),
+                (
+                    _first_non_whitespace_str(full_taxon.get("wikipedia_url"))
+                    or original_wiki_url
+                    or ""
+                ),
+            )
+    return (None, None)
+
+
+async def _fetch_inat_image(taxon: dict[str, Any], taxon_id: int | None) -> str | None:
+    # try getting a good image (prefer observations for randomness)
+    # observations first (most random)
+    if taxon_id is not None:
+        image_url = await _fetch_inat_observation_image(taxon_id)
+        if image_url:
+            return image_url
+
+    # then taxon_photos
+    taxon_photos = taxon.get("taxon_photos")
+    if isinstance(taxon_photos, list) and taxon_photos:
+        photo = taxon_photos[secrets.randbelow(len(taxon_photos))]
+        if isinstance(photo, dict):
+            return _extract_inat_photo_url(photo.get("photo"))
+
+    # lastly default_photo (often constant)
+    default_photo = taxon.get("default_photo")
+    if isinstance(default_photo, dict):
+        return _extract_inat_photo_url(default_photo)
+
+    # if no photo, fall back to observations
+
+    return None
+
+
 async def _fetch_inat_animal(kind: str, /) -> _AnimalResult:
     q = kind.strip()
     if not q:
@@ -168,135 +274,18 @@ async def _fetch_inat_animal(kind: str, /) -> _AnimalResult:
     preferred_name = _first_non_whitespace_str(taxon.get("preferred_common_name"))
     scientific_name = _first_non_whitespace_str(taxon.get("name"))
 
-    # try getting a good image (prefer observations for randomness)
-    image_url: str | None = None
-
-    # observations first (most random)
-    if isinstance(taxon_id, int):
-        obs_response = await http_get_json(
-            _INAT_OBS_URL,
-            params={
-                "taxon_id": taxon_id,
-                "per_page": 60,
-                "page": 1,
-                "order_by": "random",
-                "photos": "true",
-                "quality_grade": "research",
-                "verifiable": "true",
-                "captive": "false",
-            },
-            timeout=10,
-        )
-
-        if obs_response.status_code == STATUS_OK:
-            obs_json = obs_response.json
-            obs_results = (
-                obs_json.get("results") if isinstance(obs_json, dict) else None
-            )
-
-            if isinstance(obs_results, list) and obs_results:
-                # try up to N random observations before giving up
-                for _ in range(15):
-                    obs = obs_results[secrets.randbelow(len(obs_results))]
-                    if not isinstance(obs, dict):
-                        continue
-                    if _obs_looks_gross(obs):
-                        continue
-
-                    photos = obs.get("photos")
-                    if not isinstance(photos, list) or not photos:
-                        continue
-
-                    pick = photos[secrets.randbelow(len(photos))]
-                    if not isinstance(pick, dict):
-                        continue
-
-                    image_url = _extract_inat_photo_url(
-                        pick
-                    ) or _extract_inat_photo_url(pick.get("photo"))
-                    if image_url:
-                        break
-
-    # then taxon_photos
-    if not image_url:
-        taxon_photos = taxon.get("taxon_photos")
-        if isinstance(taxon_photos, list) and taxon_photos:
-            photo = taxon_photos[secrets.randbelow(len(taxon_photos))]
-            if isinstance(photo, dict):
-                image_url = _extract_inat_photo_url(photo.get("photo"))
-
-    # lastly default_photo (often constant)
-    if not image_url:
-        default_photo = taxon.get("default_photo")
-        if isinstance(default_photo, dict):
-            image_url = _extract_inat_photo_url(default_photo)
-
-    # if no photo, fall back to observations for the taxon_id
-    if not image_url:
-        if not isinstance(taxon_id, int):
-            raise ApiError(f"iNaturalist returned no usable taxon id for '{kind}'")
-
-        obs_response = await http_get_json(
-            _INAT_OBS_URL,
-            params={
-                "taxon_id": taxon_id,
-                "per_page": 25,
-                "page": 1,
-                "order_by": "votes",
-                "photos": "true",
-            },
-            timeout=10,
-        )
-        if obs_response.status_code != STATUS_OK:
-            raise ApiError(
-                "iNaturalist observations lookup failed "
-                f"(status {obs_response.status_code})"
-            )
-
-        obs_json = obs_response.json
-        obs_results = obs_json.get("results") if isinstance(obs_json, dict) else None
-        if isinstance(obs_results, list) and obs_results:
-            obs = obs_results[secrets.randbelow(len(obs_results))]
-            if isinstance(obs, dict):
-                photos = obs.get("photos")
-                if isinstance(photos, list) and photos:
-                    # photo entries sometimes have url + attribution nested in "photo"
-                    # but sometimes "url" exists at the top level
-                    pick = photos[secrets.randbelow(len(photos))]
-                    if isinstance(pick, dict):
-                        image_url = _extract_inat_photo_url(
-                            pick
-                        ) or _extract_inat_photo_url(pick.get("photo"))
+    image_url = await _fetch_inat_image(
+        taxon, taxon_id if isinstance(taxon_id, int) else None
+    )
     if not image_url:
         raise ApiError(f"Could not find a photo for '{kind}' on iNaturalist")
-
     image_url = _bump_inat_size(image_url)
 
     # if wiki summary is missing, fetch the full taxon by id
     if not wiki_summary and isinstance(taxon_id, int):
-        taxon_by_id_response = await http_get_json(
-            f"{_INAT_TAXA_URL}/{taxon_id}",
-            timeout=10,
+        wiki_summary, wiki_url = await _get_wiki_summary_and_url_from_full_taxon(
+            taxon_id, wiki_summary, wiki_url
         )
-        if taxon_by_id_response.status_code == STATUS_OK:
-            by_id_json = taxon_by_id_response.json
-            by_id_results = (
-                by_id_json.get("results") if isinstance(by_id_json, dict) else None
-            )
-            if (
-                isinstance(by_id_results, list)
-                and by_id_results
-                and isinstance(by_id_results[0], dict)
-            ):
-                full_taxon = by_id_results[0]
-                wiki_summary = (
-                    _first_non_whitespace_str(full_taxon.get("wikipedia_summary"))
-                    or wiki_summary
-                )
-                wiki_url = (
-                    _first_non_whitespace_str(full_taxon.get("wikipedia_url"))
-                    or wiki_url
-                )
 
     # build a fact string (prefer wiki summary, fallback to names)
     fact = _clean_wiki_summary(wiki_summary) if wiki_summary else None

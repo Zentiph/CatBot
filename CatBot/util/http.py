@@ -50,7 +50,7 @@ def _merge_headers(headers: Mapping[str, str] | None, /) -> dict[str, str]:
 def _host_from_url(url: str, /) -> str:
     try:
         return urlparse(url).netloc.lower()
-    except Exception:
+    except (TypeError, AttributeError):
         return ""
 
 

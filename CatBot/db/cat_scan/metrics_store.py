@@ -82,8 +82,6 @@ class YearlyMetricStore:
         author_id: int,
         created_at_iso: str,
         content: str | None,
-        word_count: int,
-        char_count: int,
         attachment_count: int,
         image_count: int,
         video_count: int,
@@ -99,8 +97,6 @@ class YearlyMetricStore:
             author_id (int): The ID of the message's author.
             created_at_iso (str): The ISO string for when the message was created.
             content (str | None): The content of the message.
-            word_count (int): The word count of the message.
-            char_count (int): The character count of the message.
             attachment_count (int): The number of attachments of the message.
             image_count (int): The number of images attached to the message.
             video_count (int): The number of videos attached to the message.
@@ -132,8 +128,8 @@ class YearlyMetricStore:
                 str(author_id),
                 created_at_iso,
                 content,
-                word_count,
-                char_count,
+                len(content.split()) if content else 0,  # word count
+                len(content) if content else 0,  # char count
                 attachment_count,
                 image_count,
                 video_count,

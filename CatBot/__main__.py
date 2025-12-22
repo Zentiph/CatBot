@@ -186,13 +186,9 @@ async def setup(logfile: Path) -> None:
     logfile.write_text("", encoding="utf-8")  # clear
 
     await load_group(bot, "color")
-    # await load_group(bot, "date_time")
     await load_group(bot, "fun")
-    # await load_group(bot, "help")
-    # await load_group(bot, "management")
-    # await load_group(bot, "math")
-    # await load_group(bot, "rand")
 
+    # comment this out if you don't want to do message metric tracking
     await load_group(bot, "metrics")
 
 

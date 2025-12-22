@@ -24,8 +24,6 @@ class YearlyMetricStore:
         author_id: int,
         created_at_iso: str,
         content: str | None,
-        word_count: int,
-        char_count: int,
         attachment_count: int,
         image_count: int,
         video_count: int,

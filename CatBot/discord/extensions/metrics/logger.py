@@ -67,8 +67,6 @@ class CatScanLoggerCog(commands.Cog):
             return
 
         content = message.content or ""
-        word_count = len(content.split()) if content else 0
-        char_count = len(content) if content else 0
 
         attachments = message.attachments
         attachment_count = len(attachments)
@@ -109,8 +107,6 @@ class CatScanLoggerCog(commands.Cog):
             author_id=message.author.id,
             created_at_iso=created_iso,
             content=content,
-            word_count=word_count,
-            char_count=char_count,
             attachment_count=attachment_count,
             image_count=image_count,
             video_count=video_count,

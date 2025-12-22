@@ -402,8 +402,33 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             await report(
                 interaction, "Provide kind (hex/rgb/name/random/copy).", Status.FAILURE
             )
-            return
+        else:
+            await self._handle_colorrole_set(
+                interaction,
+                member=member,
+                guild=guild,
+                kind=kind,
+                hex6=hex6,
+                r=r,
+                g=g,
+                b=b,
+                name=name,
+                role=role,
+            )
 
+    async def _handle_colorrole_set(
+        self,
+        interaction: discord.Interaction,
+        member: discord.Member,
+        guild: discord.Guild,
+        kind: ColorRoleKind,
+        hex6: str | None = None,
+        r: int | None = None,
+        g: int | None = None,
+        b: int | None = None,
+        name: str | None = None,
+        role: discord.Role | None = None,
+    ) -> None:
         if kind == "hex":
             if not hex6 or not Color3.validate_hex(hex6):
                 await report(interaction, "Provide a valid hex color.", Status.FAILURE)
