@@ -188,8 +188,9 @@ async def setup(logfile: Path) -> None:
     await load_group(bot, "color")
     await load_group(bot, "fun")
 
-    # comment this out if you don't want to do message metric tracking
-    await load_group(bot, "metrics")
+    if not args.debug:
+        # comment this out if you don't want to do message metric tracking
+        await load_group(bot, "metrics")
 
 
 def main() -> None:
