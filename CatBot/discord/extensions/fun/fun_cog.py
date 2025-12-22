@@ -34,6 +34,10 @@ from ...interaction import (
 from ...ui import COIN_HEADS_COLOR, COIN_TAILS_COLOR
 from ...ui.emoji import Status, Visual
 
+# TODO add option to /animal for multiple photos up to 4 or 5
+# TODO for /animal if an autocomplete isn't selected do the lookup in the command
+#      to find the best fitting result
+
 _INAT_TAXA_URL = "https://api.inaturalist.org/v1/taxa"
 _INAT_OBS_URL = "https://api.inaturalist.org/v1/observations"
 _INAT_TAXA_AUTOCOMPLETE_URL = "https://api.inaturalist.org/v1/taxa/autocomplete"
@@ -55,7 +59,8 @@ _BAD_WORDS = re.compile(
     r"skull|skeleton|bones|bone|dead|deceased|roadkill|carcass|corpse|remains|"
     r"taxidermy|pelt|hide|fur|skin|mount|mounted|trophy|"
     r"scat|poop|feces|dropping|tracks|track|footprint|pawprint|"
-    r"specimen|museum|collection|preserved|blood"
+    r"specimen|museum|collection|preserved|"
+    r"blood|bleeding|injury|injured"
     r")\b",
     re.IGNORECASE,
 )
