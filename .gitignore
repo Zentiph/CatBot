@@ -4,5 +4,6 @@
 *.log
 *.bat
 __pycache__/
-sandbox.py
 *.cbdata
+.pytest_cache/
+data/

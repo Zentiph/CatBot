@@ -31,13 +31,15 @@ services:
         max-file: "3"
     profiles:
       - prod
+    volumes:
+      - ./data:/app/data # so db data persists
 
   bot-test:
     image: catbot:latest
     build: .
     env_file: .env.test
     restart: no
-    entrypoint: [ "/bin/sh", "-lc", "python -m CatBot --tokenoverride \"$$TESTING_TOKEN\" --testing" ]
+    entrypoint: [ "/bin/sh", "-lc", "python -m catbot --token-override \"$$TESTING_TOKEN\" --debug" ]
     logging:
       driver: json-file
       options:
@@ -45,3 +47,5 @@ services:
         max-file: "3"
     profiles:
       - test
+    volumes:
+      - ./test_data:/app/data

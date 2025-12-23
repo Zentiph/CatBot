@@ -1,3 +1,4 @@
+aiosqlite
 discord.py
 pillow
 psutil
