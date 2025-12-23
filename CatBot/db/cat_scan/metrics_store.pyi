@@ -10,7 +10,7 @@ __license__: Final[str]
 
 @dataclass
 class YearlyMetricStore:
-    root: Path = Path("data") / "meow_metrics"
+    root: Path = Path("data") / "cat_scan"
     _connections: dict[int, aiosqlite.Connection] = field(default_factory=dict)
 
     async def get_connection(self, year: int, /) -> aiosqlite.Connection: ...

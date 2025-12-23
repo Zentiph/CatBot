@@ -44,7 +44,7 @@ CREATE INDEX IF NOT EXISTS idx_messages_channel_date
 class YearlyMetricStore:
     """Manages one SQLite DB per year."""
 
-    root: Path = Path("data") / "meow_metrics"
+    root: Path = Path("data") / "cat_scan"
     _connections: dict[int, aiosqlite.Connection] = field(default_factory=dict)
 
     async def get_connection(self, year: int, /) -> aiosqlite.Connection:
@@ -60,7 +60,7 @@ class YearlyMetricStore:
             return self._connections[year]
 
         self.root.mkdir(parents=True, exist_ok=True)
-        path = self.root / f"meow_metrics_{year}.sqlite"
+        path = self.root / f"cat_scan_{year}.sqlite"
 
         connection = await aiosqlite.connect(path)
         await connection.execute("""--sql
