@@ -1,7 +1,7 @@
 # CatBot
 CatBot is a Discord bot I made for a Discord server my friends and I share.
 
-[![GitHub License](https://img.shields.io/github/license/zentiph/catbot?style=flat-square&labelColor=0f0f0f)](https://github.com/Zentiph/catbot/blob/main/LICENSE.md)
+[![GitHub License](https://img.shields.io/github/license/zentiph/catbot?style=flat-square&labelColor=0f0f0f)](https://github.com/Zentiph/catbot/blob/main/license.md)
 [![Contributors](https://img.shields.io/github/contributors/zentiph/catbot?style=flat-square&labelColor=0f0f0f)](../../graphs/contributors)
 <br/>
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/t/zentiph/catbot?style=flat-square&labelColor=0f0f0f)](https://github.com/zentiph/catbot/commits/main)
