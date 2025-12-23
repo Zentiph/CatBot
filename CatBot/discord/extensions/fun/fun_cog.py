@@ -89,6 +89,93 @@ def _safe_filename(filename: str) -> str:
     return out[:_MAX_FILENAME_LEN] or "animal"
 
 
+def _normalize_animal_query(q: str) -> str:
+    return " ".join(q.strip().split())
+
+
+async def _resolve_inat_taxon(query: str) -> tuple[str, dict[str, Any]]:
+    # resolve user input to the best-fitting taxon.
+    # returns a tuple containing:
+    # 1) the resolved_query: scientific name if available, else original query
+    # 2) the taxon: the taxon dict from iNat
+    q = _normalize_animal_query(query)
+    if not q:
+        raise ApiError("Animal name cannot be empty")
+
+    # 1) try autocomplete first (best for common names like "dog")
+    ac_response = await http_get_json(
+        _INAT_TAXA_AUTOCOMPLETE_URL,
+        params={"q": q, "per_page": _AUTOCOMPLETE_MAX_OPTIONS},
+        timeout=8,
+    )
+
+    if ac_response.status_code == STATUS_OK:
+        ac_payload = ac_response.json
+        ac_results = ac_payload.get("results") if isinstance(ac_payload, dict) else None
+
+        if isinstance(ac_results, list) and ac_results:
+            top = ac_results[0]
+            if isinstance(top, dict):
+                taxon_id = top.get("id")
+                sci_name = _first_non_whitespace_str(top.get("name"))
+
+                # prefer fetching full taxon by id for consistent fields
+                if isinstance(taxon_id, int):
+                    by_id = await http_get_json(
+                        f"{_INAT_TAXA_URL}/{taxon_id}", timeout=10
+                    )
+                    if by_id.status_code == STATUS_OK:
+                        by_id_json = by_id.json
+                        by_id_results = (
+                            by_id_json.get("results")
+                            if isinstance(by_id_json, dict)
+                            else None
+                        )
+                        if (
+                            isinstance(by_id_results, list)
+                            and by_id_results
+                            and isinstance(by_id_results[0], dict)
+                        ):
+                            taxon = by_id_results[0]
+                            resolved = (
+                                _first_non_whitespace_str(taxon.get("name"))
+                                or sci_name
+                                or q
+                            )
+                            return resolved, taxon
+
+                # if no id (rare), fall back to using the autocomplete result itself
+                # (might be partial, but better than nothing)
+                if sci_name:
+                    return sci_name, top
+
+    # 2) fallback: regular taxa search
+    response = await http_get_json(
+        _INAT_TAXA_URL,
+        params={"q": q, "per_page": _AUTOCOMPLETE_MAX_OPTIONS},
+        timeout=10,
+    )
+    if response.status_code != STATUS_OK:
+        raise ApiError(
+            f"iNaturalist taxa search failed (status {response.status_code})"
+        )
+
+    payload = response.json
+    results = payload.get("results") if isinstance(payload, dict) else None
+    if not isinstance(results, list) or not results:
+        raise ApiError(
+            f"No iNaturalist results for '{query}'. Try a more specific name."
+        )
+
+    taxon = results[0]
+    if not isinstance(taxon, dict):
+        raise ApiError(f"Unexpected iNaturalist taxa payload for '{query}'")
+
+    scientific_name = _first_non_whitespace_str(taxon.get("name"))
+    resolved = scientific_name or q
+    return resolved, taxon
+
+
 def _clean_wiki_summary(text: str) -> str:
     # turn &amp; etc. into real characters
     text = html.unescape(text)
@@ -249,29 +336,7 @@ async def _fetch_inat_image(taxon: dict[str, Any], taxon_id: int | None) -> str 
 
 
 async def _fetch_inat_animal(kind: str, /) -> _AnimalResult:
-    q = kind.strip()
-    if not q:
-        raise ApiError("Animal name cannot be empty")
-
-    # find best matching taxon
-    taxa_response = await http_get_json(
-        _INAT_TAXA_URL, params={"q": q, "per_page": 5}, timeout=10
-    )
-    if taxa_response.status_code != STATUS_OK:
-        raise ApiError(
-            f"iNaturalist taxa search failed (status {taxa_response.status_code})"
-        )
-
-    taxa_json = taxa_response.json
-    results = taxa_json.get("results") if isinstance(taxa_json, dict) else None
-    if not isinstance(results, list) or not results:
-        raise ApiError(
-            f"No iNaturalist results for '{kind}'. Please try a different query."
-        )
-
-    taxon = results[0]
-    if not isinstance(taxon, dict):
-        raise ApiError(f"Unexpected iNaturalist taxa payload for '{kind}'")
+    resolved_query, taxon = await _resolve_inat_taxon(kind)
 
     taxon_id = taxon.get("id")
     wiki_summary = _first_non_whitespace_str(taxon.get("wikipedia_summary"))
@@ -307,6 +372,8 @@ async def _fetch_inat_animal(kind: str, /) -> _AnimalResult:
             [name for name in [preferred_name, scientific_name] if name]
         )
         fact = f"**{header}**\n{fact}"
+    if fact and resolved_query.lower() != kind.strip().lower():
+        fact = f"*Matched:* `{resolved_query}`\n" + fact
 
     return _AnimalResult(
         kind=preferred_name or scientific_name or kind.lower(),
@@ -381,16 +448,16 @@ async def _animal_kind_autocomplete(
     if cache_key in _AUTOCOMPLETE_CACHE:
         return _AUTOCOMPLETE_CACHE[cache_key]
 
-    resp = await http_get_json(
+    response = await http_get_json(
         _INAT_TAXA_AUTOCOMPLETE_URL,
         params={"q": q, "per_page": _AUTOCOMPLETE_MAX_OPTIONS},
         timeout=5,
     )
 
-    if resp.status_code != STATUS_OK:
+    if response.status_code != STATUS_OK:
         return []
 
-    payload = resp.json
+    payload = response.json
     results = payload.get("results") if isinstance(payload, dict) else None
     if not isinstance(results, list):
         return []
