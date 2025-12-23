@@ -1,6 +1,19 @@
 # CatBot Changelog
 A collective history of all the changes made to CatBot.
 
+## v1.0.0
+* Complete recode and project restructure
+* Color commands revamp
+  * Color info embed
+  * Merged commands
+* Removed /cat-pic
+* Added /animal
+  * Random picture of any animal (or other living organisms)
+* Added message data tracking for Cat Scan event (Spotify Wrapped themed event)
+* Numerous bug fixes
+* Removed all other modules (for now)
+  * management, moderation, math, etc
+
 ## v0.11.1
 * Replaced logging with pawprints
 * Added Formatters to LoggerOutputs in pawprints

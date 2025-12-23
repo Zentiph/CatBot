@@ -1,0 +1,219 @@
+"""The entrypoint to run CatBot from."""
+
+from argparse import ArgumentParser, BooleanOptionalAction
+import asyncio
+from importlib import import_module
+import logging
+import os
+from pathlib import Path
+import pkgutil
+from sys import exit as ex
+
+import discord
+from discord import app_commands
+from discord.ext import commands
+from requests import Timeout
+
+from catbot import pawprints
+from catbot.util import CatBot
+
+__author__ = "Gavin Borne"
+__license__ = "MIT"
+
+APP_COMMAND_ERRORS = (
+    app_commands.errors.CheckFailure,
+    discord.Forbidden,
+    OverflowError,
+    Timeout,
+)
+
+
+def init_arg_parser() -> ArgumentParser:
+    """Initialize the argument parser.
+
+    Returns:
+        ArgumentParser: The argument parser.
+    """
+    arg_parser = ArgumentParser(description="Run CatBot with optional arguments")
+    arg_parser.add_argument(
+        "--log-file",
+        type=str,
+        default="logs.log",
+        help="Path to the file where logs will be written, defaults to 'logs.log'",
+    )
+    arg_parser.add_argument(
+        "--console-logging",
+        action=BooleanOptionalAction,
+        default=True,
+        help="Enable/disable console logging, on by default",
+    )
+    arg_parser.add_argument(
+        "--token-override",
+        type=str,
+        help="A token to override the token from .env"
+        " (for testing under a different app)",
+    )
+    arg_parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Launch the bot in debug mode (debug logs enabled)",
+    )
+    arg_parser.add_argument(
+        "--colored-logs",
+        action=BooleanOptionalAction,
+        default=True,
+        help="Use/don't use ANSI color formatting in the console, on by default",
+    )
+    return arg_parser
+
+
+bot = CatBot()
+parser = init_arg_parser()
+args = parser.parse_args()
+
+
+@bot.event
+async def on_ready() -> None:
+    """Sync and register slash commands."""
+    await bot.tree.sync()
+
+    if args.debug:
+        await bot.change_presence(activity=discord.Game(name="⚠ TESTING ⚠"))
+        logging.warning(
+            "The application has been started in testing mode; "
+            "ignore if this is intentional"
+        )
+    else:
+        await bot.change_presence(activity=discord.Game(name="/help"))
+
+    if bot.user is None:
+        logging.error("Log in failed")
+        return
+
+    logging.info(f"Logged in as {bot.user.name} and slash commands synced\n")
+
+
+@bot.tree.error
+async def on_app_command_error(
+    interaction: discord.Interaction, error: app_commands.AppCommandError
+) -> None:
+    """Handle app command errors.
+
+    Args:
+        interaction (discord.Interaction): The interaction instance.
+        error (app_commands.AppCommandError): The error.
+    """
+
+    async def try_response(message: str, /, *, ephemeral: bool = True) -> None:
+        try:
+            await interaction.response.send_message(message, ephemeral=ephemeral)
+        except discord.errors.InteractionResponded:
+            await interaction.followup.send(message, ephemeral=ephemeral)
+
+    if type(error) not in APP_COMMAND_ERRORS:  # Unintentional error
+        logging.error(f"An error occurred: {error}")
+        await try_response(
+            "An unknown error occurred. Contact @zentiph to report this please!"
+        )
+
+    if isinstance(error, app_commands.errors.CheckFailure):  # Restricted command
+        logging.info(
+            f"Unauthorized user {interaction.user} attempted"
+            " to use a restricted command",
+        )
+        await try_response("You do not have permission to use this command.")
+
+    elif isinstance(error, discord.Forbidden):
+        logging.warning(
+            "Attempted to perform a command with inadequate "
+            "permissions allotted to the bot"
+        )
+        await try_response("I do not have permissions to perform this command.")
+
+    elif isinstance(error, OverflowError):
+        logging.info("Overflow error occurred during a calculation")
+        await try_response(
+            "This calculation caused an arithmetic overflow. Try using smaller numbers."
+        )
+
+    elif isinstance(error, Timeout):
+        logging.warning("Timeout error occurred during HTTP request")
+        await try_response(
+            "An attempt to communicate with an external API "
+            "has taken too long, and has been canceled."
+        )
+
+
+async def load_group(to: commands.Bot, base_pkg: str) -> None:
+    """Load a group of extensions from a base package.
+
+    Args:
+        to (commands.Bot): The bot to load the extensions to.
+        base_pkg (str): The base package of the extension group.
+    """
+    root = "catbot.discord.extensions"
+    pkg = import_module(root + "." + base_pkg)
+
+    for _, module_name, is_pkg in pkgutil.iter_modules(pkg.__path__):
+        if is_pkg:
+            continue  # skip sub packages
+
+        full_name = f"{root}.{base_pkg}.{module_name}"
+        try:
+            await to.load_extension(full_name)
+            logging.info(f"Loaded extension: {full_name}")
+        except commands.errors.ExtensionAlreadyLoaded:
+            logging.debug(f"Already loaded extension: {full_name}, skipping")
+        except commands.errors.NoEntryPointError:
+            # Module didn't have a setup(bot) func
+            logging.debug(
+                f"Couldn't load extension: {full_name}, "
+                "no setup(bot) function present, skipping"
+            )
+        except (commands.errors.ExtensionNotFound, ModuleNotFoundError):
+            logging.exception(f"Extension not found: {full_name}")
+        except commands.errors.ExtensionFailed:
+            logging.exception(f"Failed to load extension: {full_name}")
+
+
+async def setup(logfile: Path) -> None:
+    """Run setup for the bot.
+
+    Args:
+        logfile (Path): The file to output logs to.
+    """
+    logfile.parent.mkdir(parents=True, exist_ok=True)
+    logfile.write_text("", encoding="utf-8")  # clear
+
+    await load_group(bot, "color")
+    await load_group(bot, "fun")
+
+    if not args.debug:
+        # comment this out if you don't want to do message metric tracking
+        await load_group(bot, "metrics")
+
+
+def main() -> None:
+    """Read CLI args, setup the bot and logging, then run the bot."""
+    logfile_path = Path(args.log_file)
+    if not logfile_path.is_file():
+        logfile_path.touch()
+
+    pawprints.config_logging(
+        args.log_file,
+        console_logging=args.console_logging,
+        colored_logs=args.colored_logs,
+        debug=args.debug,
+    )
+
+    token = (
+        args.token_override if args.token_override is not None else os.getenv("TOKEN")
+    )
+    if not isinstance(token, str):
+        ex("Could not parse token")
+
+    asyncio.run(setup(logfile_path))
+    bot.run(token)
+
+
+main()
