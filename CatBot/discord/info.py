@@ -40,7 +40,7 @@ BOT_APP_ID = 1303870147873996902
 PROTOTYPE_BOT_APP_ID = 1437156873722921053
 """The app ID of the testing bot."""
 
-VERSION = "v0.11.1"
+VERSION = "v1.0.0"
 """The current release version of CatBot."""
 
 
