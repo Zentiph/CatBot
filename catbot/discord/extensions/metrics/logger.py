@@ -9,11 +9,18 @@ from discord.ext import commands
 from ....db.cat_scan import metric_store
 from ...info import CAT_GUILD_ID
 
-_COMMIT_EVERY = 512
+COMMIT_EVERY = 512
 
 FIRST_YEAR = 2025
 CUTOFF_MONTH = 12
 CUTOFF_DAY = 15
+
+IGNORED_CHANNELS: set[int] = set()
+IGNORED_CATEGORIES = {
+    990458499387518976,  # info
+    1050538201946800158,  # archived
+    990449082604589136,  # admin
+}
 
 
 logger = getLogger(__name__)
@@ -41,14 +48,26 @@ class CatScanLoggerCog(commands.Cog):
         cutoff = datetime(year, CUTOFF_MONTH, CUTOFF_DAY, 23, 59, 59, tzinfo=UTC)
         return year, cutoff
 
+    def _should_ignore(self, message: discord.Message) -> bool:
+        channel = message.channel
+        if not isinstance(channel, (discord.TextChannel, discord.Thread)):
+            return True  # ignore DMs/voice/etc
+
+        if channel.id in IGNORED_CHANNELS:
+            return True
+
+        category = channel.category
+        return category is not None and category.id in IGNORED_CATEGORIES
+
     async def _log_single_message(
         self, message: discord.Message, *, commit: bool
     ) -> None:
-        if message.guild is None:
-            return
-        if message.author.bot:
-            return
-        if message.guild.id != CAT_GUILD_ID:
+        if (
+            message.guild is None
+            or message.author.bot
+            or message.guild.id != CAT_GUILD_ID
+            or self._should_ignore(message)
+        ):
             return
 
         created = message.created_at
@@ -221,7 +240,7 @@ class CatScanLoggerCog(commands.Cog):
                 )
 
             batch += 1
-            if batch >= _COMMIT_EVERY:
+            if batch >= COMMIT_EVERY:
                 await metric_store.commit(year)
                 batch = 0
 
