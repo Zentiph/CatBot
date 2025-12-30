@@ -5,10 +5,14 @@ from collections.abc import Iterable, Sequence
 import contextlib
 from pathlib import Path
 import sqlite3
-from typing import Any
+from typing import Any, Protocol
 
 __author__ = "Gavin Borne"
 __license__ = "MIT"
+
+
+class _SupportsStr(Protocol):
+    def __str__(self) -> str: ...
 
 
 class Reporter:
@@ -126,7 +130,7 @@ def pretty_table(
     reporter: Reporter,
     title: str,
     headers: Sequence[str],
-    rows: Iterable[Sequence[Any]],
+    rows: Iterable[Sequence[_SupportsStr]],
     max_rows: int | None = None,
 ) -> None:
     """Write a pretty table to represent the data obtained.
@@ -135,7 +139,7 @@ def pretty_table(
         reporter (Reporter): The Reporter to write with.
         title (str): The title of the subsection.
         headers (Sequence[str]): The headers of the table.
-        rows (Iterable[Sequence[Any]]): The rows of the table.
+        rows (Iterable[Sequence[_SupportsStr]]): The rows of the table.
         max_rows (int | None, optional): The maximum rows of the table.
             Defaults to None.
     """
