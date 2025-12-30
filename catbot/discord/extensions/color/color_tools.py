@@ -369,13 +369,41 @@ CSS_GRAYS = {
 """A map of gray CSS color names to their hex values."""
 
 
-def _clamp(
+def clamp(
     t: RealNumber, minimum: RealNumber = 0, maximum: RealNumber = 1
 ) -> RealNumber:
+    """Clamp a value to be between a max and min value.
+
+    Args:
+        t (RealNumber): The number to clamp.
+        minimum (RealNumber, optional): The minimum value. Defaults to 0.
+        maximum (RealNumber, optional): The maximum value. Defaults to 1.
+
+    Returns:
+        RealNumber: The clamped value.
+
+    Raises:
+        ValueError: If `minimum` is greater than `maximum`.
+    """
+    if minimum > maximum:
+        raise ValueError(
+            f"'minimum' ({minimum}) cannot be greater than "
+            f"'maximum' ({maximum}) clamp value"
+        )
+
     return min(maximum or 1, max(minimum or 0, t))
 
 
-def _rem_euclid(lhs: RealNumber, rhs: RealNumber) -> RealNumber:
+def rem_euclid(lhs: RealNumber, rhs: RealNumber) -> RealNumber:
+    """Calculate the Euclidean remainder after division between `lhs` and `rhs`.
+
+    Args:
+        lhs (RealNumber): The lefthand side of the division.
+        rhs (RealNumber): The righthand side of the division.
+
+    Returns:
+        RealNumber: The Euclidean remainder after division.
+    """
     abs_rhs = abs(rhs)
     return lhs - abs_rhs * (lhs // abs_rhs)
 
@@ -435,9 +463,9 @@ class Color3:
         """
 
         def lerp8(a: int, b: int) -> int:
-            return int(_clamp(round(a + (b - a) * t), 0.0, 255.0))
+            return int(clamp(round(a + (b - a) * t), 0.0, 255.0))
 
-        t = _clamp(t)
+        t = clamp(t)
         other_r, other_g, other_b = other.as_rgb()
         return Color3(
             lerp8(self.__r, other_r),
@@ -465,7 +493,7 @@ class Color3:
         Returns:
             Color3: The lightened color.
         """
-        return self.lerp(Color3(255, 255, 255), _clamp(percent, 0.0, 100.0) / 100.0)
+        return self.lerp(Color3(255, 255, 255), clamp(percent, 0.0, 100.0) / 100.0)
 
     def darken(self, percent: float, /) -> Color3:
         """Darken a color.
@@ -476,7 +504,7 @@ class Color3:
         Returns:
             Color3: The darkened color.
         """
-        return self.lerp(Color3(0, 0, 0), _clamp(percent, 0.0, 100.0) / 100.0)
+        return self.lerp(Color3(0, 0, 0), clamp(percent, 0.0, 100.0) / 100.0)
 
     @staticmethod
     def get_color_name(hex6: str, /) -> str | None:
@@ -576,7 +604,7 @@ class Color3:
             Color3: The new color.
         """
         # solution from https://www.rapidtables.com/convert/color/hsl-to-rgb.html
-        h, s, l = _rem_euclid(h, 360.0), _clamp(s), _clamp(l)  # noqa: E741 (ambiguous name)
+        h, s, l = rem_euclid(h, 360.0), clamp(s), clamp(l)  # noqa: E741 (ambiguous name)
 
         c = abs(1.0 - (2.0 * l - 1.0)) * s
         x = c * (1.0 - abs((h / 60.0) % 2.0 - 1.0))
@@ -657,7 +685,7 @@ class Color3:
         if delta == 0.0:
             h = 0.0
         elif rp == c_max:
-            h = 60.0 * _rem_euclid((gp - bp) / delta, 6.0)
+            h = 60.0 * rem_euclid((gp - bp) / delta, 6.0)
         elif gp == c_max:
             h = 60.0 * ((bp - rp) / delta + 2.0)
         else:  # bp == c_max
