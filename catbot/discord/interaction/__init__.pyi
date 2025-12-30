@@ -6,7 +6,7 @@ __license__: Final[str]
 __all__: Final[list[str]]
 
 from .responses import (
-    generate_response_embed as generate_response_embed,
+    build_response_embed as build_response_embed,
     get_guild_interaction_data as get_guild_interaction_data,
     report as report,
     safe_edit as safe_edit,

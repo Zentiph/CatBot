@@ -178,7 +178,7 @@ async def report(
     await safe_send(interaction, f"{status} {message}", ephemeral=ephemeral)
 
 
-def generate_response_embed(
+def build_response_embed(
     *,
     title: str | None = None,
     description: str | None = None,
@@ -187,7 +187,7 @@ def generate_response_embed(
     icon_filepath: str = "static/images/profile.jpg",
     icon_filename: str = "image.png",
 ) -> tuple[discord.Embed, discord.File]:
-    """Generate an embed, returning it and its required icon file.
+    """Build an embed, returning it and its required icon file.
 
     Args:
         title (Any | None): The title of the embed. Defaults to None.

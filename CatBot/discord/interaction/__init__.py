@@ -5,8 +5,8 @@ __license__ = "MIT"
 
 __all__ = [
     "add_new_role_to_member",
+    "build_response_embed",
     "find_role",
-    "generate_response_embed",
     "get_guild_interaction_data",
     "promote_role",
     "report",
@@ -16,7 +16,7 @@ __all__ = [
 ]
 
 from .responses import (
-    generate_response_embed,
+    build_response_embed,
     get_guild_interaction_data,
     report,
     safe_edit,

@@ -50,7 +50,7 @@ async def report(
     *,
     ephemeral: bool = True,
 ) -> None: ...
-def generate_response_embed(
+def build_response_embed(
     *,
     title: str | None = None,
     description: str | None = None,
