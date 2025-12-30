@@ -45,7 +45,7 @@ from .color_tools import (
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 ColorRoleAction = Literal["set", "reset", "reassign"]
 ColorRoleKind = Literal["hex", "rgb", "name", "random", "copy"]
@@ -127,10 +127,10 @@ async def _update_color_role(
             "Contact server administration about this please!",
             Status.ERROR,
         )
-        logger.warning("Failed to create role due to lack of permissions")
+        _logger.warning("Failed to create role due to lack of permissions")
     except discord.HTTPException:
         await report(interaction, "An error occurred. Please try again.", Status.ERROR)
-        logger.exception("Failed to create role due to an unexpected error: %s")
+        _logger.exception("Failed to create role due to an unexpected error: %s")
 
 
 class _LightenModal(RestrictedModal["_ColorView"]):

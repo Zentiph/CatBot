@@ -65,7 +65,7 @@ _BAD_WORDS = re.compile(
     re.IGNORECASE,
 )
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -627,7 +627,7 @@ class FunCog(commands.Cog, name="Fun Commands"):
             result = await _fetch_animal(kind)
             await _send_animal_embed(interaction, result, emoji=Visual.PAWS)
         except ApiError as e:
-            logger.warning("Animal API error: %s", e)
+            _logger.warning("Animal API error: %s", e)
             await report(
                 interaction,
                 f"{e}\nPlease try again later, or submit a "
@@ -635,7 +635,7 @@ class FunCog(commands.Cog, name="Fun Commands"):
                 Status.ERROR,
             )
         except Exception:
-            logger.exception("Unexpected error in /animal")
+            _logger.exception("Unexpected error in /animal")
             await report(
                 interaction,
                 "Something went wrong.\nPlease try again later, or submit a "
