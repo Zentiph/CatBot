@@ -20,7 +20,6 @@ class Reporter:
         Args:
             write_to (Path): Where to write the report to.
         """
-        self.__out_path = write_to
         self.__fp = write_to.open("w", encoding="utf-8")
 
     def close(self) -> None:
@@ -98,6 +97,31 @@ def query_one(
     return rows[0] if rows else None
 
 
+def fmt_row(
+    row_vals: Sequence[str], widths: Sequence[int], is_numeric_col: Sequence[bool]
+) -> str:
+    """Format a row with its values, widths, and numeric states.
+
+    Numeric columns are right-justified while others are left-justified.
+
+    Args:
+        row_vals (Sequence[str]): The values in the row.
+        widths (Sequence[int]): The widths to fit each value in.
+        is_numeric_col (Sequence[bool]): Whether each column is numeric.
+
+
+    Returns:
+        str: The formatted row as a string.
+    """
+    parts = []
+    for i, val in enumerate(row_vals):
+        if is_numeric_col[i]:
+            parts.append(val.rjust(widths[i]))
+        else:
+            parts.append(val.ljust(widths[i]))
+    return " ".join(parts)
+
+
 def pretty_table(
     reporter: Reporter,
     title: str,
@@ -147,43 +171,24 @@ def pretty_table(
                 is_numeric_col[col] = False
                 break
 
-    def fmt_row(row_vals: Sequence[str]) -> str:
-        parts = []
-        for i, val in enumerate(row_vals):
-            if is_numeric_col[i]:
-                parts.append(val.rjust(widths[i]))
-            else:
-                parts.append(val.ljust(widths[i]))
-        return " ".join(parts)
-
     # header
-    reporter.write(fmt_row(str_headers))
+    reporter.write(fmt_row(str_headers, widths, is_numeric_col))
     reporter.write(" ".join("-" * w for w in widths))
 
     # rows
     for row in str_rows:
-        reporter.write(fmt_row(row))
+        reporter.write(fmt_row(row, widths, is_numeric_col))
 
 
-def run_stats(
-    connection: sqlite3.Connection,
-    reporter: Reporter,
-    *,
-    top_n: int,
-    min_messages_for_derived: int,
+def run_global_overview_stats(
+    connection: sqlite3.Connection, reporter: Reporter
 ) -> None:
-    """Run stats on the given database.
+    """Run global overview stats stats on the messages database.
 
     Args:
         connection (sqlite3.Connection): The DB to run stats on.
         reporter (Reporter): The Reporter to report with.
-        top_n (int): The top n number of items to list.
-        min_messages_for_derived (int): The minimum number of messages
-            for derived statistics to be tracked.
     """
-    # --- global overview ---
-    reporter.section("Global Overview")
-
     row = query_one(
         connection,
         """--sql
@@ -241,9 +246,17 @@ def run_stats(
     reporter.write(f"Oldest message:    {oldest}")
     reporter.write(f"Newest message:    {newest}")
 
-    # --- top users & basic leaderboards ---
-    reporter.section("User Leaderboards")
 
+def run_top_users_and_basic_leaderboard_stats(
+    connection: sqlite3.Connection, reporter: Reporter, *, top_n: int
+) -> None:
+    """Run top user and basic leaderboard stats on the messages database.
+
+    Args:
+        connection (sqlite3.Connection): The DB to run stats on.
+        reporter (Reporter): The Reporter to report with.
+        top_n (int): The top n number of items to list per leaderboard.
+    """
     # top message senders
     rows = query_all(
         connection,
@@ -282,9 +295,17 @@ def run_stats(
         reporter, "Top by Characters", ["author_id", "total_chars"], rows, top_n
     )
 
-    # --- attachments / media stats ---
-    reporter.section("Media & Attachment Leaderboards")
 
+def run_attachments_and_media_stats(
+    connection: sqlite3.Connection, reporter: Reporter, *, top_n: int
+) -> None:
+    """Run attachments and media stats on the messages database.
+
+    Args:
+        connection (sqlite3.Connection): The DB to run stats on.
+        reporter (Reporter): The Reporter to report with.
+        top_n (int): The top n number of items to list per leaderboard.
+    """
     # overall
     rows = query_all(
         connection,
@@ -347,9 +368,23 @@ def run_stats(
     )
     pretty_table(reporter, "Top by Embeds", ["author_id", "embeds"], rows, top_n)
 
-    # --- message style stats ---
-    reporter.section("Message Style Stats")
 
+def run_message_style_stats(
+    connection: sqlite3.Connection,
+    reporter: Reporter,
+    *,
+    top_n: int,
+    min_messages_for_derived: int,
+) -> None:
+    """Run message style stats on the messages database.
+
+    Args:
+        connection (sqlite3.Connection): The DB to run stats on.
+        reporter (Reporter): The Reporter to report with.
+        top_n (int): The top n number of items to list per leaderboard.
+        min_messages_for_derived (int): The minimum number of messages
+            for derived statistics to be tracked.
+    """
     # average words per message
     rows = query_all(
         connection,
@@ -398,9 +433,23 @@ def run_stats(
         top_n,
     )
 
-    # --- time-of-day stats ---
-    reporter.section("Time-of-Day Stats")
 
+def run_time_of_day_stats(
+    connection: sqlite3.Connection,
+    reporter: Reporter,
+    *,
+    top_n: int,
+    min_messages_for_derived: int,
+) -> None:
+    """Run time of day stats on the messages database.
+
+    Args:
+        connection (sqlite3.Connection): The DB to run stats on.
+        reporter (Reporter): The Reporter to report with.
+        top_n (int): The top n number of items to list per leaderboard.
+        min_messages_for_derived (int): The minimum number of messages
+            for derived statistics to be tracked.
+    """
     # night owls (midnight-4am EST; UTC-5 approximation)
     rows = query_all(
         connection,
@@ -496,9 +545,20 @@ def run_stats(
         None,
     )
 
-    # --- channel stats ---
-    reporter.section("Channel Stats")
 
+def run_channel_stats(
+    connection: sqlite3.Connection,
+    reporter: Reporter,
+    *,
+    top_n: int,
+) -> None:
+    """Run channel stats on the messages database.
+
+    Args:
+        connection (sqlite3.Connection): The DB to run stats on.
+        reporter (Reporter): The Reporter to report with.
+        top_n (int): The top n number of items to list per leaderboard.
+    """
     # most active channels
     rows = query_all(
         connection,
@@ -556,94 +616,53 @@ def run_stats(
         top_n,
     )
 
-    # --- fun derived stats ---
-    reporter.section("Fun Derived Stats")
 
-    # expressive texters (high words, low media)
-    rows = query_all(
+def run_stats(
+    connection: sqlite3.Connection,
+    reporter: Reporter,
+    *,
+    top_n: int,
+    min_messages_for_derived: int,
+) -> None:
+    """Run stats on the messages database.
+
+    Args:
+        connection (sqlite3.Connection): The DB to run stats on.
+        reporter (Reporter): The Reporter to report with.
+        top_n (int): The top n number of items to list per leaderboard.
+        min_messages_for_derived (int): The minimum number of messages
+            for derived statistics to be tracked.
+    """
+    reporter.section("Global Overview")
+    run_global_overview_stats(connection, reporter)
+
+    reporter.section("User Leaderboards")
+    run_top_users_and_basic_leaderboard_stats(connection, reporter, top_n=top_n)
+
+    reporter.section("Media & Attachment Leaderboards")
+    run_attachments_and_media_stats(connection, reporter, top_n=top_n)
+
+    reporter.section("Message Style Stats")
+    run_message_style_stats(
         connection,
-        """--sql
-        WITH per_user AS (
-            SELECT author_id,
-                COUNT(*) AS messages,
-                SUM(word_count) AS total_words,
-                SUM(attachment_count) AS attachments
-            FROM messages
-            GROUP BY author_id
-        )
-        SELECT author_id,
-            messages,
-            total_words,
-            attachments,
-            ROUND(1.0 * total_words / messages, 2) AS avg_words_per_message,
-            ROUND(1.0 * attachments / messages, 2) AS attachments_per_message
-        FROM per_user
-        WHERE messages >= ?
-        ORDER BY avg_words_per_message DESC, attachments_per_message ASC;
-        """,
-        (min_messages_for_derived,),
-    )
-    pretty_table(
         reporter,
-        f"Expressive Texters (min {min_messages_for_derived} msgs)",
-        [
-            "author_id",
-            "messages",
-            "total_words",
-            "attachments",
-            "avg_words_per_message",
-            "attachments_per_message",
-        ],
-        rows,
-        top_n,
+        top_n=top_n,
+        min_messages_for_derived=min_messages_for_derived,
     )
 
-    # longest single messages (by word count)
-    rows = query_all(
+    reporter.section("Time-of-Day Stats")
+    run_time_of_day_stats(
         connection,
-        """--sql
-        SELECT author_id, message_id, word_count, char_count, created_at
-        FROM messages
-        ORDER BY word_count DESC
-        LIMIT ?;
-        """,
-        (top_n,),
-    )
-    pretty_table(
         reporter,
-        "Longest Single Messages (by words)",
-        ["author_id", "message_id", "word_count", "char_count", "created_at"],
-        rows,
-        None,
+        top_n=top_n,
+        min_messages_for_derived=min_messages_for_derived,
     )
 
-    # spam gods (low avg words, high message count)
-    rows = query_all(
+    reporter.section("Channel Stats")
+    run_channel_stats(
         connection,
-        """--sql
-        WITH per_user AS (
-            SELECT author_id,
-                COUNT(*) AS messages,
-                SUM(word_count) AS total_words
-            FROM messages
-            GROUP BY author_id
-        )
-        SELECT author_id,
-            messages,
-            total_words,
-            ROUND(1.0 * total_words / messages, 2) AS avg_words_per_message
-        FROM per_user
-        WHERE messages >= ?
-        ORDER BY avg_words_per_message ASC, messages DESC;
-        """,
-        (min_messages_for_derived,),
-    )
-    pretty_table(
         reporter,
-        f"Spam Gods (min {min_messages_for_derived} msgs)",
-        ["author_id", "messages", "total_words", "avg_words_per_message"],
-        rows,
-        top_n,
+        top_n=top_n,
     )
 
 
