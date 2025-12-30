@@ -7,7 +7,6 @@ import discord
 from discord.ext import commands
 
 from ....db.cat_scan import metric_store
-from ....util import CatBot
 from ...info import CAT_GUILD_ID
 
 _COMMIT_EVERY = 512
@@ -23,11 +22,11 @@ logger = getLogger(__name__)
 class CatScanLoggerCog(commands.Cog):
     """Logs messages for Cat Scan and backfills missed ones on startup."""
 
-    def __init__(self, bot: CatBot) -> None:
+    def __init__(self, bot: commands.Bot) -> None:
         """Logs messages for Cat Scan and backfills missed ones on startup.
 
         Args:
-            bot (CatBot): The bot to add the cog to.
+            bot (commands.Bot): The bot to add the cog to.
         """
         self.bot = bot
         self._catchup_started = False
@@ -232,9 +231,4 @@ class CatScanLoggerCog(commands.Cog):
 
 async def setup(bot: commands.Bot) -> None:
     """Load the CatScanLogger cog."""
-    if not isinstance(bot, CatBot):
-        logger.warning(
-            "Not loading CatScanLoggerCog because the provided bot is not a CatBot"
-        )
-        return
     await bot.add_cog(CatScanLoggerCog(bot))

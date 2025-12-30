@@ -15,7 +15,6 @@ from discord.ext import commands
 from requests import Timeout
 
 from catbot import pawprints
-from catbot.util import CatBot
 
 __author__ = "Gavin Borne"
 __license__ = "MIT"
@@ -67,7 +66,11 @@ def init_arg_parser() -> ArgumentParser:
     return arg_parser
 
 
-bot = CatBot()
+intents = discord.Intents.default()
+intents.message_content = True
+intents.members = True
+intents.presences = True
+bot = commands.Bot(command_prefix="!", intents=intents)
 parser = init_arg_parser()
 args = parser.parse_args()
 
