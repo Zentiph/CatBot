@@ -70,7 +70,16 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 intents.presences = True
-bot = commands.Bot(command_prefix="!", intents=intents)
+
+bot = commands.Bot(
+    command_prefix="!",
+    intents=intents,
+    allowed_contexts=discord.app_commands.AppCommandContext(
+        guild=True, dm_channel=True, private_channel=True
+    ),
+    allowed_installs=discord.app_commands.AppInstallationType(guild=True, user=True),
+)
+
 parser = init_arg_parser()
 args = parser.parse_args()
 
