@@ -6,7 +6,7 @@ from logging import getLogger
 import discord
 from discord.ext import commands
 
-from ....db.cat_scan import YearlyMetricStore
+from ....db.cat_scan import metric_store
 from ....util import CatBot
 from ...info import CAT_GUILD_ID
 
@@ -43,7 +43,7 @@ class CatScanLoggerCog(commands.Cog):
         return year, cutoff
 
     async def _log_single_message(
-        self, store: YearlyMetricStore, message: discord.Message, *, commit: bool
+        self, message: discord.Message, *, commit: bool
     ) -> None:
         if message.guild is None:
             return
@@ -100,7 +100,7 @@ class CatScanLoggerCog(commands.Cog):
 
         created_iso = created_utc.isoformat()
 
-        await store.insert_message(
+        await metric_store.insert_message(
             year,
             message_id=message.id,
             channel_id=message.channel.id,
@@ -115,13 +115,13 @@ class CatScanLoggerCog(commands.Cog):
         )
 
         if commit:
-            await store.commit(year)
+            await metric_store.commit(year)
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
         """Log messages as they come in."""
         try:
-            await self._log_single_message(self.bot.store, message, commit=True)
+            await self._log_single_message(message, commit=True)
         except Exception:
             logger.exception("Failed to log message for Cat Scan")
 
@@ -173,7 +173,6 @@ class CatScanLoggerCog(commands.Cog):
         for channel in text_channels:
             try:
                 await self._catchup_channel(
-                    self.bot.store,
                     channel,
                     year=current_year,
                     start_of_year=start_of_year,
@@ -188,14 +187,13 @@ class CatScanLoggerCog(commands.Cog):
 
     async def _catchup_channel(
         self,
-        store: YearlyMetricStore,
         channel: discord.TextChannel,
         *,
         year: int,
         start_of_year: datetime,
         window_end: datetime,
     ) -> None:
-        latest = await store.get_latest_timestamp(year, channel_id=channel.id)
+        latest = await metric_store.get_latest_timestamp(year, channel_id=channel.id)
         after = latest if latest is not None else start_of_year
 
         if latest is not None and latest >= window_end:
@@ -215,7 +213,7 @@ class CatScanLoggerCog(commands.Cog):
             limit=None, oldest_first=True, after=after, before=window_end
         ):
             try:
-                await self._log_single_message(store, message, commit=False)
+                await self._log_single_message(message, commit=False)
             except Exception:
                 logger.exception(
                     "Cat Scan catchup: failed logging message %s in #%s",
@@ -225,11 +223,11 @@ class CatScanLoggerCog(commands.Cog):
 
             batch += 1
             if batch >= _COMMIT_EVERY:
-                await store.commit(year)
+                await metric_store.commit(year)
                 batch = 0
 
         if batch > 0:  # flush at the end
-            await store.commit(year)
+            await metric_store.commit(year)
 
 
 async def setup(bot: commands.Bot) -> None:

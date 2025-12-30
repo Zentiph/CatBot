@@ -5,4 +5,4 @@ __license__: Final[str]
 
 __all__: Final[list[str]]
 
-from .metrics_store import YearlyMetricStore as YearlyMetricStore
+from .metrics_store import metric_store as metric_store

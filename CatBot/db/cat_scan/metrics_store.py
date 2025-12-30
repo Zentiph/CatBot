@@ -5,7 +5,6 @@ throughout the year which will then have statistics run on it to create a presen
 for the server.
 """
 
-from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 
@@ -39,13 +38,15 @@ CREATE INDEX IF NOT EXISTS idx_messages_channel_date
     ON messages (channel_id, created_at);
 """
 
+DATA_ROOT_DIR = Path("data") / "cat_scan"
 
-@dataclass
+
 class YearlyMetricStore:
     """Manages one SQLite DB per year."""
 
-    root: Path = Path("data") / "cat_scan"
-    _connections: dict[int, aiosqlite.Connection] = field(default_factory=dict)
+    def __init__(self) -> None:
+        """Manages one SQLite DB per year."""
+        self.__connections: dict[int, aiosqlite.Connection] = {}
 
     async def get_connection(self, year: int, /) -> aiosqlite.Connection:
         """Get or create a DB connection for a given year.
@@ -56,20 +57,22 @@ class YearlyMetricStore:
         Returns:
             aiosqlite.Connection: The connection corresponding to the given year.
         """
-        if year in self._connections:
-            return self._connections[year]
+        if year in self.__connections:
+            return self.__connections[year]
 
-        self.root.mkdir(parents=True, exist_ok=True)
-        path = self.root / f"cat_scan_{year}.sqlite"
+        DATA_ROOT_DIR.mkdir(parents=True, exist_ok=True)
+        path = DATA_ROOT_DIR / f"cat_scan_{year}.sqlite"
 
         connection = await aiosqlite.connect(path)
-        await connection.execute("""--sql
-                                 PRAGMA foreign_keys = ON;
-                                 """)
+        await connection.execute(
+            """--sql
+            PRAGMA foreign_keys = ON;
+            """
+        )
         await connection.executescript(_SCHEMA)
         await connection.commit()
 
-        self._connections[year] = connection
+        self.__connections[year] = connection
         return connection
 
     async def insert_message(
@@ -175,3 +178,6 @@ class YearlyMetricStore:
             return None
 
         return datetime.fromisoformat(row[0])
+
+
+metric_store = YearlyMetricStore()

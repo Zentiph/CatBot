@@ -8,6 +8,6 @@ for the server.
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
-__all__ = ["YearlyMetricStore"]
+__all__ = ["metric_store"]
 
-from .metrics_store import YearlyMetricStore
+from .metrics_store import metric_store

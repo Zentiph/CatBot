@@ -1,4 +1,3 @@
-from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Final
@@ -8,11 +7,10 @@ import aiosqlite
 __author__: Final[str]
 __license__: Final[str]
 
-@dataclass
-class YearlyMetricStore:
-    root: Path = Path("data") / "cat_scan"
-    _connections: dict[int, aiosqlite.Connection] = field(default_factory=dict)
+DATA_ROOT_DIR: Final[Path]
 
+class YearlyMetricStore:
+    def __init__(self) -> None: ...
     async def get_connection(self, year: int, /) -> aiosqlite.Connection: ...
     async def insert_message(
         self,
@@ -34,3 +32,5 @@ class YearlyMetricStore:
     async def get_latest_timestamp(
         self, year: int, /, channel_id: int
     ) -> datetime | None: ...
+
+metric_store: Final[YearlyMetricStore]

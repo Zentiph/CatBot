@@ -3,17 +3,15 @@
 import discord
 from discord.ext import commands
 
-from ..db.cat_scan import YearlyMetricStore
-
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
 
 class CatBot(commands.Bot):
-    """A Bot with a built in metrics tracker that other files can access."""
+    """A Bot with preset intents."""
 
     def __init__(self) -> None:
-        """A Bot with a built in metrics tracker that other files can access.
+        """A Bot with preset intents.
 
         Args:
             store (YearlyMetricStore): Where to store metrics information.
@@ -23,9 +21,3 @@ class CatBot(commands.Bot):
         intents.members = True
         intents.presences = True
         super().__init__(command_prefix="!", intents=intents)
-        self.__store = YearlyMetricStore()
-
-    @property
-    def store(self) -> YearlyMetricStore:
-        """Get the bot's metrics store."""
-        return self.__store
