@@ -15,16 +15,11 @@ from discord.ext import commands
 from requests import Timeout
 
 from catbot import pawprints
+from catbot.discord.interaction import report
+from catbot.discord.ui.emoji import Status
 
 __author__ = "Gavin Borne"
 __license__ = "MIT"
-
-APP_COMMAND_ERRORS = (
-    app_commands.errors.CheckFailure,
-    discord.Forbidden,
-    OverflowError,
-    Timeout,
-)
 
 
 def init_arg_parser() -> ArgumentParser:
@@ -115,45 +110,46 @@ async def on_app_command_error(
         interaction (discord.Interaction): The interaction instance.
         error (app_commands.AppCommandError): The error.
     """
-
-    async def try_response(message: str, /, *, ephemeral: bool = True) -> None:
-        try:
-            await interaction.response.send_message(message, ephemeral=ephemeral)
-        except discord.errors.InteractionResponded:
-            await interaction.followup.send(message, ephemeral=ephemeral)
-
-    if type(error) not in APP_COMMAND_ERRORS:  # Unintentional error
-        logging.error(f"An error occurred: {error}")
-        await try_response(
-            "An unknown error occurred. Contact @zentiph to report this please!"
-        )
-
-    if isinstance(error, app_commands.errors.CheckFailure):  # Restricted command
+    if isinstance(error, app_commands.errors.CheckFailure):  # restricted command
         logging.info(
             f"Unauthorized user {interaction.user} attempted"
             " to use a restricted command",
         )
-        await try_response("You do not have permission to use this command.")
+        await report(
+            interaction,
+            "You do not have permission to use this command.",
+            Status.FAILURE,
+        )
+        return
 
-    elif isinstance(error, discord.Forbidden):
+    if isinstance(error, discord.Forbidden):
         logging.warning(
             "Attempted to perform a command with inadequate "
             "permissions allotted to the bot"
         )
-        await try_response("I do not have permissions to perform this command.")
-
-    elif isinstance(error, OverflowError):
-        logging.info("Overflow error occurred during a calculation")
-        await try_response(
-            "This calculation caused an arithmetic overflow. Try using smaller numbers."
+        await report(
+            interaction,
+            "I do not have permissions to perform this command.",
+            Status.WARNING,
         )
+        return
 
-    elif isinstance(error, Timeout):
+    if isinstance(error, Timeout):
         logging.warning("Timeout error occurred during HTTP request")
-        await try_response(
+        await report(
+            interaction,
             "An attempt to communicate with an external API "
-            "has taken too long, and has been canceled."
+            "has taken too long, and has been canceled.",
+            Status.ERROR,
         )
+        return
+
+    logging.error(f"An error occurred: {error}")
+    await report(
+        interaction,
+        "An unknown error occurred. Contact @zentiph to report this please!",
+        Status.ERROR,
+    )
 
 
 async def load_group(to: commands.Bot, base_pkg: str) -> None:
@@ -177,7 +173,7 @@ async def load_group(to: commands.Bot, base_pkg: str) -> None:
         except commands.errors.ExtensionAlreadyLoaded:
             logging.debug(f"Already loaded extension: {full_name}, skipping")
         except commands.errors.NoEntryPointError:
-            # Module didn't have a setup(bot) func
+            # module didn't have a setup(bot) func
             logging.debug(
                 f"Couldn't load extension: {full_name}, "
                 "no setup(bot) function present, skipping"
@@ -201,7 +197,7 @@ async def setup(logfile: Path) -> None:
     await load_group(bot, "fun")
 
     if not args.debug:
-        # comment this out if you don't want to do message metric tracking
+        # comment this next line out if you don't want to do message metric tracking
         await load_group(bot, "metrics")
 
 

@@ -4,10 +4,10 @@ import logging
 
 import discord
 
+from ..info import BOT_APP_ID
+
 __author__ = "Gavin Borne"
 __license__ = "MIT"
-
-from ..info import BOT_APP_ID
 
 
 async def promote_role(role: discord.Role, /) -> None:
@@ -67,7 +67,7 @@ def find_role(role: str, guild: discord.Guild, /) -> discord.Role | None:
 
 
 async def update_role_color(role: discord.Role, color: discord.Color, /) -> None:
-    """Update the given role's color.
+    """Set the given role's color.
 
     Args:
         role (discord.Role): The role to edit.

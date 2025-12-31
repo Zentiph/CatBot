@@ -9,17 +9,20 @@ from discord.ext import commands
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
-
 LOG_FILE = "logs.log"
 """The file to log to."""
+
+# TODO: change when DB is added
 LOGGING_CHANNEL = 1306045987319451718
 """The channel to post command logs in.
 This is a temporary solution until a DB is added.
 """
+
 DEFAULT_FMT = (
     "[%(asctime)s] [%(levelname)s] %(name)s - %(message)s (%(filename)s:%(lineno)d)"
 )
 """The default logging format to use."""
+
 DEFAULT_DATE_FMT = "%Y-%m-%d %H:%M:%S"
 """The default logging date format to use."""
 
@@ -39,7 +42,7 @@ class AnsiColorFormatter(logging.Formatter):
     """A formatter that colors logs based on their level using ANSI color codes."""
 
     @staticmethod
-    def _format_by_level(fmt: str, level: int, /) -> str:
+    def __format_by_level(fmt: str, level: int, /) -> str:
         match level:
             case logging.DEBUG:
                 return AnsiColor.DEBUG + fmt + AnsiColor.RESET
@@ -71,7 +74,7 @@ class AnsiColorFormatter(logging.Formatter):
         Returns:
             str: The formatted record as a string.
         """
-        return self._format_by_level(super().format(record), record.levelno)
+        return self.__format_by_level(super().format(record), record.levelno)
 
 
 def config_logging(

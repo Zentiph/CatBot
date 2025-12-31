@@ -1,22 +1,24 @@
 """Information about CatBot and its run conditions."""
 
 from datetime import UTC, datetime
+from os import getpid
 from pathlib import Path
 from platform import platform
 from sys import version_info
 
 from discord import version_info as discord_version_info
+from psutil import Process
 
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
-_SECONDS_PER_HOUR = 3600
-_SECONDS_PER_MINUTE = 60
-_HOURS_PER_DAY = 24
-_MINUTES_PER_HOUR = 60
-_MICROSECONDS_PER_SECOND = 1000000
+SECONDS_PER_HOUR = 3600
+SECONDS_PER_MINUTE = 60
+HOURS_PER_DAY = 24
+MINUTES_PER_HOUR = 60
+MICROSECONDS_PER_SECOND = 1000000
 
-START_TIME = datetime.now(UTC)
+START_TIME = datetime.fromtimestamp(Process(getpid()).create_time(), tz=UTC)
 """The time the bot was started."""
 
 HOST = platform()
@@ -68,10 +70,10 @@ def get_uptime() -> str:
     """
     uptime = datetime.now(UTC) - START_TIME
     days = uptime.days
-    hours = (uptime.seconds // _SECONDS_PER_HOUR) % _HOURS_PER_DAY
-    minutes = (uptime.seconds // _SECONDS_PER_MINUTE) % _MINUTES_PER_HOUR
-    seconds = uptime.seconds % _SECONDS_PER_MINUTE
-    microseconds = uptime.microseconds % _MICROSECONDS_PER_SECOND
+    hours = (uptime.seconds // SECONDS_PER_HOUR) % HOURS_PER_DAY
+    minutes = (uptime.seconds // SECONDS_PER_MINUTE) % MINUTES_PER_HOUR
+    seconds = uptime.seconds % SECONDS_PER_MINUTE
+    microseconds = uptime.microseconds % MICROSECONDS_PER_SECOND
     return (
         f"{days} days, {hours} hours, {minutes} minutes, "
         f"{seconds} seconds, {microseconds} microseconds"

@@ -21,7 +21,7 @@ Check = Callable[[discord.Interaction], bool]
 
 @runtime_checkable
 class SupportsDisabled(Protocol):
-    """An instance that has a "disabled" attribute."""
+    """An object that has a "disabled" attribute."""
 
     disabled: bool
 

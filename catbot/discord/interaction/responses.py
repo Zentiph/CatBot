@@ -15,23 +15,25 @@ __author__ = "Gavin Borne"
 __license__ = "MIT"
 
 
+file_cache: dict[str, bytes] = {}
+
+
 @dataclass(frozen=True)
 class GuildInteractionData:
     """Interaction data to track when in a guild."""
 
     member: discord.Member
+    """The member that spawned the interaction."""
     guild: discord.Guild
-
-
-_file_cache: dict[str, bytes] = {}
+    """The guild in which the interaction was spawned."""
 
 
 class InvalidImageFormatError(ValueError):
     """Raised if an invalid image type is used as a file attachment."""
 
-    def __init__(self) -> None:
-        """Create a new InvalidImageFormatError."""
-        super().__init__("Image format should be .jpg or .png")
+    def __init__(self, message: str = "", /) -> None:
+        """Raised if an invalid image type is used as a file attachment."""
+        super().__init__(message or "Image format should be .jpg or .png")
 
 
 async def safe_send(
@@ -205,10 +207,10 @@ def build_response_embed(
     if Path(icon_filepath).suffix.lower() not in {".png", ".jpg", ".jpeg"}:
         raise InvalidImageFormatError()
 
-    data = _file_cache.get(icon_filepath)
+    data = file_cache.get(icon_filepath)
     if data is None:
         data = Path(icon_filepath).read_bytes()
-        _file_cache[icon_filepath] = data
+        file_cache[icon_filepath] = data
 
     file = discord.File(BytesIO(data), filename=icon_filename)
     embed = discord.Embed(title=title, description=description, color=color)
