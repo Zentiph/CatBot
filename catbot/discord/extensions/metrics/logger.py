@@ -23,7 +23,7 @@ IGNORED_CATEGORIES = {
 }
 
 
-logger = getLogger(__name__)
+logger = getLogger("CatScanLoggerCog")
 
 
 class CatScanLoggerCog(commands.Cog):

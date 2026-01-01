@@ -152,11 +152,11 @@ async def on_app_command_error(
     )
 
 
-async def load_group(to: commands.Bot, base_pkg: str) -> None:
+async def load_group(to_bot: commands.Bot, base_pkg: str) -> None:
     """Load a group of extensions from a base package.
 
     Args:
-        to (commands.Bot): The bot to load the extensions to.
+        to_bot (commands.Bot): The bot to load the extensions to.
         base_pkg (str): The base package of the extension group.
     """
     root = "catbot.discord.extensions"
@@ -168,7 +168,7 @@ async def load_group(to: commands.Bot, base_pkg: str) -> None:
 
         full_name = f"{root}.{base_pkg}.{module_name}"
         try:
-            await to.load_extension(full_name)
+            await to_bot.load_extension(full_name)
             logging.info(f"Loaded extension: {full_name}")
         except commands.errors.ExtensionAlreadyLoaded:
             logging.debug(f"Already loaded extension: {full_name}, skipping")
