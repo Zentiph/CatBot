@@ -27,12 +27,12 @@ from ...interaction import (
 )
 from ...ui import COIN_HEADS_COLOR, COIN_TAILS_COLOR
 from ...ui.emoji import Status, Visual
-from .inaturalist_api import AnimalResult, animal_kind_autocomplete, fetch_inat_animal
-
-# TODO add option to /animal for multiple photos up to 4 or 5
-# TODO for /animal if an autocomplete isn't selected do the lookup in the command
-#      to find the best fitting result
-
+from .inaturalist_api import (
+    MAX_MULTI_IMAGE_FETCH_SIZE,
+    AnimalResult,
+    animal_kind_autocomplete,
+    fetch_inat_animal,
+)
 
 MAX_FILENAME_LEN = 40
 """The maximum length of an attachment filename."""
@@ -80,26 +80,47 @@ async def send_animal_embed(
         interaction (discord.Interaction): The interaction instance.
         result (AnimalResult): The animal result from talking to iNaturalist.
     """
-    image_bytes = await http_get_bytes(result.image_url, timeout=10)
-    image_fp = BytesIO(image_bytes)
-    filename = f"{safe_filename(result.kind)}.png"
-    file = discord.File(fp=image_fp, filename=filename)
+    urls = (result.images or [result.image_url])[:MAX_MULTI_IMAGE_FETCH_SIZE]
 
     description_parts = []
     if result.fact:
         description_parts.append(result.fact)
     if result.source:
         description_parts.append(f"*Source: {result.source}*")
-
-    embed, icon = build_response_embed(
-        title=f"{Visual.PAWS} Random {result.kind.title()}",
-        description="\n\n".join(description_parts)
-        if description_parts
-        else "Here you go!",
+    base_description = (
+        "\n\n".join(description_parts) if description_parts else "Here you go!"
     )
-    embed.set_image(url=f"attachment://{filename}")
 
-    await safe_send(interaction, embed=embed, files=(file, icon))
+    files: list[discord.File] = []
+    embeds: list[discord.Embed] = []
+
+    # build first embed once to get the icon
+    first_filename = f"{safe_filename(result.kind)}_1.png"
+    first_bytes = await http_get_bytes(urls[0], timeout=10)
+    files.append(discord.File(fp=BytesIO(first_bytes), filename=first_filename))
+
+    first_embed, icon = build_response_embed(
+        title=f"{Visual.PAWS} Random {result.kind.title()} (1/{len(urls)})",
+        description=base_description,
+    )
+    first_embed.set_image(url=f"attachment://{first_filename}")
+    embeds.append(first_embed)
+
+    # remaining images: no repeated icon creation
+    for i, url in enumerate(urls[1:], start=2):
+        image_bytes = await http_get_bytes(url, timeout=10)
+        filename = f"{safe_filename(result.kind)}_{i}.png"
+        files.append(discord.File(fp=BytesIO(image_bytes), filename=filename))
+
+        e = discord.Embed(
+            title=f"{Visual.PAWS} Random {result.kind.title()} ({i}/{len(urls)})",
+            description="",
+        )
+        e.set_image(url=f"attachment://{filename}")
+        embeds.append(e)
+
+    files.append(icon)
+    await safe_send(interaction, embeds=embeds, files=files)
 
 
 class FunCog(commands.Cog, name="Fun Commands"):
@@ -230,17 +251,21 @@ class FunCog(commands.Cog, name="Fun Commands"):
         name="animal", description="Get an animal picture (and maybe a fact)!"
     )
     @app_commands.describe(
-        kind="Which animal to fetch (type your animal, "
-        "then wait for the autocomplete and pick the best-fitting option)"
+        kind="Which animal to fetch "
+        "(wait for the autocomplete to pick the best-fitting option)",
+        amount="How many images to fetch (1-5)",
     )
-    async def animal(self, interaction: discord.Interaction, kind: str) -> None:
+    async def animal(
+        self, interaction: discord.Interaction, kind: str, amount: int = 1
+    ) -> None:
         """Get a random animal image and possibly a fact."""
         log_app_command(interaction)
 
         await interaction.response.defer(thinking=True)
 
         try:
-            result = await fetch_inat_animal(kind)
+            amount = max(1, min(MAX_MULTI_IMAGE_FETCH_SIZE, amount))
+            result = await fetch_inat_animal(kind, images=amount)
             await send_animal_embed(interaction, result)
         except ApiError as e:
             logger.warning("Animal API error: %s", e)

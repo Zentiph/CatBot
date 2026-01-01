@@ -43,6 +43,9 @@ INAT_OBSERVATIONS_IMAGE_FETCH_COUNT = 60
 OBSERVATION_IMAGE_FETCH_ATTEMPTS = 15
 """The number of attempts to try when fetching images from iNaturalist observations."""
 
+MAX_MULTI_IMAGE_FETCH_SIZE = 5
+"""The maximum number of images to fetch at once."""
+
 BAD_WORDS = re.compile(
     r"\b("
     r"skull|skeleton|bones|bone|dead|deceased|roadkill|carcass|corpse|remains|"
@@ -70,6 +73,8 @@ class AnimalResult:
     """The kind of animal."""
     image_url: str
     """The URL to the image found."""
+    images: list[str] | None = None
+    """The images obtained."""
     fact: str | None = None
     """A fact blurb about the animal."""
     source: str | None = None
@@ -393,7 +398,16 @@ async def get_wiki_summary_and_url_from_full_taxon(
     return (None, None)
 
 
-async def _fetch_inat_image(taxon: dict[str, Any], taxon_id: int | None) -> str | None:
+async def fetch_inat_image(taxon: dict[str, Any], taxon_id: int | None) -> str | None:
+    """Fetch an image for an iNaturalist taxon.
+
+    Args:
+        taxon (dict[str, Any]): The taxon to fetch the image of.
+        taxon_id (int | None): The ID of the taxon.
+
+    Returns:
+        str | None: The image URL, or None if one couldn't be found.
+    """
     # try getting a good image (prefer observations for randomness)
     # observations first (most random)
     if taxon_id is not None:
@@ -416,11 +430,50 @@ async def _fetch_inat_image(taxon: dict[str, Any], taxon_id: int | None) -> str 
     return None
 
 
-async def fetch_inat_animal(kind: str, /) -> AnimalResult:
+async def fetch_inat_images(
+    taxon: dict[str, Any], taxon_id: int | None, images: int = 1
+) -> list[str]:
+    """Fetch a group of iNaturalist images.
+
+    Args:
+        taxon (dict[str, Any]): The taxon to search for.
+        taxon_id (int | None): The ID of the taxon to search for.
+        images (int, optional): The number of images to fetch. Defaults to 1.
+
+    Returns:
+        list[str]: The fetched image URLs.
+    """
+    urls: list[str] = []
+    seen: set[str] = set()
+    # try multiple pulls
+    # might repeat images
+    attempts = images * 6
+
+    for _ in range(attempts):
+        url = await fetch_inat_image(
+            taxon, taxon_id if isinstance(taxon_id, int) else None
+        )
+        if not url:
+            continue
+
+        url = bump_inat_size(url)
+
+        if url in seen:
+            continue
+        seen.add(url)
+        urls.append(url)
+        if len(urls) >= images:
+            break
+
+    return urls
+
+
+async def fetch_inat_animal(kind: str, /, *, images: int = 1) -> AnimalResult:
     """Fetch an animal from iNaturalist.
 
     Args:
         kind (str): The kind of animal to search for.
+        images (int, optional): The amount of images to fetch. Defaults to 1.
 
     Raises:
         ApiError: If the animal kind provided has no images on iNaturalist.
@@ -428,6 +481,9 @@ async def fetch_inat_animal(kind: str, /) -> AnimalResult:
     Returns:
         AnimalResult: The result of the search.
     """
+    if images < 1 or images > MAX_MULTI_IMAGE_FETCH_SIZE:
+        raise ValueError("Tried to fetch images outside the range 1-5")
+
     kind = kind.strip().lower()
     resolved_query, taxon = await resolve_inat_taxon(kind)
 
@@ -437,12 +493,11 @@ async def fetch_inat_animal(kind: str, /) -> AnimalResult:
     preferred_name = get_first_non_whitespace_str(taxon.get("preferred_common_name"))
     scientific_name = get_first_non_whitespace_str(taxon.get("name"))
 
-    image_url = await _fetch_inat_image(
-        taxon, taxon_id if isinstance(taxon_id, int) else None
+    urls = await fetch_inat_images(
+        taxon, taxon_id if isinstance(taxon_id, int) else None, images
     )
-    if not image_url:
+    if not urls:
         raise ApiError(f"Could not find a photo for '{kind}' on iNaturalist")
-    image_url = bump_inat_size(image_url)
 
     # if wiki summary is missing, fetch the full taxon by id
     if not wiki_summary and isinstance(taxon_id, int):
@@ -470,7 +525,8 @@ async def fetch_inat_animal(kind: str, /) -> AnimalResult:
 
     return AnimalResult(
         kind=preferred_name or scientific_name or kind.lower(),
-        image_url=image_url,
+        image_url=urls[0],
+        images=urls,
         fact=fact,
         source=source,
     )
