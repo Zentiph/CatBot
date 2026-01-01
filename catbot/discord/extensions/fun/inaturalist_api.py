@@ -49,7 +49,8 @@ BAD_WORDS = re.compile(
     r"taxidermy|pelt|hide|fur|skin|mount|mounted|trophy|"
     r"scat|poop|feces|dropping|tracks|track|footprint|pawprint|"
     r"specimen|museum|collection|preserved|"
-    r"blood|bleeding|injury|injured"
+    r"blood|bleeding|injury|injured|"
+    r"genitals|testicles|penis|scrotum"
     r")\b",
     re.IGNORECASE,
 )
