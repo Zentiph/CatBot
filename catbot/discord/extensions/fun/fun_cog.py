@@ -1,6 +1,5 @@
 """Fun commands."""
 
-from io import BytesIO
 import logging
 import secrets
 
@@ -9,7 +8,7 @@ from discord import app_commands
 from discord.ext import commands
 from psutil import Process
 
-from ....util.http import ApiError, http_get_bytes
+from ....util.http import ApiError
 from ....util.pawprints import cog_setup_log_msg, log_app_command
 from ...info import (
     DEPENDENCIES,
@@ -27,16 +26,12 @@ from ...interaction import (
 )
 from ...ui import COIN_HEADS_COLOR, COIN_TAILS_COLOR
 from ...ui.emoji import Status, Visual
+from .animal_tools import AnimalCarouselView, build_animal_embed
 from .inaturalist_api import (
-    MAX_MULTI_IMAGE_FETCH_SIZE,
-    AnimalResult,
+    ImageFetchAmount,
     animal_kind_autocomplete,
     fetch_inat_animal,
 )
-
-MAX_FILENAME_LEN = 40
-"""The maximum length of an attachment filename."""
-
 
 logger = logging.getLogger("FunCog")
 
@@ -54,73 +49,6 @@ async def ensure_full_user(
         discord.User: The full user payload.
     """
     return await client.fetch_user(user.id)
-
-
-def safe_filename(filename: str) -> str:
-    """Ensure a filename is safe by replacing risky characters with underscores.
-
-    Args:
-        filename (str): The filename to make safe.
-
-    Returns:
-        str: The safe filename.
-    """
-    keep = [c.lower() if c.isalnum() else "_" for c in filename]
-    out = "".join(keep).strip("_")
-
-    return out[:MAX_FILENAME_LEN] or "animal"
-
-
-async def send_animal_embed(
-    interaction: discord.Interaction, /, result: AnimalResult
-) -> None:
-    """Build and send an animal embed (for /animal).
-
-    Args:
-        interaction (discord.Interaction): The interaction instance.
-        result (AnimalResult): The animal result from talking to iNaturalist.
-    """
-    urls = (result.images or [result.image_url])[:MAX_MULTI_IMAGE_FETCH_SIZE]
-
-    description_parts = []
-    if result.fact:
-        description_parts.append(result.fact)
-    if result.source:
-        description_parts.append(f"*Source: {result.source}*")
-    base_description = (
-        "\n\n".join(description_parts) if description_parts else "Here you go!"
-    )
-
-    files: list[discord.File] = []
-    embeds: list[discord.Embed] = []
-
-    # build first embed once to get the icon
-    first_filename = f"{safe_filename(result.kind)}_1.png"
-    first_bytes = await http_get_bytes(urls[0], timeout=10)
-    files.append(discord.File(fp=BytesIO(first_bytes), filename=first_filename))
-
-    first_embed, icon = build_response_embed(
-        title=f"{Visual.PAWS} Random {result.kind.title()} (1/{len(urls)})",
-        description=base_description,
-    )
-    first_embed.set_image(url=f"attachment://{first_filename}")
-    embeds.append(first_embed)
-
-    # remaining images: no repeated icon creation
-    for i, url in enumerate(urls[1:], start=2):
-        image_bytes = await http_get_bytes(url, timeout=10)
-        filename = f"{safe_filename(result.kind)}_{i}.png"
-        files.append(discord.File(fp=BytesIO(image_bytes), filename=filename))
-
-        e = discord.Embed(
-            title=f"{Visual.PAWS} Random {result.kind.title()} ({i}/{len(urls)})",
-            description="",
-        )
-        e.set_image(url=f"attachment://{filename}")
-        embeds.append(e)
-
-    files.append(icon)
-    await safe_send(interaction, embeds=embeds, files=files)
 
 
 class FunCog(commands.Cog, name="Fun Commands"):
@@ -253,10 +181,13 @@ class FunCog(commands.Cog, name="Fun Commands"):
     @app_commands.describe(
         kind="Which animal to fetch "
         "(wait for the autocomplete to pick the best-fitting option)",
-        amount="How many images to fetch (1-5)",
+        amount="How many images to fetch (1-10)",
     )
     async def animal(
-        self, interaction: discord.Interaction, kind: str, amount: int = 1
+        self,
+        interaction: discord.Interaction,
+        kind: str,
+        amount: ImageFetchAmount = 1,
     ) -> None:
         """Get a random animal image and possibly a fact."""
         log_app_command(interaction)
@@ -264,9 +195,21 @@ class FunCog(commands.Cog, name="Fun Commands"):
         await interaction.response.defer(thinking=True)
 
         try:
-            amount = max(1, min(MAX_MULTI_IMAGE_FETCH_SIZE, amount))
             result = await fetch_inat_animal(kind, images=amount)
-            await send_animal_embed(interaction, result)
+            description_parts = []
+            if result.fact:
+                description_parts.append(result.fact)
+            if result.source:
+                description_parts.append(f"*Source: {result.source}*")
+            description = (
+                "\n\n".join(description_parts) if description_parts else "Here you go!"
+            )
+
+            embed, files = await build_animal_embed(result, description, 0)
+            view = AnimalCarouselView(
+                user=interaction.user, data=result, embed_description=description
+            )
+            await view.send(interaction, embed=embed, files=files, ephemeral=False)
         except ApiError as e:
             logger.warning("Animal API error: %s", e)
             await report(

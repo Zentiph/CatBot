@@ -25,3 +25,5 @@ class Visual(StrEnum):
     ALERT = "❗"
     RANDOM = "🎲"
     PAWS = "🐾"
+    NEXT = "▶️"
+    PREVIOUS = "◀️"

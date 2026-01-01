@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import html
 import re
 import secrets
-from typing import Any
+from typing import Any, Literal
 
 import discord
 from discord import app_commands
@@ -13,6 +13,8 @@ from ....util.http import STATUS_OK, ApiError, http_get_json
 
 __author__ = "Gavin Borne"
 __license__ = "MIT"
+
+ImageFetchAmount = Literal[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 INAT_TAXA_URL = "https://api.inaturalist.org/v1/taxa"
 """The URL for the iNaturalist taxa API."""
@@ -43,8 +45,6 @@ INAT_OBSERVATIONS_IMAGE_FETCH_COUNT = 60
 OBSERVATION_IMAGE_FETCH_ATTEMPTS = 15
 """The number of attempts to try when fetching images from iNaturalist observations."""
 
-MAX_MULTI_IMAGE_FETCH_SIZE = 5
-"""The maximum number of images to fetch at once."""
 
 BAD_WORDS = re.compile(
     r"\b("
@@ -73,7 +73,7 @@ class AnimalResult:
     """The kind of animal."""
     image_url: str
     """The URL to the image found."""
-    images: list[str] | None = None
+    images: list[str]
     """The images obtained."""
     fact: str | None = None
     """A fact blurb about the animal."""
@@ -468,12 +468,15 @@ async def fetch_inat_images(
     return urls
 
 
-async def fetch_inat_animal(kind: str, /, *, images: int = 1) -> AnimalResult:
+async def fetch_inat_animal(
+    kind: str, /, *, images: ImageFetchAmount = 1
+) -> AnimalResult:
     """Fetch an animal from iNaturalist.
 
     Args:
         kind (str): The kind of animal to search for.
-        images (int, optional): The amount of images to fetch. Defaults to 1.
+        images (ImageFetchAmount, optional): The number of images to fetch.
+            Defaults to 1.
 
     Raises:
         ApiError: If the animal kind provided has no images on iNaturalist.
@@ -481,9 +484,6 @@ async def fetch_inat_animal(kind: str, /, *, images: int = 1) -> AnimalResult:
     Returns:
         AnimalResult: The result of the search.
     """
-    if images < 1 or images > MAX_MULTI_IMAGE_FETCH_SIZE:
-        raise ValueError("Tried to fetch images outside the range 1-5")
-
     kind = kind.strip().lower()
     resolved_query, taxon = await resolve_inat_taxon(kind)
 

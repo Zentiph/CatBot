@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Final
+from typing import Final, Literal, TypeAlias
 
 import discord
 from discord import app_commands
@@ -7,13 +7,13 @@ from discord import app_commands
 __author__: Final[str]
 __license__: Final[str]
 
-MAX_MULTI_IMAGE_FETCH_SIZE: Final[int]
+ImageFetchAmount: TypeAlias = Literal[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 @dataclass(frozen=True)
 class AnimalResult:
     kind: str
     image_url: str
-    images: list[str] | None = None
+    images: list[str]
     fact: str | None = None
     source: str | None = None
 
