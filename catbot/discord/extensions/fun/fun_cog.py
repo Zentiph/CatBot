@@ -1,7 +1,5 @@
 """Fun commands."""
 
-# TODO modularize into multiple files
-
 from io import BytesIO
 import logging
 import secrets
