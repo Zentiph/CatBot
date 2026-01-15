@@ -1,5 +1,5 @@
 # CatBot
-CatBot is a Discord bot I made for a Discord server my friends and I share.
+CatBot is a user-focused Discord bot made for fun and interactive activities.
 
 [![GitHub License](https://img.shields.io/github/license/zentiph/catbot?style=flat-square&labelColor=0f0f0f)](https://github.com/Zentiph/catbot/blob/main/license.md)
 [![Contributors](https://img.shields.io/github/contributors/zentiph/catbot?style=flat-square&labelColor=0f0f0f)](../../graphs/contributors)
@@ -11,13 +11,11 @@ CatBot is a Discord bot I made for a Discord server my friends and I share.
 ![Linter: Ruff](https://img.shields.io/badge/linter-Ruff-d7ff64?style=flat-square&labelColor=0f0f0f)
 
 ## Features
-* Moderation tools
 * Fully customizeable color roles
-* Date/time tools
 * Fun commands (coin flip, server/user info, etc.)
-* Math commands
-* Randomness commands
-* Help commands
+* Solo and versus games (COMING SOON)
+* Help commands (COMING BACK SOON)
+* Moderation tools (COMING BACK SOON)
 
 ## Changelog
 [changelog.md](changelog.md)
