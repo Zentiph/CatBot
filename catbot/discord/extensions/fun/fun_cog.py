@@ -34,6 +34,10 @@ from .inaturalist_api import (
     fetch_inat_animal,
 )
 
+__author__ = "Gavin Borne"
+__license__ = "MIT"
+
+
 MAX_FILENAME_LEN = 40
 """The maximum length of an attachment filename."""
 
