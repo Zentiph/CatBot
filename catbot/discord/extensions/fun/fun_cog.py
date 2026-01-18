@@ -33,6 +33,10 @@ from .inaturalist_api import (
     fetch_inat_animal,
 )
 
+__author__ = "Gavin Borne"
+__license__ = "MIT"
+
+
 logger = logging.getLogger("FunCog")
 
 

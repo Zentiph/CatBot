@@ -1,5 +1,3 @@
-# pylint:disable=all
-
 from typing import Final
 
 import discord
