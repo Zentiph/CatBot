@@ -1,13 +1,10 @@
 from datetime import datetime
-from pathlib import Path
 from typing import Final
 
 import aiosqlite
 
 __author__: Final[str]
 __license__: Final[str]
-
-DATA_ROOT_DIR: Final[Path]
 
 class YearlyMetricStore:
     def __init__(self) -> None: ...

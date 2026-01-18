@@ -38,7 +38,7 @@ CREATE INDEX IF NOT EXISTS idx_messages_channel_date
     ON messages (channel_id, created_at);
 """
 
-DATA_ROOT_DIR = Path("data") / "cat_scan"
+_DATA_ROOT_DIR = Path("data") / "cat_scan"
 
 
 class YearlyMetricStore:
@@ -60,8 +60,8 @@ class YearlyMetricStore:
         if year in self.__connections:
             return self.__connections[year]
 
-        DATA_ROOT_DIR.mkdir(parents=True, exist_ok=True)
-        path = DATA_ROOT_DIR / f"cat_scan_{year}.sqlite"
+        _DATA_ROOT_DIR.mkdir(parents=True, exist_ok=True)
+        path = _DATA_ROOT_DIR / f"cat_scan_{year}.sqlite"
 
         connection = await aiosqlite.connect(path)
         await connection.execute(
@@ -147,8 +147,7 @@ class YearlyMetricStore:
         Args:
             year (int): The year of the DB to commit to.
         """
-        connection = await self.get_connection(year)
-        await connection.commit()
+        await (await self.get_connection(year)).commit()
 
     async def get_latest_timestamp(
         self, year: int, /, channel_id: int
