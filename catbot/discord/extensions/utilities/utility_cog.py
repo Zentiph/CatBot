@@ -1,7 +1,6 @@
 """Utility commands."""
 
 from datetime import datetime, timedelta
-from typing import Literal
 
 import discord
 from discord import app_commands
@@ -27,46 +26,6 @@ from ...ui.emoji import Status, Visual
 
 __author__ = "Gavin Borne"
 __license__ = "MIT"
-
-TimestampFormat = Literal[
-    "short time",
-    "long time",
-    "short date",
-    "long date",
-    "long date with short time",
-    "long date with day of week and short time",
-    "relative",
-]
-Meridiem = Literal["AM", "PM"]
-Month = Literal[
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-]
-Hour = Literal[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-
-TIMESTAMP_FORMATS = {
-    "short time": "t",
-    "long time": "T",
-    "short date": "d",
-    "long date": "D",
-    "long date with short time": "f",
-    "long date with day of week and short time": "F",
-    "relative": "R",
-}
-"""A mapping of human-readable timestamp type names to their Discord code."""
-
-TIMESTAMP_STRING_FORMAT = "<t:{time_code}:{fmt}>"
-"""Discord's timestamp format, with `time_code` and `fmt` fields."""
 
 
 def round_to_nearest_minute(dt: datetime, /) -> datetime:
