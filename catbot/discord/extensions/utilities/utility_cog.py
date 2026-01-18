@@ -1,0 +1,183 @@
+"""Utility commands."""
+
+from datetime import datetime, timedelta
+from typing import Literal
+
+import discord
+from discord import app_commands
+from discord.ext import commands
+from psutil import Process
+
+from ....util.pawprints import cog_setup_log_msg, log_app_command
+from ...info import (
+    DEPENDENCIES,
+    DISCORD_DOT_PY_VERSION,
+    HOST,
+    PYTHON_VERSION,
+    VERSION,
+    get_uptime,
+)
+from ...interaction import (
+    build_response_embed,
+    get_guild_interaction_data,
+    report,
+    safe_send,
+)
+from ...ui.emoji import Status, Visual
+
+__author__ = "Gavin Borne"
+__license__ = "MIT"
+
+TimestampFormat = Literal[
+    "short time",
+    "long time",
+    "short date",
+    "long date",
+    "long date with short time",
+    "long date with day of week and short time",
+    "relative",
+]
+Meridiem = Literal["AM", "PM"]
+Month = Literal[
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+]
+Hour = Literal[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+
+TIMESTAMP_FORMATS = {
+    "short time": "t",
+    "long time": "T",
+    "short date": "d",
+    "long date": "D",
+    "long date with short time": "f",
+    "long date with day of week and short time": "F",
+    "relative": "R",
+}
+"""A mapping of human-readable timestamp type names to their Discord code."""
+
+TIMESTAMP_STRING_FORMAT = "<t:{time_code}:{fmt}>"
+"""Discord's timestamp format, with `time_code` and `fmt` fields."""
+
+
+def round_to_nearest_minute(dt: datetime, /) -> datetime:
+    """Round a datetime to the nearest minute.
+
+    Args:
+        dt (datetime): The original datetime.
+
+    Returns:
+        datetime: The rounded time.
+    """
+    return dt + timedelta(seconds=(60 - dt.second) % 60)
+
+
+class UtilityCog(commands.Cog, name="Utility Commands"):
+    """Cog containing utility commands."""
+
+    def __init__(self, bot: commands.Bot) -> None:
+        """Create the UtilityCog.
+
+        Args:
+            bot (commands.Bot): The bot to load the cog to.
+        """
+        self.bot = bot
+
+    @commands.Cog.listener()
+    async def on_ready(self) -> None:
+        """Run when the cog is ready to be used."""
+        cog_setup_log_msg(type(self).__name__, self.bot)
+
+    @app_commands.command(name="stats", description="Get stats about CatBot")
+    async def stats(self, interaction: discord.Interaction) -> None:
+        """Report stats about CatBot."""
+        log_app_command(interaction)
+
+        await interaction.response.defer(thinking=True)
+
+        guilds = str(len(self.bot.guilds))
+        memory_mb = Process().memory_info().rss / (1024**2)
+
+        embed, icon = build_response_embed(
+            title=f"{Visual.CHART} CatBot Stats",
+            description="Here's some statistics about myself.",
+        )
+        embed.add_field(name="Version", value=VERSION)
+        embed.add_field(name="# of Guilds", value=guilds)
+        embed.add_field(
+            name="Uptime",
+            value=get_uptime(),
+            inline=False,
+        )
+        embed.add_field(name="Language", value=f"Python {PYTHON_VERSION}")
+        embed.add_field(name="Memory Usage", value=f"{memory_mb:.2f} MB")
+        embed.add_field(name="Package", value=f"discord.py {DISCORD_DOT_PY_VERSION}")
+        embed.add_field(name="Dependencies", value=DEPENDENCIES)
+        embed.add_field(name="Host", value=HOST, inline=False)
+
+        await safe_send(interaction, embed=embed, file=icon)
+
+    @app_commands.command(
+        name="members", description="Get data regarding the members in this server"
+    )
+    async def members(self, interaction: discord.Interaction) -> None:
+        """Get member info."""
+        log_app_command(interaction)
+
+        data = get_guild_interaction_data(interaction)
+        if data is None:
+            await report(
+                interaction,
+                "This command can only be used in a server!",
+                Status.FAILURE,
+            )
+            return
+
+        guild = data.guild
+        members = guild.members
+        member_count = guild.member_count
+        if member_count is None:
+            await report(
+                interaction,
+                "Could not fetch member info, please try again later.",
+                Status.WARNING,
+            )
+            return
+
+        human_members = len([member for member in members if not member.bot])
+        online_members = len(
+            [member for member in members if str(member.status) != "offline"]
+        )
+
+        embed, icon = build_response_embed(
+            title=f"{Visual.PEOPLE_SYMBOL} {guild.name} Member Count",
+            description="Here's the member count for this server.",
+        )
+        embed.add_field(
+            name="Total Members",
+            value=member_count,
+            inline=False,
+        )
+        embed.add_field(name="Human Members", value=human_members, inline=False)
+        embed.add_field(
+            name="Bot Members",
+            value=member_count - human_members,
+            inline=False,
+        )
+        embed.add_field(name="Online Members", value=online_members, inline=False)
+        embed.add_field(
+            name="Offline Members",
+            value=member_count - online_members,
+            inline=False,
+        )
+
+        await interaction.response.send_message(embed=embed, file=icon)
