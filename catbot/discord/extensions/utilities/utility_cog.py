@@ -1,7 +1,5 @@
 """Utility commands."""
 
-from datetime import datetime, timedelta
-
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -26,18 +24,6 @@ from ...ui.emoji import Status, Visual
 
 __author__ = "Gavin Borne"
 __license__ = "MIT"
-
-
-def round_to_nearest_minute(dt: datetime, /) -> datetime:
-    """Round a datetime to the nearest minute.
-
-    Args:
-        dt (datetime): The original datetime.
-
-    Returns:
-        datetime: The rounded time.
-    """
-    return dt + timedelta(seconds=(60 - dt.second) % 60)
 
 
 class UtilityCog(commands.Cog, name="Utility Commands"):
