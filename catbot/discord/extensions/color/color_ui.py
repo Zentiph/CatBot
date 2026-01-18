@@ -16,7 +16,7 @@ from ...interaction import (
 )
 from ...ui.emoji import Status, Visual
 from ...views import RestrictedModal, RestrictedView
-from .color_tools import Color3, generate_color_image
+from .color_tools import CSS_COLOR_NAME_TO_HEX, Color3, generate_color_image
 
 __author__ = "Gavin Borne"
 __license__ = "MIT"
@@ -55,7 +55,7 @@ def build_color_embed(
         value=f"({hsl[0]:.0f}, {(hsl[1] * 100):.0f}%, {(hsl[2] * 100):.0f}%)",
     )
 
-    name = Color3.get_color_name(hex6)
+    name = CSS_COLOR_NAME_TO_HEX.get(hex6)
     if name:
         embed.add_field(name="Color Name", value=name)
 

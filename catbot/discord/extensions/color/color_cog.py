@@ -35,6 +35,8 @@ from .color_tools import (
     CSS_WHITES,
     CSS_YELLOWS,
     Color3,
+    validate_hex,
+    validate_rgb,
 )
 from .color_ui import (
     ColorView,
@@ -66,7 +68,7 @@ async def _handle_colorrole_set(
     role: discord.Role | None = None,
 ) -> None:
     if kind == "hex":
-        if not hex6 or not Color3.validate_hex(hex6):
+        if not hex6 or not validate_hex(hex6):
             await report(interaction, "Provide a valid hex color.", Status.FAILURE)
             return
         hex_norm = hex6.lstrip("#").lower()
@@ -74,7 +76,7 @@ async def _handle_colorrole_set(
         color_repr = f"#{hex_norm}"
 
     elif kind == "rgb":
-        if r is None or g is None or b is None or not Color3.validate_rgb(r, g, b):
+        if r is None or g is None or b is None or not validate_rgb(r, g, b):
             await report(
                 interaction, "Provide a valid RGB color (0-255).", Status.FAILURE
             )
@@ -245,13 +247,13 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         log_app_command(interaction)
 
         if kind == "hex":
-            if not hex6 or not Color3.validate_hex(hex6):
+            if not hex6 or not validate_hex(hex6):
                 await report(interaction, "Provide a valid hex color.", Status.FAILURE)
                 return
             color = Color3.from_hex6(hex6.lstrip("#").lower())
 
         elif kind == "rgb":
-            if r is None or g is None or b is None or not Color3.validate_rgb(r, g, b):
+            if r is None or g is None or b is None or not validate_rgb(r, g, b):
                 await report(
                     interaction, "Provide a valid RGB color (0-255).", Status.FAILURE
                 )

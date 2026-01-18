@@ -1,6 +1,11 @@
 # CatBot Changelog
 A collective history of all the changes made to CatBot.
 
+## v1.1.0
+* Allow fetching up to 10 images at once with /animal
+* Rework /animal response to use an image carousel
+* Small tweaks/fixes
+
 ## v1.0.0
 * Complete recode and project restructure
 * Color commands revamp

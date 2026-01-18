@@ -12,10 +12,12 @@ from PIL import Image
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
-RealNumber = int | float
 
-RGB_MAX = 255
-"""The maximum value of an RGB component."""
+_RealNumber = int | float
+
+_RGB_MAX = 255
+_RGB_INT_MAX = 16777215
+_HEX_LEN = 6
 
 CSS_COLOR_NAME_TO_HEX = {
     "aliceblue": "f0f8ff",
@@ -159,7 +161,6 @@ CSS_COLOR_NAME_TO_HEX = {
     "teal": "008080",
     "thistle": "d8bfd8",
     "tomato": "ff6347",
-    "transparent": "00000000",
     "turquoise": "40e0d0",
     "violet": "ee82ee",
     "wheat": "f5deb3",
@@ -168,251 +169,232 @@ CSS_COLOR_NAME_TO_HEX = {
     "yellow": "ffff00",
     "yellowgreen": "9acd32",
 }
-"""A map of CSS color names to their hex values."""
 
-CSS_REDS = {
-    "crimson": CSS_COLOR_NAME_TO_HEX["crimson"],
-    "darkred": CSS_COLOR_NAME_TO_HEX["darkred"],
-    "firebrick": CSS_COLOR_NAME_TO_HEX["firebrick"],
-    "indianred": CSS_COLOR_NAME_TO_HEX["indianred"],
-    "maroon": CSS_COLOR_NAME_TO_HEX["maroon"],
-    "red": CSS_COLOR_NAME_TO_HEX["red"],
-    "tomato": CSS_COLOR_NAME_TO_HEX["tomato"],
+_CSS_REDS_NAMES = {
+    "crimson",
+    "darkred",
+    "firebrick",
+    "indianred",
+    "maroon",
+    "red",
+    "tomato",
 }
-"""A map of red CSS color names to their hex values."""
 
-CSS_PINKS = {
-    "deeppink": CSS_COLOR_NAME_TO_HEX["deeppink"],
-    "hotpink": CSS_COLOR_NAME_TO_HEX["hotpink"],
-    "lightpink": CSS_COLOR_NAME_TO_HEX["lightpink"],
-    "pink": CSS_COLOR_NAME_TO_HEX["pink"],
-    "palevioletred": CSS_COLOR_NAME_TO_HEX["palevioletred"],
-    "mediumvioletred": CSS_COLOR_NAME_TO_HEX["mediumvioletred"],
-    "mistyrose": CSS_COLOR_NAME_TO_HEX["mistyrose"],
-    "lavenderblush": CSS_COLOR_NAME_TO_HEX["lavenderblush"],
+_CSS_PINKS_NAMES = {
+    "deeppink",
+    "hotpink",
+    "lightpink",
+    "pink",
+    "palevioletred",
+    "mediumvioletred",
+    "mistyrose",
+    "lavenderblush",
 }
-"""A map of pink CSS color names to their hex values."""
 
-CSS_ORANGES = {
-    "coral": CSS_COLOR_NAME_TO_HEX["coral"],
-    "chocolate": CSS_COLOR_NAME_TO_HEX["chocolate"],
-    "darkorange": CSS_COLOR_NAME_TO_HEX["darkorange"],
-    "lightsalmon": CSS_COLOR_NAME_TO_HEX["lightsalmon"],
-    "orange": CSS_COLOR_NAME_TO_HEX["orange"],
-    "orangered": CSS_COLOR_NAME_TO_HEX["orangered"],
-    "peachpuff": CSS_COLOR_NAME_TO_HEX["peachpuff"],
-    "sandybrown": CSS_COLOR_NAME_TO_HEX["sandybrown"],
-    "salmon": CSS_COLOR_NAME_TO_HEX["salmon"],
+_CSS_ORANGES_NAMES = {
+    "coral",
+    "chocolate",
+    "darkorange",
+    "lightsalmon",
+    "orange",
+    "orangered",
+    "peachpuff",
+    "sandybrown",
+    "salmon",
 }
-"""A map of orange CSS color names to their hex values."""
 
-CSS_YELLOWS = {
-    "gold": CSS_COLOR_NAME_TO_HEX["gold"],
-    "goldenrod": CSS_COLOR_NAME_TO_HEX["goldenrod"],
-    "darkgoldenrod": CSS_COLOR_NAME_TO_HEX["darkgoldenrod"],
-    "khaki": CSS_COLOR_NAME_TO_HEX["khaki"],
-    "darkkhaki": CSS_COLOR_NAME_TO_HEX["darkkhaki"],
-    "lemonchiffon": CSS_COLOR_NAME_TO_HEX["lemonchiffon"],
-    "lightyellow": CSS_COLOR_NAME_TO_HEX["lightyellow"],
-    "palegoldenrod": CSS_COLOR_NAME_TO_HEX["palegoldenrod"],
-    "yellow": CSS_COLOR_NAME_TO_HEX["yellow"],
-    "wheat": CSS_COLOR_NAME_TO_HEX["wheat"],
-    "cornsilk": CSS_COLOR_NAME_TO_HEX["cornsilk"],
+_CSS_YELLOWS_NAMES = {
+    "gold",
+    "goldenrod",
+    "darkgoldenrod",
+    "khaki",
+    "darkkhaki",
+    "lemonchiffon",
+    "lightyellow",
+    "palegoldenrod",
+    "yellow",
+    "wheat",
+    "cornsilk",
 }
-"""A map of yellow CSS color names to their hex values."""
 
-CSS_PURPLES = {
-    "blueviolet": CSS_COLOR_NAME_TO_HEX["blueviolet"],
-    "darkmagenta": CSS_COLOR_NAME_TO_HEX["darkmagenta"],
-    "darkorchid": CSS_COLOR_NAME_TO_HEX["darkorchid"],
-    "darkviolet": CSS_COLOR_NAME_TO_HEX["darkviolet"],
-    "fuchsia": CSS_COLOR_NAME_TO_HEX["fuchsia"],
-    "indigo": CSS_COLOR_NAME_TO_HEX["indigo"],
-    "magenta": CSS_COLOR_NAME_TO_HEX["magenta"],
-    "mediumorchid": CSS_COLOR_NAME_TO_HEX["mediumorchid"],
-    "mediumpurple": CSS_COLOR_NAME_TO_HEX["mediumpurple"],
-    "orchid": CSS_COLOR_NAME_TO_HEX["orchid"],
-    "plum": CSS_COLOR_NAME_TO_HEX["plum"],
-    "purple": CSS_COLOR_NAME_TO_HEX["purple"],
-    "rebeccapurple": CSS_COLOR_NAME_TO_HEX["rebeccapurple"],
-    "thistle": CSS_COLOR_NAME_TO_HEX["thistle"],
-    "violet": CSS_COLOR_NAME_TO_HEX["violet"],
-    "lavender": CSS_COLOR_NAME_TO_HEX["lavender"],
+_CSS_PURPLES_NAMES = {
+    "blueviolet",
+    "darkmagenta",
+    "darkorchid",
+    "darkviolet",
+    "fuchsia",
+    "indigo",
+    "magenta",
+    "mediumorchid",
+    "mediumpurple",
+    "orchid",
+    "plum",
+    "purple",
+    "rebeccapurple",
+    "thistle",
+    "violet",
+    "lavender",
 }
-"""A map of purple CSS color names to their hex values."""
 
-CSS_GREENS = {
-    "chartreuse": CSS_COLOR_NAME_TO_HEX["chartreuse"],
-    "darkgreen": CSS_COLOR_NAME_TO_HEX["darkgreen"],
-    "darkolivegreen": CSS_COLOR_NAME_TO_HEX["darkolivegreen"],
-    "darkseagreen": CSS_COLOR_NAME_TO_HEX["darkseagreen"],
-    "forestgreen": CSS_COLOR_NAME_TO_HEX["forestgreen"],
-    "green": CSS_COLOR_NAME_TO_HEX["green"],
-    "greenyellow": CSS_COLOR_NAME_TO_HEX["greenyellow"],
-    "honeydew": CSS_COLOR_NAME_TO_HEX["honeydew"],
-    "lawngreen": CSS_COLOR_NAME_TO_HEX["lawngreen"],
-    "lightgreen": CSS_COLOR_NAME_TO_HEX["lightgreen"],
-    "lime": CSS_COLOR_NAME_TO_HEX["lime"],
-    "limegreen": CSS_COLOR_NAME_TO_HEX["limegreen"],
-    "mediumaquamarine": CSS_COLOR_NAME_TO_HEX["mediumaquamarine"],
-    "mediumseagreen": CSS_COLOR_NAME_TO_HEX["mediumseagreen"],
-    "mediumspringgreen": CSS_COLOR_NAME_TO_HEX["mediumspringgreen"],
-    "olivedrab": CSS_COLOR_NAME_TO_HEX["olivedrab"],
-    "palegreen": CSS_COLOR_NAME_TO_HEX["palegreen"],
-    "seagreen": CSS_COLOR_NAME_TO_HEX["seagreen"],
-    "springgreen": CSS_COLOR_NAME_TO_HEX["springgreen"],
-    "yellowgreen": CSS_COLOR_NAME_TO_HEX["yellowgreen"],
-    "olive": CSS_COLOR_NAME_TO_HEX["olive"],
+_CSS_GREENS_NAMES = {
+    "chartreuse",
+    "darkgreen",
+    "darkolivegreen",
+    "darkseagreen",
+    "forestgreen",
+    "green",
+    "greenyellow",
+    "honeydew",
+    "lawngreen",
+    "lightgreen",
+    "lime",
+    "limegreen",
+    "mediumaquamarine",
+    "mediumseagreen",
+    "mediumspringgreen",
+    "olivedrab",
+    "palegreen",
+    "seagreen",
+    "springgreen",
+    "yellowgreen",
+    "olive",
 }
-"""A map of green CSS color names to their hex values."""
 
-CSS_BLUES = {
-    "aliceblue": CSS_COLOR_NAME_TO_HEX["aliceblue"],
-    "aqua": CSS_COLOR_NAME_TO_HEX["aqua"],
-    "aquamarine": CSS_COLOR_NAME_TO_HEX["aquamarine"],
-    "azure": CSS_COLOR_NAME_TO_HEX["azure"],
-    "blue": CSS_COLOR_NAME_TO_HEX["blue"],
-    "cadetblue": CSS_COLOR_NAME_TO_HEX["cadetblue"],
-    "cornflowerblue": CSS_COLOR_NAME_TO_HEX["cornflowerblue"],
-    "cyan": CSS_COLOR_NAME_TO_HEX["cyan"],
-    "darkblue": CSS_COLOR_NAME_TO_HEX["darkblue"],
-    "darkcyan": CSS_COLOR_NAME_TO_HEX["darkcyan"],
-    "darkslateblue": CSS_COLOR_NAME_TO_HEX["darkslateblue"],
-    "darkturquoise": CSS_COLOR_NAME_TO_HEX["darkturquoise"],
-    "deepskyblue": CSS_COLOR_NAME_TO_HEX["deepskyblue"],
-    "dodgerblue": CSS_COLOR_NAME_TO_HEX["dodgerblue"],
-    "lightblue": CSS_COLOR_NAME_TO_HEX["lightblue"],
-    "lightcyan": CSS_COLOR_NAME_TO_HEX["lightcyan"],
-    "lightskyblue": CSS_COLOR_NAME_TO_HEX["lightskyblue"],
-    "lightseagreen": CSS_COLOR_NAME_TO_HEX["lightseagreen"],
-    "lightsteelblue": CSS_COLOR_NAME_TO_HEX["lightsteelblue"],
-    "mediumblue": CSS_COLOR_NAME_TO_HEX["mediumblue"],
-    "mediumslateblue": CSS_COLOR_NAME_TO_HEX["mediumslateblue"],
-    "mediumturquoise": CSS_COLOR_NAME_TO_HEX["mediumturquoise"],
-    "midnightblue": CSS_COLOR_NAME_TO_HEX["midnightblue"],
-    "navy": CSS_COLOR_NAME_TO_HEX["navy"],
-    "powderblue": CSS_COLOR_NAME_TO_HEX["powderblue"],
-    "royalblue": CSS_COLOR_NAME_TO_HEX["royalblue"],
-    "skyblue": CSS_COLOR_NAME_TO_HEX["skyblue"],
-    "slateblue": CSS_COLOR_NAME_TO_HEX["slateblue"],
-    "steelblue": CSS_COLOR_NAME_TO_HEX["steelblue"],
-    "teal": CSS_COLOR_NAME_TO_HEX["teal"],
-    "turquoise": CSS_COLOR_NAME_TO_HEX["turquoise"],
-    "paleturquoise": CSS_COLOR_NAME_TO_HEX["paleturquoise"],
+_CSS_BLUES_NAMES = {
+    "aliceblue",
+    "aqua",
+    "aquamarine",
+    "azure",
+    "blue",
+    "cadetblue",
+    "cornflowerblue",
+    "cyan",
+    "darkblue",
+    "darkcyan",
+    "darkslateblue",
+    "darkturquoise",
+    "deepskyblue",
+    "dodgerblue",
+    "lightblue",
+    "lightcyan",
+    "lightskyblue",
+    "lightseagreen",
+    "lightsteelblue",
+    "mediumblue",
+    "mediumslateblue",
+    "mediumturquoise",
+    "midnightblue",
+    "navy",
+    "powderblue",
+    "royalblue",
+    "skyblue",
+    "slateblue",
+    "steelblue",
+    "teal",
+    "turquoise",
+    "paleturquoise",
 }
-"""A map of blue CSS color names to their hex values."""
 
-CSS_BROWNS = {
-    "antiquewhite": CSS_COLOR_NAME_TO_HEX["antiquewhite"],
-    "beige": CSS_COLOR_NAME_TO_HEX["beige"],
-    "bisque": CSS_COLOR_NAME_TO_HEX["bisque"],
-    "blanchedalmond": CSS_COLOR_NAME_TO_HEX["blanchedalmond"],
-    "brown": CSS_COLOR_NAME_TO_HEX["brown"],
-    "burlywood": CSS_COLOR_NAME_TO_HEX["burlywood"],
-    "chocolate": CSS_COLOR_NAME_TO_HEX["chocolate"],
-    "darkgoldenrod": CSS_COLOR_NAME_TO_HEX["darkgoldenrod"],
-    "linen": CSS_COLOR_NAME_TO_HEX["linen"],
-    "moccasin": CSS_COLOR_NAME_TO_HEX["moccasin"],
-    "navajowhite": CSS_COLOR_NAME_TO_HEX["navajowhite"],
-    "oldlace": CSS_COLOR_NAME_TO_HEX["oldlace"],
-    "papayawhip": CSS_COLOR_NAME_TO_HEX["papayawhip"],
-    "peachpuff": CSS_COLOR_NAME_TO_HEX["peachpuff"],
-    "peru": CSS_COLOR_NAME_TO_HEX["peru"],
-    "rosybrown": CSS_COLOR_NAME_TO_HEX["rosybrown"],
-    "saddlebrown": CSS_COLOR_NAME_TO_HEX["saddlebrown"],
-    "sienna": CSS_COLOR_NAME_TO_HEX["sienna"],
-    "tan": CSS_COLOR_NAME_TO_HEX["tan"],
-    "wheat": CSS_COLOR_NAME_TO_HEX["wheat"],
+_CSS_BROWNS_NAMES = {
+    "antiquewhite",
+    "beige",
+    "bisque",
+    "blanchedalmond",
+    "brown",
+    "burlywood",
+    "chocolate",
+    "darkgoldenrod",
+    "linen",
+    "moccasin",
+    "navajowhite",
+    "oldlace",
+    "papayawhip",
+    "peachpuff",
+    "peru",
+    "rosybrown",
+    "saddlebrown",
+    "sienna",
+    "tan",
+    "wheat",
 }
-"""A map of brown CSS color names to their hex values."""
 
-CSS_WHITES = {
-    "floralwhite": CSS_COLOR_NAME_TO_HEX["floralwhite"],
-    "ghostwhite": CSS_COLOR_NAME_TO_HEX["ghostwhite"],
-    "honeydew": CSS_COLOR_NAME_TO_HEX["honeydew"],
-    "ivory": CSS_COLOR_NAME_TO_HEX["ivory"],
-    "mintcream": CSS_COLOR_NAME_TO_HEX["mintcream"],
-    "seashell": CSS_COLOR_NAME_TO_HEX["seashell"],
-    "snow": CSS_COLOR_NAME_TO_HEX["snow"],
-    "white": CSS_COLOR_NAME_TO_HEX["white"],
-    "whitesmoke": CSS_COLOR_NAME_TO_HEX["whitesmoke"],
-    "aliceblue": CSS_COLOR_NAME_TO_HEX["aliceblue"],
-    "azure": CSS_COLOR_NAME_TO_HEX["azure"],
-    "cornsilk": CSS_COLOR_NAME_TO_HEX["cornsilk"],
-    "lemonchiffon": CSS_COLOR_NAME_TO_HEX["lemonchiffon"],
-    "lightyellow": CSS_COLOR_NAME_TO_HEX["lightyellow"],
-    "linen": CSS_COLOR_NAME_TO_HEX["linen"],
-    "oldlace": CSS_COLOR_NAME_TO_HEX["oldlace"],
-    "papayawhip": CSS_COLOR_NAME_TO_HEX["papayawhip"],
+_CSS_WHITES_NAMES = {
+    "white",
+    "whitesmoke",
+    "snow",
+    "seashell",
+    "ivory",
+    "honeydew",
+    "mintcream",
+    "ghostwhite",
+    "floralwhite",
 }
-"""A map of white CSS color names to their hex values."""
 
-CSS_GRAYS = {
-    "black": CSS_COLOR_NAME_TO_HEX["black"],
-    "darkgray": CSS_COLOR_NAME_TO_HEX["darkgray"],
-    "darkgrey": CSS_COLOR_NAME_TO_HEX["darkgrey"],
-    "dimgray": CSS_COLOR_NAME_TO_HEX["dimgray"],
-    "dimgrey": CSS_COLOR_NAME_TO_HEX["dimgrey"],
-    "gainsboro": CSS_COLOR_NAME_TO_HEX["gainsboro"],
-    "gray": CSS_COLOR_NAME_TO_HEX["gray"],
-    "grey": CSS_COLOR_NAME_TO_HEX["grey"],
-    "lightgray": CSS_COLOR_NAME_TO_HEX["lightgray"],
-    "lightgrey": CSS_COLOR_NAME_TO_HEX["lightgrey"],
-    "silver": CSS_COLOR_NAME_TO_HEX["silver"],
-    "darkslategray": CSS_COLOR_NAME_TO_HEX["darkslategray"],
-    "darkslategrey": CSS_COLOR_NAME_TO_HEX["darkslategrey"],
-    "lightslategray": CSS_COLOR_NAME_TO_HEX["lightslategray"],
-    "lightslategrey": CSS_COLOR_NAME_TO_HEX["lightslategrey"],
-    "slategray": CSS_COLOR_NAME_TO_HEX["slategray"],
-    "slategrey": CSS_COLOR_NAME_TO_HEX["slategrey"],
+_CSS_GRAYS_NAMES = {
+    "black",
+    "darkgray",
+    "darkgrey",
+    "dimgray",
+    "dimgrey",
+    "gainsboro",
+    "gray",
+    "grey",
+    "lightgray",
+    "lightgrey",
+    "silver",
+    "darkslategray",
+    "darkslategrey",
+    "lightslategray",
+    "lightslategrey",
+    "slategray",
+    "slategrey",
 }
-"""A map of gray CSS color names to their hex values."""
 
 
-def clamp(
-    t: RealNumber, minimum: RealNumber = 0, maximum: RealNumber = 1
-) -> RealNumber:
-    """Clamp a value to be between a max and min value.
+def _group_map(names: set[str]) -> dict[str, str]:
+    return {name: CSS_COLOR_NAME_TO_HEX[name] for name in names}
 
-    Args:
-        t (RealNumber): The number to clamp.
-        minimum (RealNumber, optional): The minimum value. Defaults to 0.
-        maximum (RealNumber, optional): The maximum value. Defaults to 1.
 
-    Returns:
-        RealNumber: The clamped value.
+CSS_REDS = _group_map(_CSS_REDS_NAMES)
+CSS_PINKS = _group_map(_CSS_PINKS_NAMES)
+CSS_ORANGES = _group_map(_CSS_ORANGES_NAMES)
+CSS_YELLOWS = _group_map(_CSS_YELLOWS_NAMES)
+CSS_PURPLES = _group_map(_CSS_PURPLES_NAMES)
+CSS_GREENS = _group_map(_CSS_GREENS_NAMES)
+CSS_BLUES = _group_map(_CSS_BLUES_NAMES)
+CSS_BROWNS = _group_map(_CSS_BROWNS_NAMES)
+CSS_WHITES = _group_map(_CSS_WHITES_NAMES)
+CSS_GRAYS = _group_map(_CSS_GRAYS_NAMES)
 
-    Raises:
-        ValueError: If `minimum` is greater than `maximum`.
-    """
+# use reversed to erase dupes, leaving first instance as canonical
+HEX_TO_CSS_NAME = {hex6: name for name, hex6 in reversed(CSS_COLOR_NAME_TO_HEX.items())}
+"""A map of hex colors mapped to CSS names."""
+
+
+def _clamp(
+    t: _RealNumber,
+    /,
+    minimum: _RealNumber = float("-inf"),
+    maximum: _RealNumber = float("inf"),
+) -> _RealNumber:
     if minimum > maximum:
         raise ValueError(
-            f"'minimum' ({minimum}) cannot be greater than "
-            f"'maximum' ({maximum}) clamp value"
+            "'minimum' value passed to clamp cannot be greater than 'maximum' value"
         )
 
-    return min(maximum or 1, max(minimum or 0, t))
+    return min(maximum, max(minimum, t))
 
 
-def rem_euclid(lhs: RealNumber, rhs: RealNumber) -> RealNumber:
-    """Calculate the Euclidean remainder after division between `lhs` and `rhs`.
-
-    Args:
-        lhs (RealNumber): The lefthand side of the division.
-        rhs (RealNumber): The righthand side of the division.
-
-    Returns:
-        RealNumber: The Euclidean remainder after division.
-    """
+def _rem_euclid(lhs: _RealNumber, rhs: _RealNumber) -> _RealNumber:
     abs_rhs = abs(rhs)
     return lhs - abs_rhs * (lhs // abs_rhs)
 
 
-class ColorRangeError(ValueError):
-    """Raised when a color value is out of the valid range."""
+class ColorParseError(ValueError):
+    """Raised when parsing a color fails."""
 
     def __init__(self, message: str | None = None) -> None:
-        """Raise when a color value is out of the valid range.
+        """Raise when parsing a color fails.
 
         Args:
             message (str | None, optional): The error message. Defaults to None.
@@ -432,10 +414,10 @@ class Color3:
             b (int): The blue component.
 
         Raises:
-            ColorRangeError: If any of the RGB components are out of the valid range.
+            ColorParseError: If any of the RGB components are out of the valid range.
         """
-        if any(x < 0 or x > RGB_MAX for x in (r, g, b)):
-            raise ColorRangeError("RGB value out of valid range (0-255)")
+        if any(x < 0 or x > _RGB_MAX for x in (r, g, b)):
+            raise ColorParseError("RGB value out of valid range (0-255)")
 
         self.__r = r
         self.__g = g
@@ -448,7 +430,7 @@ class Color3:
             Color3: The inverted color.
         """
         return Color3(
-            abs(RGB_MAX - self.__r), abs(RGB_MAX - self.__g), abs(RGB_MAX - self.__b)
+            abs(_RGB_MAX - self.__r), abs(_RGB_MAX - self.__g), abs(_RGB_MAX - self.__b)
         )
 
     def lerp(self, other: Color3, t: float, /) -> Color3:
@@ -463,9 +445,9 @@ class Color3:
         """
 
         def lerp8(a: int, b: int) -> int:
-            return int(clamp(round(a + (b - a) * t), 0.0, 255.0))
+            return int(_clamp(round(a + (b - a) * t), 0.0, 255.0))
 
-        t = clamp(t)
+        t = _clamp(t)
         other_r, other_g, other_b = other.as_rgb()
         return Color3(
             lerp8(self.__r, other_r),
@@ -493,7 +475,7 @@ class Color3:
         Returns:
             Color3: The lightened color.
         """
-        return self.lerp(Color3(255, 255, 255), clamp(percent, 0.0, 100.0) / 100.0)
+        return self.lerp(Color3(255, 255, 255), _clamp(percent, 0.0, 100.0) / 100.0)
 
     def darken(self, percent: float, /) -> Color3:
         """Darken a color.
@@ -504,48 +486,7 @@ class Color3:
         Returns:
             Color3: The darkened color.
         """
-        return self.lerp(Color3(0, 0, 0), clamp(percent, 0.0, 100.0) / 100.0)
-
-    @staticmethod
-    def get_color_name(hex6: str, /) -> str | None:
-        """Get the color name corresponding to the 6-digit hex value.
-
-        Args:
-            hex6 (str): The hex color.
-
-        Returns:
-            str | None: The color name, if it exists, otherwise None.
-        """
-        hex6 = hex6.lstrip("#")
-        if hex6 in CSS_COLOR_NAME_TO_HEX.values():
-            return next(k for k, v in CSS_COLOR_NAME_TO_HEX.items() if v == hex6)
-        return None
-
-    @staticmethod
-    def validate_hex(hex6: str, /) -> bool:
-        """Determine if the given 6-digit hex value is valid.
-
-        Args:
-            hex6 (str): The hex value to validate.
-
-        Returns:
-            bool: Whether the hex is valid.
-        """
-        return bool(re.match(r"^[A-Fa-f0-9]{6}$", hex6.lstrip("#")))
-
-    @staticmethod
-    def validate_rgb(r: int, g: int, b: int, /) -> bool:
-        """Determine if the given RGB color is valid.
-
-        Args:
-            r (int): The red component.
-            g (int): The green component.
-            b (int): The blue component.
-
-        Returns:
-            bool: Whether the RGB color is valid.
-        """
-        return all(0 <= v <= RGB_MAX for v in (r, g, b))
+        return self.lerp(Color3(0, 0, 0), _clamp(percent, 0.0, 100.0) / 100.0)
 
     @classmethod
     def random(cls, /) -> Color3:
@@ -555,10 +496,22 @@ class Color3:
             Color3: The new color.
         """
         return Color3(
-            secrets.randbelow(RGB_MAX + 1),
-            secrets.randbelow(RGB_MAX + 1),
-            secrets.randbelow(RGB_MAX + 1),
+            secrets.randbelow(_RGB_MAX + 1),
+            secrets.randbelow(_RGB_MAX + 1),
+            secrets.randbelow(_RGB_MAX + 1),
         )
+
+    @classmethod
+    def from_discord_color(cls, color: discord.Color, /) -> Color3:
+        """Create a Color3 from a discord.py Color.
+
+        Args:
+            color (discord.Color): The discord.py Color.
+
+        Returns:
+            Color3: The new color.
+        """
+        return Color3(*color.to_rgb())
 
     @classmethod
     def from_css_name(cls, name: str, /) -> Color3:
@@ -573,7 +526,7 @@ class Color3:
         Raises:
             ValueError: If an invalid color name is given.
         """
-        if name.strip() not in CSS_COLOR_NAME_TO_HEX:
+        if name.strip().lower() not in CSS_COLOR_NAME_TO_HEX:
             raise ValueError("Invalid color name")
         return Color3.from_hex6(CSS_COLOR_NAME_TO_HEX[name])
 
@@ -587,7 +540,12 @@ class Color3:
         Returns:
             Color3: The new color.
         """
-        hex6 = hex6.strip("#")
+        if hex6.startswith("#"):
+            hex6 = hex6[1:]
+
+        if len(hex6) != _HEX_LEN:
+            raise ColorParseError(f"Invalid hex6 length ({len(hex6)} != {_HEX_LEN})")
+
         rgb = tuple(int(hex6[i : i + 2], 16) for i in (0, 2, 4))
         return Color3(*rgb)
 
@@ -604,7 +562,7 @@ class Color3:
             Color3: The new color.
         """
         # solution from https://www.rapidtables.com/convert/color/hsl-to-rgb.html
-        h, s, l = rem_euclid(h, 360.0), clamp(s), clamp(l)  # noqa: E741 (ambiguous name)
+        h, s, l = _rem_euclid(h, 360.0), _clamp(s), _clamp(l)  # noqa: E741 (ambiguous name)
 
         c = abs(1.0 - (2.0 * l - 1.0)) * s
         x = c * (1.0 - abs((h / 60.0) % 2.0 - 1.0))
@@ -631,10 +589,30 @@ class Color3:
             rp, gp, bp = c, 0.0, x
 
         return Color3(
-            round((rp + m) * RGB_MAX),
-            round((gp + m) * RGB_MAX),
-            round((bp + m) * RGB_MAX),
+            round((rp + m) * _RGB_MAX),
+            round((gp + m) * _RGB_MAX),
+            round((bp + m) * _RGB_MAX),
         )
+
+    @classmethod
+    def from_int(cls, integer: int, /) -> Color3:
+        """Create a Color3 from an integer.
+
+        Args:
+            integer (int): The integer (0xRRGGBB format).
+
+        Returns:
+            Color3: The new color.
+
+        Raises:
+            ValueError: If the provided int is outside the valid range for RGB colors.
+        """
+        if integer < 0:
+            raise ValueError("RGB int cannot be less than 0")
+        if integer > _RGB_INT_MAX:
+            raise ValueError(f"RGB int cannot be greater than {_RGB_INT_MAX}")
+
+        return Color3((integer >> 16) & 0xFF, (integer >> 8) & 0xFF, integer & 0xFF)
 
     def as_discord_color(self) -> discord.Color:
         """Get this color as a discord.py Color.
@@ -644,6 +622,15 @@ class Color3:
         """
         return discord.Color.from_rgb(self.__r, self.__g, self.__b)
 
+    def as_css_color(self) -> str | None:
+        """Get this color as a CSS color name.
+
+        Returns:
+            str | None: The CSS color name matching this color, if it exists.
+                None otherwise.
+        """
+        return HEX_TO_CSS_NAME[self.as_hex6()]
+
     def as_rgb(self) -> tuple[int, int, int]:
         """Get this color as an RGB tuple.
 
@@ -652,13 +639,19 @@ class Color3:
         """
         return self.__r, self.__g, self.__b
 
-    def as_hex6(self) -> str:
+    def as_hex6(self, *, hashtag: bool = False) -> str:
         """Get this color as a 6-digit hex string.
+
+        Args:
+            hashtag (bool, optional): Whether to include the hashtag with the string.
+                Defaults to False.
 
         Returns:
             str: The 6-digit hex string.
         """
-        return f"{self.__r:02x}{self.__g:02x}{self.__b:02x}".lower()
+        return (
+            "#" if hashtag else ""
+        ) + f"{self.__r:02x}{self.__g:02x}{self.__b:02x}".lower()
 
     def as_hsl(self) -> tuple[float, float, float]:
         """Get this color as an HSL tuple.
@@ -685,7 +678,7 @@ class Color3:
         if delta == 0.0:
             h = 0.0
         elif rp == c_max:
-            h = 60.0 * rem_euclid((gp - bp) / delta, 6.0)
+            h = 60.0 * _rem_euclid((gp - bp) / delta, 6.0)
         elif gp == c_max:
             h = 60.0 * ((bp - rp) / delta + 2.0)
         else:  # bp == c_max
@@ -695,6 +688,47 @@ class Color3:
         s = 0.0 if delta == 0.0 else delta / (1.0 - abs(2.0 * l - 1.0))
 
         return h, s, l
+
+    def as_int(self) -> int:
+        """Get this color as an int.
+
+        Returns:
+            int: An int representation of this color (0xRRGGBB format).
+        """
+        return (self.__r << 16) | (self.__g << 8) | self.__b
+
+    def __repr__(self) -> str:
+        """Get a representation of this color.
+
+        Returns:
+            str: The representation of this color.
+        """
+        return f"Color3({self.__r}, {self.__g}, {self.__b})"
+
+    def __eq__(self, other: object) -> bool:
+        """Check if this color is equal to another object.
+
+        Args:
+            other (object): The other object to compare with.
+
+        Returns:
+            bool: True if the other object is a Color3 with the same r, g, and b values.
+                False otherwise.
+        """
+        return (
+            isinstance(other, Color3)
+            and self.__r == other.__r
+            and self.__g == other.__g
+            and self.__b == other.__b
+        )
+
+    def __hash__(self) -> int:
+        """Generate a hash code for this Color3.
+
+        Returns:
+            int: The hash.
+        """
+        return self.as_int()
 
     @staticmethod
     def __decode_srgb(srgb: int, /) -> float:
@@ -710,19 +744,46 @@ class Color3:
         )
 
 
-def generate_color_image(color: Color3, /) -> BytesIO:
+def validate_rgb(r: int, g: int, b: int, /) -> bool:
+    """Determine if the given RGB color is valid.
+
+    Args:
+        r (int): The red component.
+        g (int): The green component.
+        b (int): The blue component.
+
+    Returns:
+        bool: Whether the RGB color is valid.
+    """
+    return all(0 <= v <= _RGB_MAX for v in (r, g, b))
+
+
+def validate_hex(hex6: str, /) -> bool:
+    """Determine if the given 6-digit hex value is valid.
+
+    Args:
+        hex6 (str): The hex value to validate.
+
+    Returns:
+        bool: Whether the hex is valid.
+    """
+    return bool(re.match(r"^[A-Fa-f0-9]{6}$", hex6.lstrip("#")))
+
+
+def generate_color_image(
+    color: Color3, /, *, size: tuple[int, int] = (100, 100)
+) -> BytesIO:
     """Generate a solid color image from the given color.
 
     Args:
         color (Color3): The color.
+        size (tuple[int, int]): The size of the image (width by height).
+            Defaults to (100, 100).
 
     Returns:
         BytesIO: The bytes of the generated image.
     """
-    rgb = color.as_rgb()
-
-    # Create a 100x100 pixel image with the specified RGB color
-    img = Image.new("RGB", (100, 100), (rgb[0], rgb[1], rgb[2]))
+    img = Image.new("RGB", size, color.as_rgb())
     img_byte_arr = BytesIO()
     img.save(img_byte_arr, format="PNG")
     img_byte_arr.seek(0)

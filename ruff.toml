@@ -43,7 +43,8 @@ ignore = [
     "D213",    # summary on same line as opening quotes
     "PLR6301", # must use self in class methods (annoying for discord.py slash commands)
     "TRY003",  # "long" error messages
-    "PLR0913", # too many function args, annoying for discord.py commands
+    "PLR0913", # too many function args, annoying for discord.py commands\
+    "PLR0904", # too many public methods
 ]
 
 [lint.isort]
