@@ -54,29 +54,39 @@ class HelpInfo:
 
     category: Category
     summary: str | None
+    params: dict[str, str | None]
     examples: tuple[str, ...] | None
     notes: tuple[str, ...] | None
 
 
-def build_command_info_str(
-    command: AppCommand, help_info: HelpInfo, /, description: str | None = None
-) -> str:
+def build_command_info_str(command: AppCommand, help_info: HelpInfo, /) -> str:
     """Create an info string for a command.
 
     Args:
         command (AppCommand): The command.
         help_info (HelpInfo): The help info of the command.
-        description (str | None, optional): The description of the command.
-            If None, uses the registered command description. Defaults to None.
 
     Returns:
         str: The formatted info string.
     """
-    out = description or getattr(command, "description", None) or "(no description)"
+    out = (
+        help_info.summary or getattr(command, "description", None) or "(no description)"
+    )
+
+    if isinstance(command, app_commands.Command):
+        out += "\n**Parameters:**"
+        for param in command.parameters:
+            # default to specially defined param description,
+            # then fallback to Discord registered description
+            out += (
+                f"\n* `{param.name}`: "
+                f"{help_info.params.get(param.name) or param.description}"
+            )
+
     if help_info.examples:
-        out += "\nExamples:\n" + "\n".join(f"`{ex}`" for ex in help_info.examples)
+        out += "\n**Examples:**\n" + "\n".join(f"`{ex}`" for ex in help_info.examples)
     if help_info.notes:
-        out += "\nNotes:\n" + "\n".join(note for note in help_info.notes)
+        out += "\n**Notes:**\n" + "\n".join(note for note in help_info.notes)
 
     return out
 
@@ -183,6 +193,7 @@ def help_info(
     /,
     summary: str | None = None,
     *,
+    params: dict[str, str | None] | None = None,
     examples: tuple[str, ...] | None = None,
     notes: tuple[str, ...] | None = None,
 ) -> Callable[[Callable[P, T_co]], HasHelpInfo[P, T_co]]:
@@ -192,6 +203,8 @@ def help_info(
         category (Category): The category the command lives in.
         summary (str | None, optional): A sentence-summary of the command.
             If None, uses the app command description. Defaults to None.
+        params (dict[str, str | None] | None, optional): A map of parameter names to
+            their descriptions. Defaults to None.
         examples (tuple[str] | None, optional): Examples of how to use the command.
             Defaults to None.
         notes (tuple[str, ...] | None, optional): Any special notes about the command.
@@ -204,7 +217,7 @@ def help_info(
 
     def decorator(func: Callable[P, T_co]) -> HasHelpInfo[P, T_co]:
         f = cast(HasHelpInfo[P, T_co], func)
-        f.__help_info__ = HelpInfo(category, summary, examples, notes)
+        f.__help_info__ = HelpInfo(category, summary, params or {}, examples, notes)
         return f
 
     return decorator

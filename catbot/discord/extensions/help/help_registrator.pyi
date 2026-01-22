@@ -40,6 +40,7 @@ class HasHelpInfo(Protocol[P, T_co]):
 class HelpInfo:
     category: Category
     summary: str | None
+    params: dict[str, str | None]
     examples: tuple[str, ...] | None
     notes: tuple[str, ...] | None
 
@@ -61,6 +62,7 @@ def help_info(
     /,
     summary: str | None = None,
     *,
+    params: dict[str, str | None] | None = None,
     examples: tuple[str, ...] | None = None,
     notes: tuple[str, ...] | None = None,
 ) -> Callable[[Callable[P, T_co]], HasHelpInfo[P, T_co]]: ...

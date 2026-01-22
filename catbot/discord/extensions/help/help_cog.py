@@ -42,6 +42,7 @@ class HelpCog(commands.Cog, name="Help Commands"):
     @app_commands.command(
         name="help", description="Get help regarding CatBot or a specific command"
     )
+    @app_commands.describe(command="The command to get help for")
     @help_info(
         "Help",
         "Get help regarding CatBot in general, or a specific command.",
@@ -83,7 +84,10 @@ class HelpCog(commands.Cog, name="Help Commands"):
 
         if command_object is None:
             await report(
-                interaction, f"The command '{command}' does not exist!", Status.FAILURE
+                interaction,
+                f"The command '{command}' does not exist, "
+                "or does not yet have dedicated help info.",
+                Status.FAILURE,
             )
             return
 
