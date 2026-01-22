@@ -15,6 +15,7 @@ from .help_registrator import (
     build_command_info_str,
     build_help_homepage,
     get_help_info,
+    help_info,
 )
 
 __author__ = "Gavin Borne"
@@ -41,6 +42,7 @@ class HelpCog(commands.Cog, name="Help Commands"):
     @app_commands.command(
         name="help", description="Get help regarding CatBot or a specific command"
     )
+    @help_info("Help", examples=("/help",))
     async def help(
         self, interaction: discord.Interaction, command: str | None = None
     ) -> None:
