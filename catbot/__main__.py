@@ -195,6 +195,10 @@ async def setup(logfile: Path) -> None:
 
     await load_group(bot, "color")
     await load_group(bot, "fun")
+    await load_group(bot, "utilities")
+
+    # load help last for proper command sync
+    await load_group(bot, "help")
 
     if not args.debug:
         # comment this next line out if you don't want to do message metric tracking

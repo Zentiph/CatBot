@@ -2,8 +2,7 @@ from typing import Final
 
 import discord
 
-from ...ui.emoji import Visual
-from ...views import RestrictedView
+from ...views import CarouselView
 from .inaturalist_api import (
     AnimalResult,
 )
@@ -21,7 +20,7 @@ async def build_animal_embed(
     cached_bytes: bytes | None = None,
 ) -> tuple[discord.Embed, list[discord.File]]: ...
 
-class AnimalCarouselView(RestrictedView):
+class AnimalCarouselView(CarouselView):
     def __init__(
         self,
         *,
@@ -30,19 +29,4 @@ class AnimalCarouselView(RestrictedView):
         embed_description: str,
         timeout: float | None = 180.0,
     ) -> None: ...
-    @discord.ui.button(
-        label=f"{Visual.NEXT} Next", style=discord.ButtonStyle.primary, row=0
-    )
-    async def next_button(
-        self,
-        interaction: discord.Interaction,
-        _button: discord.ui.Button[AnimalCarouselView],
-    ) -> None: ...
-    @discord.ui.button(
-        label=f"{Visual.PREVIOUS} Previous", style=discord.ButtonStyle.primary, row=0
-    )
-    async def previous_button(
-        self,
-        interaction: discord.Interaction,
-        _button: discord.ui.Button[AnimalCarouselView],
-    ) -> None: ...
+    async def render(self, interaction: discord.Interaction) -> None: ...

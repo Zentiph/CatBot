@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import (
+    Any,
     Final,
     Literal,
     ParamSpec,
@@ -12,15 +13,23 @@ from typing import (
     runtime_checkable,
 )
 
+import discord
+from discord import app_commands
+
+from ...views import CarouselView
+
 __author__: Final[str]
 __license__: Final[str]
 
 P = ParamSpec("P")
 T_co = TypeVar("T_co", covariant=True)
 
+AppCommand: TypeAlias = (
+    app_commands.Command[Any, ..., Any] | app_commands.Group | app_commands.ContextMenu
+)
 Category: TypeAlias = Literal["Color", "Fun", "Help", "Utilities"]
 
-HELP_EXTRAS_KEY: Final[str]
+COMMAND_CATEGORIES: Final[tuple[Category]]
 
 @runtime_checkable
 class HasHelpInfo(Protocol[P, T_co]):
@@ -34,6 +43,19 @@ class HelpInfo:
     examples: tuple[str] | None
     notes: str | None
 
+def build_command_info_str(command: AppCommand, help_info: HelpInfo, /) -> str: ...
+def build_help_homepage(pages: int) -> tuple[discord.Embed, discord.File]: ...
+
+class HelpCarouselView(CarouselView):
+    def __init__(
+        self,
+        *,
+        user: discord.abc.User,
+        categories: dict[Category, list[AppCommand]],
+        timeout: float | None = 180.0,
+    ) -> None: ...
+    async def render(self, interaction: discord.Interaction, /) -> None: ...
+
 def help_info(
     category: Category,
     /,
@@ -42,3 +64,4 @@ def help_info(
     examples: tuple[str] | None = None,
     notes: str | None = None,
 ) -> Callable[[Callable[P, T_co]], HasHelpInfo[P, T_co]]: ...
+def get_help_info(obj: object, /) -> HelpInfo | None: ...
