@@ -6,7 +6,6 @@ __license__: Final[str]
 __all__: Final[list[str]]
 
 from .help_registrator import (
-    HELP_EXTRAS_KEY as HELP_EXTRAS_KEY,
     Category as Category,
     HasHelpInfo as HasHelpInfo,
     HelpInfo as HelpInfo,

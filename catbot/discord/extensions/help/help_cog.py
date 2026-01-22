@@ -42,7 +42,11 @@ class HelpCog(commands.Cog, name="Help Commands"):
     @app_commands.command(
         name="help", description="Get help regarding CatBot or a specific command"
     )
-    @help_info("Help", examples=("/help",))
+    @help_info(
+        "Help",
+        "Get help regarding CatBot in general, or a specific command.",
+        examples=("/help", "/help color"),
+    )
     async def help(
         self, interaction: discord.Interaction, command: str | None = None
     ) -> None:
@@ -78,7 +82,9 @@ class HelpCog(commands.Cog, name="Help Commands"):
                     break
 
         if command_object is None:
-            await report(interaction, "That command does not exist!", Status.FAILURE)
+            await report(
+                interaction, f"The command '{command}' does not exist!", Status.FAILURE
+            )
             return
 
         help_info = get_help_info(command_object)
@@ -96,3 +102,8 @@ class HelpCog(commands.Cog, name="Help Commands"):
             description=build_command_info_str(command_object, help_info),
         )
         await safe_send(interaction, embed=embed, file=icon)
+
+
+async def setup(bot: commands.Bot) -> None:
+    """Set up the cog."""
+    await bot.add_cog(HelpCog(bot))

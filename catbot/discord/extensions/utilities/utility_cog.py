@@ -126,3 +126,8 @@ class UtilityCog(commands.Cog, name="Utility Commands"):
         )
 
         await interaction.response.send_message(embed=embed, file=icon)
+
+
+async def setup(bot: commands.Bot) -> None:
+    """Set up the cog."""
+    await bot.add_cog(UtilityCog(bot))

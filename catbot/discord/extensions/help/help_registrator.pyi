@@ -40,8 +40,8 @@ class HasHelpInfo(Protocol[P, T_co]):
 class HelpInfo:
     category: Category
     summary: str | None
-    examples: tuple[str] | None
-    notes: str | None
+    examples: tuple[str, ...] | None
+    notes: tuple[str, ...] | None
 
 def build_command_info_str(command: AppCommand, help_info: HelpInfo, /) -> str: ...
 def build_help_homepage(pages: int) -> tuple[discord.Embed, discord.File]: ...
@@ -61,7 +61,7 @@ def help_info(
     /,
     summary: str | None = None,
     *,
-    examples: tuple[str] | None = None,
-    notes: str | None = None,
+    examples: tuple[str, ...] | None = None,
+    notes: tuple[str, ...] | None = None,
 ) -> Callable[[Callable[P, T_co]], HasHelpInfo[P, T_co]]: ...
 def get_help_info(obj: object, /) -> HelpInfo | None: ...

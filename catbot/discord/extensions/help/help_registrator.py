@@ -54,25 +54,29 @@ class HelpInfo:
 
     category: Category
     summary: str | None
-    examples: tuple[str] | None
-    notes: str | None
+    examples: tuple[str, ...] | None
+    notes: tuple[str, ...] | None
 
 
-def build_command_info_str(command: AppCommand, help_info: HelpInfo, /) -> str:
+def build_command_info_str(
+    command: AppCommand, help_info: HelpInfo, /, description: str | None = None
+) -> str:
     """Create an info string for a command.
 
     Args:
         command (AppCommand): The command.
         help_info (HelpInfo): The help info of the command.
+        description (str | None, optional): The description of the command.
+            If None, uses the registered command description. Defaults to None.
 
     Returns:
         str: The formatted info string.
     """
-    out = f"/{command.name}"
+    out = description or getattr(command, "description", None) or "(no description)"
     if help_info.examples:
-        out += "\nExamples:" + "\n".join(ex for ex in help_info.examples)
+        out += "\nExamples:\n" + "\n".join(f"`{ex}`" for ex in help_info.examples)
     if help_info.notes:
-        out += "\nNotes:" + "\n".join(note for note in help_info.notes)
+        out += "\nNotes:\n" + "\n".join(note for note in help_info.notes)
 
     return out
 
@@ -85,7 +89,8 @@ def _build_help_category_embed(
     category_title = category.title()
     embed, icon = build_response_embed(
         title=f"{Visual.QUESTION_MARK} {category_title} Help "
-        f"({index + 1}/{len(categories)})",
+        # add 1 to categories to account for homepage
+        f"({index + 1}/{len(categories) + 1})",
         description=f"Help page for {category_title} commands",
     )
     for command in categories[category]:
@@ -117,8 +122,8 @@ def build_help_homepage(pages: int) -> tuple[discord.Embed, discord.File]:
     embed.add_field(
         name="Usage",
         value="CatBot operates purely with slash commands.\n"
-        "Type '/' followed by the name of the command you want to use.\n"
-        "To view a list of all commands, type '/', "
+        "Type `/` followed by the name of the command you want to use.\n"
+        "To view a list of all commands, type `/`, "
         "and then find CatBot in the menu that appears.",
     )
     embed.add_field(
@@ -166,7 +171,7 @@ class HelpCarouselView(CarouselView):
             # maintain order by using the tuple rather than the dict
             category = COMMAND_CATEGORIES[self.index - 1]
             embed, icon = _build_help_category_embed(
-                category, self.__categories, self.index + 1
+                category, self.__categories, self.index
             )
 
         self.sync_buttons()
@@ -178,8 +183,8 @@ def help_info(
     /,
     summary: str | None = None,
     *,
-    examples: tuple[str] | None = None,
-    notes: str | None = None,
+    examples: tuple[str, ...] | None = None,
+    notes: tuple[str, ...] | None = None,
 ) -> Callable[[Callable[P, T_co]], HasHelpInfo[P, T_co]]:
     """Decorator to add help info to a slash command.
 
@@ -189,7 +194,7 @@ def help_info(
             If None, uses the app command description. Defaults to None.
         examples (tuple[str] | None, optional): Examples of how to use the command.
             Defaults to None.
-        notes (str | None, optional): Any special notes about the command.
+        notes (tuple[str, ...] | None, optional): Any special notes about the command.
             Defaults to None.
 
     Returns:
