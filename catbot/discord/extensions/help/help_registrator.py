@@ -79,7 +79,7 @@ def build_command_info_str(command: AppCommand, help_info: HelpInfo, /) -> str:
             # default to specially defined param description,
             # then fallback to Discord registered description
             out += (
-                f"\n* `{param.name}`: "
+                f"\n`{param.name}`: "
                 f"{help_info.params.get(param.name) or param.description}"
             )
 
@@ -96,12 +96,11 @@ def _build_help_category_embed(
     categories: dict[Category, list[AppCommand]],
     index: int,
 ) -> tuple[discord.Embed, discord.File]:
-    category_title = category.title()
     embed, icon = build_response_embed(
-        title=f"{Visual.QUESTION_MARK} {category_title} Help "
+        title=f"{Visual.QUESTION_MARK} {category.title()} Help "
         # add 1 to categories to account for homepage
         f"({index + 1}/{len(categories) + 1})",
-        description=f"Help page for {category_title} commands",
+        description=f"Help page for {category} commands",
     )
     for command in categories[category]:
         help_info = get_help_info(command)

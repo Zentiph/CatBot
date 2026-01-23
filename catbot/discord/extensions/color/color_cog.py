@@ -22,6 +22,7 @@ from ...interaction import (
     safe_send,
 )
 from ...ui.emoji import Status, Visual
+from ..help import help_info
 from .color_tools import (
     CSS_BLUES,
     CSS_BROWNS,
@@ -140,6 +141,35 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         name="CSS color name",
         role="Role to copy the color from",
     )
+    @help_info(
+        "Color",
+        "Change your color to any unique 24-bit color",
+        params={
+            "action": "Whether to set, reset, or reassign your color role",
+            "kind": "The color input type to use, "
+            "**only when setting your color role**",
+            "hex6": "Your new color as a 6-character hex color code, "
+            "**only when setting your color with `kind` as `hex6`**",
+            "r": "The red component of your new color, "
+            "**only when setting your color with `kind` as `rgb`**",
+            "g": "The green component of your new color, "
+            "**only when setting your color with `kind` as `rgb`**",
+            "b": "The blue component of your new color, "
+            "**only when setting your color with `kind` as `rgb`**",
+            "name": "Your new color as a color name, "
+            "**only when setting your color with `kind` as `name`**",
+            "role": "A role whose color to copy as your color, "
+            "**only when setting your color with `kind` as `role`**",
+        },
+        examples=(
+            "/colorrole action:set kind:hex6 hex6:ffffff",
+            "/colorrole action:set kind:rgb r:255 g:255 b:255",
+            "/colorrole action:set kind:name name:white",
+            "/colorrole action:set kind:role role:@Red",
+            "/colorrole action:reset",
+            "/colorrole action:reassign",
+        ),
+    )
     async def colorrole(
         self,
         interaction: discord.Interaction,
@@ -232,6 +262,27 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         name="CSS color name",
         role="Role to read color from",
     )
+    @help_info(
+        "Color",
+        params={
+            "kind": "The color input type to use",
+            "hex6": "The color to get info about as a 6-character hex color code, "
+            "**only with `kind` as `hex6`**",
+            "r": "The red component of the color, **only with `kind` as `rgb`**",
+            "g": "The green component of the color, **only with `kind` as `rgb`**",
+            "b": "The blue component of the color, **only with `kind` as `rgb`**",
+            "name": "The color to get info about as a color name, "
+            "**only with `kind` as `name`**",
+            "role": "A role whose color to get info about, "
+            "**only with `kind` as `role`**",
+        },
+        examples=(
+            "/color kind:hex6 hex6:ffffff",
+            "/color kind:rgb r:255 g:255 b:255",
+            "/color kind:name name:white",
+            "/color kind:role role:@Red",
+        ),
+    )
     async def color(
         self,
         interaction: discord.Interaction,
@@ -299,7 +350,10 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         name="colorlist",
         description="Get a list of all supported predefined color names",
     )
-    @app_commands.describe(group="Group of colors to get the allowed names of")
+    @app_commands.describe(  # TODO: CarouselView instead of group param
+        group="Group of colors to get the allowed names of"
+    )
+    @help_info("Color")
     async def list(
         self,
         interaction: discord.Interaction,
