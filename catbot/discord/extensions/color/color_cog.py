@@ -149,7 +149,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             "kind": "The color input type to use, "
             "**only when setting your color role**",
             "hex6": "Your new color as a 6-character hex color code, "
-            "**only when setting your color with `kind` as `hex6`**",
+            "**only when setting your color with `kind` as `hex`**",
             "r": "The red component of your new color, "
             "**only when setting your color with `kind` as `rgb`**",
             "g": "The green component of your new color, "
@@ -162,7 +162,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             "**only when setting your color with `kind` as `role`**",
         },
         examples=(
-            "/colorrole action:set kind:hex6 hex6:ffffff",
+            "/colorrole action:set kind:hex hex6:ffffff",
             "/colorrole action:set kind:rgb r:255 g:255 b:255",
             "/colorrole action:set kind:name name:white",
             "/colorrole action:set kind:role role:@Red",
@@ -264,10 +264,11 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
     )
     @help_info(
         "Color",
+        "Get a color info embed with an image preview and modification tools",
         params={
             "kind": "The color input type to use",
             "hex6": "The color to get info about as a 6-character hex color code, "
-            "**only with `kind` as `hex6`**",
+            "**only with `kind` as `hex`**",
             "r": "The red component of the color, **only with `kind` as `rgb`**",
             "g": "The green component of the color, **only with `kind` as `rgb`**",
             "b": "The blue component of the color, **only with `kind` as `rgb`**",
@@ -277,7 +278,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             "**only with `kind` as `role`**",
         },
         examples=(
-            "/color kind:hex6 hex6:ffffff",
+            "/color kind:hex hex6:ffffff",
             "/color kind:rgb r:255 g:255 b:255",
             "/color kind:name name:white",
             "/color kind:role role:@Red",
