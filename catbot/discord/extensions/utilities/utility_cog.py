@@ -21,6 +21,7 @@ from ...interaction import (
     safe_send,
 )
 from ...ui.emoji import Status, Visual
+from ..help import help_info
 
 __author__ = "Gavin Borne"
 __license__ = "MIT"
@@ -43,6 +44,7 @@ class UtilityCog(commands.Cog, name="Utility Commands"):
         cog_setup_log_msg(type(self).__name__, self.bot)
 
     @app_commands.command(name="stats", description="Get stats about CatBot")
+    @help_info("Utilities")
     async def stats(self, interaction: discord.Interaction) -> None:
         """Report stats about CatBot."""
         log_app_command(interaction)
@@ -72,8 +74,9 @@ class UtilityCog(commands.Cog, name="Utility Commands"):
         await safe_send(interaction, embed=embed, file=icon)
 
     @app_commands.command(
-        name="members", description="Get data regarding the members in this server"
+        name="members", description="Get data about the members in this server"
     )
+    @help_info("Utilities")
     async def members(self, interaction: discord.Interaction) -> None:
         """Get member info."""
         log_app_command(interaction)
@@ -126,3 +129,8 @@ class UtilityCog(commands.Cog, name="Utility Commands"):
         )
 
         await interaction.response.send_message(embed=embed, file=icon)
+
+
+async def setup(bot: commands.Bot) -> None:
+    """Set up the cog."""
+    await bot.add_cog(UtilityCog(bot))

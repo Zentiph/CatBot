@@ -9,7 +9,7 @@ import discord
 from ....util.http import http_get_bytes
 from ...interaction import build_response_embed, safe_edit
 from ...ui.emoji import Visual
-from ...views import RestrictedView
+from ...views import CarouselView
 from .inaturalist_api import (
     AnimalResult,
 )
@@ -79,7 +79,7 @@ async def build_animal_embed(
     return embed, [file, icon]
 
 
-class AnimalCarouselView(RestrictedView):
+class AnimalCarouselView(CarouselView):
     """An animal image carousel view."""
 
     def __init__(
@@ -99,70 +99,29 @@ class AnimalCarouselView(RestrictedView):
             timeout (float | None, optional): The timeout of the view in seconds.
                 Defaults to 180.0.
         """
-        super().__init__(user=user, timeout=timeout)
         self.__data = data
         self.__urls = data.images
-        self.__count = len(self.__urls)
-        self.__index = 0
         self.__description = embed_description
-
         self.__cache: dict[int, bytes] = {}
 
-        self.__sync_buttons()
+        super().__init__(len(self.__urls), user=user, timeout=timeout)
 
-    def __sync_buttons(self) -> None:
-        self.previous_button.disabled = self.__index == 0
-        self.next_button.disabled = self.__index >= self.__count - 1
+    async def render(self, interaction: discord.Interaction, /) -> None:
+        """Render the next page and image after a button is pressed.
 
-    async def __render(self, interaction: discord.Interaction) -> None:
-        url = self.__urls[self.__index]
-        image_bytes = self.__cache.get(self.__index) or await http_get_bytes(url)
-        self.__cache[self.__index] = image_bytes
+        Args:
+            interaction (discord.Interaction): The interaction instance.
+        """
+        url = self.__urls[self.index]
+        image_bytes = self.__cache.get(self.index) or await http_get_bytes(url)
+        self.__cache[self.index] = image_bytes
 
         embed, files = await build_animal_embed(
             self.__data,
             self.__description,
-            self.__index,
-            self.__cache.get(self.__index),
+            self.index,
+            self.__cache.get(self.index),
         )
 
-        self.__sync_buttons()
+        self.sync_buttons()
         await safe_edit(interaction, embed=embed, attachments=files, view=self)
-
-    @discord.ui.button(
-        label=f"{Visual.PREVIOUS} Previous", style=discord.ButtonStyle.primary, row=0
-    )
-    async def previous_button(
-        self,
-        interaction: discord.Interaction,
-        _button: discord.ui.Button[AnimalCarouselView],
-    ) -> None:
-        """Move to the previous image in the carousel.
-
-        Supports wrapping.
-
-        Args:
-            interaction (discord.Interaction): The interaction instance.
-        """
-        # should be disabled if it would go OOB, but clamp to be safe
-        self.__index = max(0, self.__index - 1)
-        await self.__render(interaction)
-
-    @discord.ui.button(
-        label=f"{Visual.NEXT} Next", style=discord.ButtonStyle.primary, row=0
-    )
-    async def next_button(
-        self,
-        interaction: discord.Interaction,
-        _button: discord.ui.Button[AnimalCarouselView],
-    ) -> None:
-        """Move to the next image in the carousel.
-
-        Supports wrapping.
-
-        Args:
-            interaction (discord.Interaction): The interaction instance.
-        """
-        # should be disabled if it would go OOB, but clamp to be safe
-        self.__index = min(self.__count - 1, self.__index + 1)
-        await self.__render(interaction)

@@ -5,6 +5,7 @@ __license__: Final[str]
 
 __all__: Final[list[str]]
 
+from .carousel_view import CarouselView as CarouselView
 from .restricted_view import (
     RestrictedModal as RestrictedModal,
     RestrictedView as RestrictedView,

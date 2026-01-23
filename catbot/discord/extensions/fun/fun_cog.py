@@ -16,6 +16,7 @@ from ...interaction import (
 )
 from ...ui import COIN_HEADS_COLOR, COIN_TAILS_COLOR
 from ...ui.emoji import Status, Visual
+from ..help import help_info
 from .animal_tools import AnimalCarouselView, build_animal_embed
 from .inaturalist_api import (
     ImageFetchAmount,
@@ -62,6 +63,7 @@ class FunCog(commands.Cog, name="Fun Commands"):
         cog_setup_log_msg(type(self).__name__, self.bot)
 
     @app_commands.command(name="coinflip", description="Flip a coin (50/50 odds)")
+    @help_info("Fun")
     async def coin_flip(self, interaction: discord.Interaction) -> None:
         """Flip a coin, returning an embed with custom coin images."""
         log_app_command(interaction)
@@ -87,6 +89,12 @@ class FunCog(commands.Cog, name="Fun Commands"):
 
     @app_commands.command(name="profile", description="Get a user's profile picture")
     @app_commands.describe(user="User to get the profile picture of")
+    @help_info(
+        "Fun",
+        notes=(
+            "If a user is not provided, the command will get *your* profile picture!",
+        ),
+    )
     async def profile(
         self,
         interaction: discord.Interaction,
@@ -109,6 +117,10 @@ class FunCog(commands.Cog, name="Fun Commands"):
 
     @app_commands.command(name="banner", description="Get a user's profile banner")
     @app_commands.describe(user="User to get the profile banner of")
+    @help_info(
+        "Fun",
+        notes=("If a user is not provided, the command will get *your* banner!",),
+    )
     async def banner(
         self,
         interaction: discord.Interaction,
@@ -141,12 +153,26 @@ class FunCog(commands.Cog, name="Fun Commands"):
 
     @app_commands.autocomplete(kind=animal_kind_autocomplete)
     @app_commands.command(
-        name="animal", description="Get an animal picture (and maybe a fact)!"
+        name="animal", description="Get animal picture(s) (and maybe a fact)!"
     )
     @app_commands.describe(
         kind="Which animal to fetch "
         "(wait for the autocomplete to pick the best-fitting option)",
-        amount="How many images to fetch (1-10)",
+        amount="How many images to fetch",
+    )
+    @help_info(
+        "Fun",
+        params={
+            "kind": "What kind of animal to get photo(s) of",
+        },
+        notes=(
+            (
+                "After typing the kind of animal you want, waiting for a few seconds "
+                "will reveal some autocomplete options that best match what you typed. "
+                "Choosing one of these options can help guarantee "
+                "your search returns what you want!"
+            ),
+        ),
     )
     async def animal(
         self,
@@ -154,7 +180,7 @@ class FunCog(commands.Cog, name="Fun Commands"):
         kind: str,
         amount: ImageFetchAmount = 1,
     ) -> None:
-        """Get a random animal image and possibly a fact."""
+        """Get random animal images and possibly a fact."""
         log_app_command(interaction)
 
         await interaction.response.defer(thinking=True)
