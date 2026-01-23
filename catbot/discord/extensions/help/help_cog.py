@@ -46,7 +46,7 @@ class HelpCog(commands.Cog, name="Help Commands"):
     @help_info(
         "Help",
         "Get help regarding CatBot in general, or a specific command.",
-        examples=("/help", "/help color"),
+        examples=("/help", "/help command:color"),
     )
     async def help(
         self, interaction: discord.Interaction, command: str | None = None
