@@ -18,9 +18,8 @@ from typing import (
 import discord
 from discord import app_commands
 
-from ...interaction import build_response_embed, safe_edit
+from ...interaction import build_response_embed
 from ...ui.emoji import Visual
-from ...views import CarouselView
 
 __author__ = "Gavin Borne"
 __license__ = "MIT"
@@ -91,41 +90,14 @@ def build_command_info_str(command: AppCommand, help_info: HelpInfo, /) -> str:
     return out
 
 
-def _build_help_category_embed(
-    category: Category,
-    categories: dict[Category, list[AppCommand]],
-    index: int,
-) -> tuple[discord.Embed, discord.File]:
-    embed, icon = build_response_embed(
-        title=f"{Visual.QUESTION_MARK} {category.title()} Help "
-        # add 1 to categories to account for homepage
-        f"({index + 1}/{len(categories) + 1})",
-        description=f"Help page for {category} commands",
-    )
-    for command in categories[category]:
-        help_info = get_help_info(command)
-        if help_info is None:
-            continue
-
-        embed.add_field(
-            name=f"/{command.name}",
-            value=build_command_info_str(command, help_info),
-        )
-
-    return embed, icon
-
-
-def build_help_homepage(pages: int) -> tuple[discord.Embed, discord.File]:
+def build_help_homepage() -> tuple[discord.Embed, discord.File]:
     """Build the help homepage.
-
-    Args:
-        pages (int): The total number of pages for the help view.
 
     Returns:
         tuple[discord.Embed, discord.File]: The embed and its icon.
     """
     embed, icon = build_response_embed(
-        title=f"{Visual.QUESTION_MARK} CatBot Help (1/{pages})",
+        title=f"{Visual.QUESTION_MARK} CatBot Help",
         description="Here's a brief overview of how to use CatBot!",
     )
     embed.add_field(
@@ -143,48 +115,6 @@ def build_help_homepage(pages: int) -> tuple[discord.Embed, discord.File]:
     )
 
     return embed, icon
-
-
-class HelpCarouselView(CarouselView):
-    """A carousel view for help categories."""
-
-    def __init__(
-        self,
-        *,
-        user: discord.abc.User,
-        categories: dict[Category, list[AppCommand]],
-        timeout: float | None = 180.0,
-    ) -> None:
-        """A carousel view for help categories.
-
-        Args:
-            user (discord.abc.User): The user who spawned the view.
-            categories (dict[Category, list[AppCommand]]): A mapping of categories to
-                app commands with help info.
-            timeout (float | None, optional): The timeout of the view in seconds.
-                Defaults to 180.0.
-        """
-        self.__categories = categories
-        # add 1 to command categories length to account for homepage
-        super().__init__(len(COMMAND_CATEGORIES) + 1, user=user, timeout=timeout)
-
-    async def render(self, interaction: discord.Interaction, /) -> None:
-        """Render the next help page after a button is pressed.
-
-        Args:
-            interaction (discord.Interaction): The interaction instance.
-        """
-        if self.index == 0:
-            embed, icon = build_help_homepage(self.pages)
-        else:
-            # maintain order by using the tuple rather than the dict
-            category = COMMAND_CATEGORIES[self.index - 1]
-            embed, icon = _build_help_category_embed(
-                category, self.__categories, self.index
-            )
-
-        self.sync_buttons()
-        await safe_edit(interaction, embed=embed, attachments=[icon], view=self)
 
 
 def help_info(

@@ -8,10 +8,7 @@ from ....util.pawprints import cog_setup_log_msg, log_app_command
 from ...interaction import build_response_embed, report, safe_send
 from ...ui.emoji import Status, Visual
 from .help_registrator import (
-    COMMAND_CATEGORIES,
     AppCommand,
-    Category,
-    HelpCarouselView,
     build_command_info_str,
     build_help_homepage,
     get_help_info,
@@ -32,7 +29,7 @@ class HelpCog(commands.Cog, name="Help Commands"):
             bot (commands.Bot): The bot to load the cog to.
         """
         self.bot = bot
-        self.command_cache: list[AppCommand] | None = None
+        self.command_cache: dict[str, AppCommand] = {}
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
@@ -54,34 +51,20 @@ class HelpCog(commands.Cog, name="Help Commands"):
         """Get help regarding CatBot or a command."""
         log_app_command(interaction)
 
-        categories: dict[Category, list[AppCommand]] = {
-            cat: [] for cat in COMMAND_CATEGORIES
-        }
-
         # cache commands; they won't change after setup
         if not self.command_cache:
-            self.command_cache = self.bot.tree.get_commands()
-
-        for cmd in self.command_cache:
-            info = get_help_info(cmd)
-            if info is not None:
-                categories[info.category].append(cmd)
+            for cmd in self.bot.tree.get_commands():
+                info = get_help_info(cmd)
+                if info is not None:
+                    self.command_cache[cmd.name] = cmd
 
         if not command:
-            # add 1 to account for homepage
-            embed, icon = build_help_homepage(len(COMMAND_CATEGORIES) + 1)
-            view = HelpCarouselView(user=interaction.user, categories=categories)
-            await view.send(interaction, embed=embed, files=[icon])
+            embed, icon = build_help_homepage()
+            await safe_send(interaction, embed=embed, files=[icon])
             return
 
         # else: command specified, find it
-        command_object = None
-        for command_list in categories.values():
-            for cmd in command_list:
-                if cmd.name == command:
-                    command_object = cmd
-                    break
-
+        command_object = self.command_cache.get(command)
         if command_object is None:
             await report(
                 interaction,

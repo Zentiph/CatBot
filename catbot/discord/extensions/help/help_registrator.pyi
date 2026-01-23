@@ -16,8 +16,6 @@ from typing import (
 import discord
 from discord import app_commands
 
-from ...views import CarouselView
-
 __author__: Final[str]
 __license__: Final[str]
 
@@ -45,18 +43,7 @@ class HelpInfo:
     notes: tuple[str, ...] | None
 
 def build_command_info_str(command: AppCommand, help_info: HelpInfo, /) -> str: ...
-def build_help_homepage(pages: int) -> tuple[discord.Embed, discord.File]: ...
-
-class HelpCarouselView(CarouselView):
-    def __init__(
-        self,
-        *,
-        user: discord.abc.User,
-        categories: dict[Category, list[AppCommand]],
-        timeout: float | None = 180.0,
-    ) -> None: ...
-    async def render(self, interaction: discord.Interaction, /) -> None: ...
-
+def build_help_homepage() -> tuple[discord.Embed, discord.File]: ...
 def help_info(
     category: Category,
     /,
