@@ -108,6 +108,11 @@ def build_help_homepage() -> tuple[discord.Embed, discord.File]:
         "and then find CatBot in the menu that appears.",
     )
     embed.add_field(
+        name="Command Help",
+        value="For help regarding a specific command, "
+        "use /help and enter a command name.",
+    )
+    embed.add_field(
         name="Bugs/Issues",
         value="If you find a bug or issue, please "
         "[create a GitHub issue](https://github.com/Zentiph/CatBot/issues) "
