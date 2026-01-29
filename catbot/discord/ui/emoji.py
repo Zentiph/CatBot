@@ -30,6 +30,7 @@ class Visual(StrEnum):
     COIN = "🪙"
     PHOTO = "🖼️"
     CAT = "🐱"
+    COMPUTER = "🖥️"
     PEOPLE_SYMBOL = "🧑‍🧑‍🧒‍🧒"
     QUESTION_MARK = "❔"
     HAMMER = "🔨"
