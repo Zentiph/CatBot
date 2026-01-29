@@ -14,8 +14,8 @@ CatBot is a user-focused Discord bot made for fun and interactive activities.
 * Fully customizeable color roles
 * Fun commands (coin flip, server/user info, etc.)
 * Solo and versus games (COMING SOON)
-* In-depth help system
 * Moderation tools (COMING BACK SOON)
+* In-depth help system
 
 ## Changelog
 [changelog.md](changelog.md)
