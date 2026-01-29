@@ -1,5 +1,7 @@
 """Utility commands."""
 
+from datetime import datetime
+
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -25,6 +27,24 @@ from ..help import help_info
 
 __author__ = "Gavin Borne"
 __license__ = "MIT"
+
+# I love making Ruff happy.....
+_DATE_TH_SUFFIX_EXCEPTION_RANGE_MIN = 11
+_DATE_TH_SUFFIX_EXCEPTION_RANGE_MAX = 13
+
+
+def _ordinal(n: int, /) -> str:
+    if (
+        _DATE_TH_SUFFIX_EXCEPTION_RANGE_MIN
+        <= n % 100
+        <= _DATE_TH_SUFFIX_EXCEPTION_RANGE_MAX
+    ):
+        return "th"
+    return {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+
+
+def _human_date(dt: datetime, /) -> str:
+    return f"{dt.day}{_ordinal(dt.day)} {dt.strftime('%B %Y')}"
 
 
 class UtilityCog(commands.Cog, name="Utility Commands"):
@@ -73,8 +93,56 @@ class UtilityCog(commands.Cog, name="Utility Commands"):
 
         await safe_send(interaction, embed=embed, file=icon)
 
+    @app_commands.command(name="server", description="Get info about this server")
+    @help_info("Utilities")
+    async def server(self, interaction: discord.Interaction) -> None:
+        """Get server info."""
+        log_app_command(interaction)
+
+        data = get_guild_interaction_data(interaction)
+        if data is None:
+            await report(
+                interaction,
+                "This command can only be used in a server!",
+                Status.FAILURE,
+            )
+            return
+
+        guild = data.guild
+
+        owner = guild.owner
+        guild_icon = guild.icon
+
+        embed, icon = build_response_embed(
+            title=f"{Visual.COMPUTER} {guild.name} Information",
+            description=(
+                "Here's some information about this server.\n"
+                "(For member info, use `/members`)."
+            ),
+        )
+        if guild_icon is not None:
+            embed.set_image(url=guild_icon.url)
+
+        if owner is not None:
+            embed.add_field(name="Owner", value=owner.mention)
+        embed.add_field(name="ID", value=guild.id)
+        embed.add_field(name="Creation Date", value=_human_date(guild.created_at))
+
+        embed.add_field(
+            name="# of Categories", value=len(guild.categories), inline=False
+        )
+        embed.add_field(name="# of Channels", value=len(guild.channels))
+        embed.add_field(name="# of Text Channels", value=len(guild.text_channels))
+        embed.add_field(name="# of Voice Channels", value=len(guild.voice_channels))
+
+        embed.add_field(name="# of Roles", value=len(guild.roles), inline=False)
+        embed.add_field(name="# of Emojis", value=len(guild.emojis))
+        embed.add_field(name="# of Stickers", value=len(guild.stickers))
+
+        await safe_send(interaction, embed=embed, file=icon)
+
     @app_commands.command(
-        name="members", description="Get data about the members in this server"
+        name="members", description="Get info about the members in this server"
     )
     @help_info("Utilities")
     async def members(self, interaction: discord.Interaction) -> None:
@@ -119,16 +187,14 @@ class UtilityCog(commands.Cog, name="Utility Commands"):
         embed.add_field(
             name="Bot Members",
             value=member_count - human_members,
-            inline=False,
         )
         embed.add_field(name="Online Members", value=online_members, inline=False)
         embed.add_field(
             name="Offline Members",
             value=member_count - online_members,
-            inline=False,
         )
 
-        await interaction.response.send_message(embed=embed, file=icon)
+        await safe_send(interaction, embed=embed, file=icon)
 
 
 async def setup(bot: commands.Bot) -> None:
