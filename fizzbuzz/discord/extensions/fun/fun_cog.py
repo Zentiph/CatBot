@@ -28,7 +28,7 @@ __author__ = "Gavin Borne"
 __license__ = "MIT"
 
 _FIZZBUZZ_PREVIEW_SIZE = 15
-_FIZZBUZZ_MAX_ITERS = 100_000
+_FIZZBUZZ_MAX_ITERS = 65536  # 2^16
 
 
 def _fizzbuzz(n: int, /) -> str:
@@ -246,7 +246,10 @@ class FunCog(commands.Cog, name="Fun Commands"):
         if iterations > _FIZZBUZZ_MAX_ITERS:
             await report(
                 interaction,
-                f"Please input a number lower than {_FIZZBUZZ_MAX_ITERS + 1}.",
+                (
+                    "Please input a lower number of iterations "
+                    f"(max: {_FIZZBUZZ_MAX_ITERS})."
+                ),
                 Status.FAILURE,
             )
             return
