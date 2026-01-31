@@ -172,6 +172,9 @@ async def load_group(to_bot: commands.Bot, base_pkg: str) -> None:
             continue  # skip sub packages
 
         full_name = f"{root}.{base_pkg}.{module_name}"
+        if not full_name.endswith("_cog"):
+            continue
+
         try:
             await to_bot.load_extension(full_name)
             logging.info(f"Loaded extension: {full_name}")
@@ -179,7 +182,7 @@ async def load_group(to_bot: commands.Bot, base_pkg: str) -> None:
             logging.debug(f"Already loaded extension: {full_name}, skipping")
         except commands.errors.NoEntryPointError:
             # module didn't have a setup(bot) func
-            logging.debug(
+            logging.exception(
                 f"Couldn't load extension: {full_name}, "
                 "no setup(bot) function present, skipping"
             )
