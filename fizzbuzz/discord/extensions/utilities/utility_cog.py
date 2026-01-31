@@ -94,7 +94,7 @@ class UtilityCog(commands.Cog, name="Utility Commands"):
         embed.add_field(name="Language", value=f"Python {PYTHON_VERSION}")
         embed.add_field(name="Memory Usage", value=f"{memory_mb:.2f} MB")
         embed.add_field(name="Package", value=f"discord.py {DISCORD_DOT_PY_VERSION}")
-        embed.add_field(name="Dependencies", value=DEPENDENCIES)
+        embed.add_field(name="Dependencies", value=",".join(DEPENDENCIES))
         embed.add_field(name="Host", value=HOST, inline=False)
 
         await safe_send(interaction, embed=embed, file=icon)
@@ -132,20 +132,22 @@ class UtilityCog(commands.Cog, name="Utility Commands"):
         if owner is not None:
             embed.add_field(name="Owner", value=owner.mention)
         embed.add_field(name="ID", value=guild.id)
-        embed.add_field(name="Creation Date", value=_human_date(guild.created_at))
-
         embed.add_field(
-            name="# of Categories", value=len(guild.categories), inline=False
+            name="Creation Date", value=_human_date(guild.created_at), inline=False
         )
+
+        embed.add_field(name="# of Categories", value=len(guild.categories))
         embed.add_field(name="# of Channels", value=len(guild.channels))
         embed.add_field(name="# of Text Channels", value=len(guild.text_channels))
-        embed.add_field(name="# of Voice Channels", value=len(guild.voice_channels))
+        embed.add_field(
+            name="# of Voice Channels", value=len(guild.voice_channels), inline=False
+        )
 
-        embed.add_field(name="# of Roles", value=len(guild.roles), inline=False)
+        embed.add_field(name="# of Roles", value=len(guild.roles))
         embed.add_field(name="# of Emojis", value=len(guild.emojis))
         embed.add_field(name="# of Stickers", value=len(guild.stickers))
 
-        await safe_send(interaction, embed=embed, file=icon)
+        await safe_send(interaction, embed=embed, file=icon, ephemeral=False)
 
     @app_commands.command(
         name="members", description="Get info about the members in this server"
@@ -200,7 +202,7 @@ class UtilityCog(commands.Cog, name="Utility Commands"):
             value=member_count - online_members,
         )
 
-        await safe_send(interaction, embed=embed, file=icon)
+        await safe_send(interaction, embed=embed, file=icon, ephemeral=False)
 
     @app_commands.command(
         name="credits", description="Get a list of credits for FizzBuzz"
@@ -249,7 +251,7 @@ class UtilityCog(commands.Cog, name="Utility Commands"):
                 ),
             )
 
-        await safe_send(interaction, embed=embed, file=icon)
+        await safe_send(interaction, embed=embed, file=icon, ephemeral=False)
 
 
 async def setup(bot: commands.Bot) -> None:

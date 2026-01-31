@@ -125,7 +125,7 @@ class FunCog(commands.Cog, name="Fun Commands"):
         )
         embed.set_image(url=target.display_avatar.url)
 
-        await interaction.response.send_message(embed=embed, file=icon)
+        await interaction.response.send_message(embed=embed, file=icon, ephemeral=False)
 
     @app_commands.command(name="banner", description="Get a user's profile banner")
     @app_commands.describe(user="User to get the profile banner of")
@@ -161,7 +161,7 @@ class FunCog(commands.Cog, name="Fun Commands"):
         )
         embed.set_image(url=full_user.banner.url)
 
-        await interaction.response.send_message(embed=embed, file=icon)
+        await interaction.response.send_message(embed=embed, file=icon, ephemeral=False)
 
     @app_commands.autocomplete(kind=animal_kind_autocomplete)
     @app_commands.command(
@@ -257,7 +257,7 @@ class FunCog(commands.Cog, name="Fun Commands"):
             title=f"{Visual.SODA} FizzBuzz",
             description=(
                 "Here's the result of running FizzBuzz with "
-                f"{iterations} iterations starting at {start}."
+                f"**{iterations}** iterations starting at **{start}**."
             ),
         )
         embed.add_field(name="Fizz Count", value=fizz_count)
@@ -267,7 +267,7 @@ class FunCog(commands.Cog, name="Fun Commands"):
 
         embed.add_field(name="Algorithm Results", value="\n".join(out), inline=False)
 
-        await safe_send(interaction, embed=embed, file=icon)
+        await safe_send(interaction, embed=embed, file=icon, ephemeral=False)
 
 
 async def setup(bot: commands.Bot) -> None:
