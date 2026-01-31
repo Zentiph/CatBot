@@ -7,7 +7,7 @@ from discord import app_commands
 __author__: Final[str]
 __license__: Final[str]
 
-ImageFetchAmount: TypeAlias = Literal[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+ImageFetchAmount: TypeAlias = Literal[1, 2, 3, 4, 5]
 
 @dataclass(frozen=True)
 class AnimalResult:
