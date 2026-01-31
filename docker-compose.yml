@@ -39,7 +39,7 @@ services:
     build: .
     env_file: .env.test
     restart: no
-    entrypoint: [ "/bin/sh", "-lc", "python -m fizzbuzz --token-override \"$$TESTING_TOKEN\" --debug" ]
+    entrypoint: [ "/bin/sh", "-lc", "python -m fizzbuzz --token-override \"$$TESTING_TOKEN\" --debug --show-env" ]
     logging:
       driver: json-file
       options:

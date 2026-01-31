@@ -58,6 +58,11 @@ def init_arg_parser() -> ArgumentParser:
         default=True,
         help="Use/don't use ANSI color formatting in the console, on by default",
     )
+    arg_parser.add_argument(
+        "--show-env",
+        action="store_true",
+        help="Show the environment variables related to the bot on startup",
+    )
     return arg_parser
 
 
@@ -192,6 +197,15 @@ async def setup(logfile: Path) -> None:
     """
     logfile.parent.mkdir(parents=True, exist_ok=True)
     logfile.write_text("", encoding="utf-8")  # clear
+
+    if args.show_env:
+        logging.info("Running FizzBuzz with environment variables:")
+        logging.info("TOKEN: (hidden)")
+        logging.info(f"HTTP_USER_AGENT: {os.getenv('HTTP_USER_AGENT')}")
+        logging.info(
+            f"HTTP_PER_HOST_MIN_INTERVAL: {os.getenv('HTTP_PER_HOST_MIN_INTERVAL')}"
+        )
+        logging.info("(Default values will be used if a variable is None.)")
 
     await load_group(bot, "color")
     await load_group(bot, "fun")
