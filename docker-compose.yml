@@ -18,7 +18,7 @@ services:
 
   bot:
     # production
-    image: catbot:latest
+    image: fizzbuzz:latest
     build: .
     env_file: .env
     restart: unless-stopped
@@ -35,11 +35,11 @@ services:
       - ./data:/app/data # so db data persists
 
   bot-test:
-    image: catbot:latest
+    image: fizzbuzz:latest
     build: .
     env_file: .env.test
     restart: no
-    entrypoint: [ "/bin/sh", "-lc", "python -m catbot --token-override \"$$TESTING_TOKEN\" --debug" ]
+    entrypoint: [ "/bin/sh", "-lc", "python -m fizzbuzz --token-override \"$$TESTING_TOKEN\" --debug" ]
     logging:
       driver: json-file
       options:
