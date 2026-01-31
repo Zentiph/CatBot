@@ -94,7 +94,7 @@ class UtilityCog(commands.Cog, name="Utility Commands"):
         embed.add_field(name="Language", value=f"Python {PYTHON_VERSION}")
         embed.add_field(name="Memory Usage", value=f"{memory_mb:.2f} MB")
         embed.add_field(name="Package", value=f"discord.py {DISCORD_DOT_PY_VERSION}")
-        embed.add_field(name="Dependencies", value=",".join(DEPENDENCIES))
+        embed.add_field(name="Dependencies", value=", ".join(DEPENDENCIES))
         embed.add_field(name="Host", value=HOST, inline=False)
 
         await safe_send(interaction, embed=embed, file=icon)
@@ -139,9 +139,7 @@ class UtilityCog(commands.Cog, name="Utility Commands"):
         embed.add_field(name="# of Categories", value=len(guild.categories))
         embed.add_field(name="# of Channels", value=len(guild.channels))
         embed.add_field(name="# of Text Channels", value=len(guild.text_channels))
-        embed.add_field(
-            name="# of Voice Channels", value=len(guild.voice_channels), inline=False
-        )
+        embed.add_field(name="# of Voice Channels", value=len(guild.voice_channels))
 
         embed.add_field(name="# of Roles", value=len(guild.roles))
         embed.add_field(name="# of Emojis", value=len(guild.emojis))
@@ -193,13 +191,11 @@ class UtilityCog(commands.Cog, name="Utility Commands"):
         )
         embed.add_field(name="Human Members", value=human_members, inline=False)
         embed.add_field(
-            name="Bot Members",
-            value=member_count - human_members,
+            name="Bot Members", value=member_count - human_members, inline=False
         )
         embed.add_field(name="Online Members", value=online_members, inline=False)
         embed.add_field(
-            name="Offline Members",
-            value=member_count - online_members,
+            name="Offline Members", value=member_count - online_members, inline=False
         )
 
         await safe_send(interaction, embed=embed, file=icon, ephemeral=False)
@@ -220,7 +216,9 @@ class UtilityCog(commands.Cog, name="Utility Commands"):
             ),
         )
         embed.add_field(
-            name="Creator", value=f"@{(await self.bot.fetch_user(_CREATOR_ID)).name}"
+            name="Creator",
+            value=f"@{(await self.bot.fetch_user(_CREATOR_ID)).name}",
+            inline=False,
         )
         if len(_PROGRAMMER_IDS) > 0:
             embed.add_field(
@@ -231,7 +229,6 @@ class UtilityCog(commands.Cog, name="Utility Commands"):
                         for uid in _PROGRAMMER_IDS
                     ]
                 ),
-                inline=False,
             )
         if len(_CONTRIBUTOR_IDS) > 0:
             embed.add_field(
