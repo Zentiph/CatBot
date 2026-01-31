@@ -14,7 +14,7 @@ from ....util.http import STATUS_OK, ApiError, http_get_json
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
-ImageFetchAmount = Literal[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+ImageFetchAmount = Literal[1, 2, 3, 4, 5]
 
 INAT_TAXA_URL = "https://api.inaturalist.org/v1/taxa"
 """The URL for the iNaturalist taxa API."""
