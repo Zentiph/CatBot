@@ -7,3 +7,4 @@ __pycache__/
 *.cbdata
 .pytest_cache/
 data/
+test_data/
