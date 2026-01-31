@@ -28,6 +28,7 @@ __author__ = "Gavin Borne"
 __license__ = "MIT"
 
 _FIZZBUZZ_PREVIEW_SIZE = 15
+_FIZZBUZZ_MAX_ITERS = 100_000
 
 
 def _fizzbuzz(n: int, /) -> str:
@@ -241,6 +242,14 @@ class FunCog(commands.Cog, name="Fun Commands"):
     ) -> None:
         """Perform the FizzBuzz algorithm and return stats on it."""
         log_app_command(interaction)
+
+        if iterations > _FIZZBUZZ_MAX_ITERS:
+            await report(
+                interaction,
+                f"Please input a number lower than {_FIZZBUZZ_MAX_ITERS + 1}.",
+                Status.FAILURE,
+            )
+            return
 
         out = [_fizzbuzz(n) for n in range(start, iterations + 1)]
         fizz_count = out.count("Fizz")
