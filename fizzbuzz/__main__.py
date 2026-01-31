@@ -14,7 +14,7 @@ from discord import app_commands
 from discord.ext import commands
 from requests import Timeout
 
-from fizzbuzz import pawprints
+from fizzbuzz import log_handler
 from fizzbuzz.discord.interaction import report
 from fizzbuzz.discord.ui.emoji import Status
 
@@ -211,7 +211,7 @@ def main() -> None:
     if not logfile_path.is_file():
         logfile_path.touch()
 
-    pawprints.config_logging(
+    log_handler.config_logging(
         args.log_file,
         console_logging=args.console_logging,
         colored_logs=args.colored_logs,

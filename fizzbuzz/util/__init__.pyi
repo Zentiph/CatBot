@@ -5,4 +5,4 @@ __license__: Final[str]
 
 __all__: Final[list[str]]
 
-from . import http as http, pawprints as pawprints
+from . import http as http, log_handler as log_handler

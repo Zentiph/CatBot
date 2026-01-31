@@ -8,7 +8,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from ....util.http import ApiError
-from ....util.pawprints import cog_setup_log_msg, log_app_command
+from ....util.log_handler import cog_setup_log_msg, log_app_command
 from ...interaction import (
     build_response_embed,
     report,

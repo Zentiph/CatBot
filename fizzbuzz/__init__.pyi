@@ -6,4 +6,4 @@ __license__: Final[str]
 __all__: Final[list[str]]
 
 from . import discord as discord
-from .util import pawprints as pawprints
+from .util import log_handler as log_handler

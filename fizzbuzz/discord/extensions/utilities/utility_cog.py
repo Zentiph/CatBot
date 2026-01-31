@@ -7,7 +7,7 @@ from discord import app_commands
 from discord.ext import commands
 from psutil import Process
 
-from ....util.pawprints import cog_setup_log_msg, log_app_command
+from ....util.log_handler import cog_setup_log_msg, log_app_command
 from ...info import (
     DEPENDENCIES,
     DISCORD_DOT_PY_VERSION,
