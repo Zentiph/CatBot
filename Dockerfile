@@ -16,9 +16,9 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # copy src and needed items
-COPY catbot/ ./catbot/
+COPY fizzbuzz/ ./fizzbuzz/
 COPY static/ ./static/
 
 # args provided at runtime will be appended
-ENTRYPOINT ["python", "-m", "catbot"]
+ENTRYPOINT ["python", "-m", "fizzbuzz"]
 CMD []
