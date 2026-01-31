@@ -28,6 +28,12 @@ from ..help import help_info
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
+_CREATOR_ID = 526210836776222721
+_PROGRAMMER_IDS = (526210836776222721,)
+_CONTRIBUTOR_IDS: tuple[int, ...] = ()
+_TESTER_IDS = (429481121018019841, 488889169997725761)
+
+
 # I love making Ruff happy.....
 _DATE_TH_SUFFIX_EXCEPTION_RANGE_MIN = 11
 _DATE_TH_SUFFIX_EXCEPTION_RANGE_MAX = 13
@@ -193,6 +199,55 @@ class UtilityCog(commands.Cog, name="Utility Commands"):
             name="Offline Members",
             value=member_count - online_members,
         )
+
+        await safe_send(interaction, embed=embed, file=icon)
+
+    @app_commands.command(
+        name="credits", description="Get a list of credits for FizzBuzz"
+    )
+    @help_info("Utilities")
+    async def credits(self, interaction: discord.Interaction) -> None:
+        """Get credits."""
+        log_app_command(interaction)
+
+        embed, icon = build_response_embed(
+            title=f"{Visual.HANDSHAKE} FizzBuzz Credits",
+            description=(
+                "Here's a list of credits toward the people "
+                "that made/make FizzBuzz possible!"
+            ),
+        )
+        embed.add_field(
+            name="Creator", value=f"@{(await self.bot.fetch_user(_CREATOR_ID)).name}"
+        )
+        if len(_PROGRAMMER_IDS) > 0:
+            embed.add_field(
+                name="Programmers",
+                value="\n".join(
+                    [
+                        f"@{(await self.bot.fetch_user(uid)).name}"
+                        for uid in _PROGRAMMER_IDS
+                    ]
+                ),
+                inline=False,
+            )
+        if len(_CONTRIBUTOR_IDS) > 0:
+            embed.add_field(
+                name="Contributors",
+                value="\n".join(
+                    [
+                        f"@{(await self.bot.fetch_user(uid)).name}"
+                        for uid in _CONTRIBUTOR_IDS
+                    ]
+                ),
+            )
+        if len(_TESTER_IDS) > 0:
+            embed.add_field(
+                name="Bug Testers",
+                value="\n".join(
+                    [f"@{(await self.bot.fetch_user(uid)).name}" for uid in _TESTER_IDS]
+                ),
+            )
 
         await safe_send(interaction, embed=embed, file=icon)
 

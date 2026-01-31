@@ -27,6 +27,18 @@ from .inaturalist_api import (
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
+_FIZZBUZZ_PREVIEW_SIZE = 15
+
+
+def _fizzbuzz(n: int, /) -> str:
+    if n % 15 == 0:
+        return "FizzBuzz"
+    if n % 3 == 0:
+        return "Fizz"
+    if n % 5 == 0:
+        return "Buzz"
+    return str(n)
+
 
 logger = logging.getLogger("FunCog")
 
@@ -217,6 +229,45 @@ class FunCog(commands.Cog, name="Fun Commands"):
                 "bug report if this keeps happening.",
                 Status.ERROR,
             )
+
+    @app_commands.command(name="fizzbuzz", description="Perform the FizzBuzz algorithm")
+    @app_commands.describe(
+        iterations="The number of iterations to run the algorithm for",
+        start="Optional starting number",
+    )
+    @help_info("Fun", notes=("`start` defaults to 1 if it is not provided.",))
+    async def fizzbuzz(
+        self, interaction: discord.Interaction, iterations: int, start: int = 1
+    ) -> None:
+        """Perform the FizzBuzz algorithm and return stats on it."""
+        log_app_command(interaction)
+
+        out = [_fizzbuzz(n) for n in range(start, iterations + 1)]
+        fizz_count = out.count("Fizz")
+        buzz_count = out.count("Buzz")
+        fb_count = out.count("FizzBuzz")
+        number_count = iterations - fizz_count - buzz_count - fb_count
+
+        if len(out) > 2 * _FIZZBUZZ_PREVIEW_SIZE:
+            head = out[:_FIZZBUZZ_PREVIEW_SIZE]
+            tail = out[-_FIZZBUZZ_PREVIEW_SIZE:]
+            out = [*head, "...", *tail]
+
+        embed, icon = build_response_embed(
+            title=f"{Visual.SODA} FizzBuzz",
+            description=(
+                "Here's the result of running FizzBuzz with "
+                f"{iterations} iterations starting at {start}."
+            ),
+        )
+        embed.add_field(name="Fizz Count", value=fizz_count)
+        embed.add_field(name="Buzz Count", value=buzz_count)
+        embed.add_field(name="FizzBuzz Count", value=fb_count)
+        embed.add_field(name="Number Count", value=number_count)
+
+        embed.add_field(name="Algorithm Results", value="\n".join(out), inline=False)
+
+        await safe_send(interaction, embed=embed, file=icon)
 
 
 async def setup(bot: commands.Bot) -> None:
