@@ -10,9 +10,6 @@ __author__: Final[str]
 __license__: Final[str]
 
 LOG_FILE: Final[str]
-LOGGING_CHANNEL: Final[int]
-DEFAULT_FMT: Final[str]
-DEFAULT_DATE_FMT: Final[str]
 
 class AnsiColor(StrEnum):
     DEBUG = "\x1b[32m"
@@ -31,8 +28,8 @@ def config_logging(
     console_logging: bool,
     colored_logs: bool,
     debug: bool,
-    fmt: str = DEFAULT_FMT,
-    date_fmt: str = DEFAULT_DATE_FMT,
+    fmt: str = ...,
+    date_fmt: str = ...,
 ) -> None: ...
 def cog_setup_log_msg(cog_name: str, bot: commands.Bot, /) -> str: ...
 def log_app_command(interaction: discord.Interaction, /) -> None: ...

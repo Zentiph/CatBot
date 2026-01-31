@@ -1,3 +1,5 @@
+<!-- DON'T FORGET TO UPDATE THE VERSION CONSTANT IN info.py IF YOU'RE EDITING THIS!! -->
+
 # FizzBuzz Changelog
 A collective history of all the changes made to FizzBuzz.
 

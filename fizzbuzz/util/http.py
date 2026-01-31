@@ -17,24 +17,21 @@ from ..discord.info import VERSION
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
-DEFAULT_USER_AGENT = os.getenv(
+_DEFAULT_USER_AGENT = os.getenv(
     "HTTP_USER_AGENT",
     # clip leading 'v' from version
     f"FizzBuzz/{VERSION[1:]} (contact: zentiphdev@gmail.com)",
 )
-"""The default user agent to send with HTTP requests."""
 
-DEFAULT_HEADERS = {"User-Agent": DEFAULT_USER_AGENT}
-"""The default headers to send with HTTP requests."""
+_DEFAULT_HEADERS = {"User-Agent": _DEFAULT_USER_AGENT}
 
-PER_HOST_MIN_INTERVAL_SECONDS = float(os.getenv("HTTP_PER_HOST_MIN_INTERVAL", "0"))
-"""The minimum interval between HTTP requests per host in seconds."""
+_PER_HOST_MIN_INTERVAL_SECONDS = float(os.getenv("HTTP_PER_HOST_MIN_INTERVAL", "0.1"))
 
 STATUS_OK = 200
 """The status code for an OK response."""
 
 
-last_request_time_by_host: dict[str, float] = {}
+_last_request_time_by_host: dict[str, float] = {}
 
 
 class ApiError(RuntimeError):
@@ -53,58 +50,36 @@ class ApiJsonResponse:
     """The original URL that the request was sent to."""
 
 
-def merge_headers_with_defaults(headers: Mapping[str, str] | None, /) -> dict[str, str]:
-    """Merge the headers given with the default headers.
-
-    Args:
-        headers (Mapping[str, str] | None): The headers to add.
-
-    Returns:
-        dict[str, str]: The merged default and given headers.
-    """
-    merged = dict(DEFAULT_HEADERS)
+def _merge_headers_with_defaults(
+    headers: Mapping[str, str] | None, /
+) -> dict[str, str]:
+    merged = dict(_DEFAULT_HEADERS)
     if headers:
         merged.update(headers)
     return merged
 
 
-def get_host_from_url(url: str, /) -> str:
-    """Attempt to get the host name from a URL.
-
-    Args:
-        url (str): The URL to get the host name from.
-
-    Returns:
-        str: The host name if it could be parsed, otherwise "".
-    """
+def _get_host_from_url(url: str, /) -> str:
     try:
         return urlparse(url).netloc.lower()
     except (TypeError, AttributeError):
         return ""
 
 
-def throttle_host(url: str, /) -> None:
-    """A best-effort per-host throttle to prevent API spam.
-
-    This runs synchronously inside of the worker thread
-    used in `http_get_json()` or `http_get_bytes()`.
-
-    Args:
-        url (str): The URL of the host to throttle.
-    """
-    if PER_HOST_MIN_INTERVAL_SECONDS <= 0:
+def _throttle_host(url: str, /) -> None:  # best-effort per-host throttle
+    if _PER_HOST_MIN_INTERVAL_SECONDS <= 0:
         return
 
-    host = get_host_from_url(url)
+    host = _get_host_from_url(url)
     if not host:
         return
 
     now = time.monotonic()
-    last = last_request_time_by_host.get(host, 0.0)
-    wait = PER_HOST_MIN_INTERVAL_SECONDS - (now - last)
+    last = _last_request_time_by_host.get(host, 0.0)
+    wait = _PER_HOST_MIN_INTERVAL_SECONDS - (now - last)
     if wait > 0:
         time.sleep(wait)
-    last_request_time_by_host[host] = time.monotonic()
+    _last_request_time_by_host[host] = time.monotonic()
 
 
 async def http_get_json(
@@ -130,8 +105,8 @@ async def http_get_json(
     """
 
     def do() -> ApiJsonResponse:
-        throttle_host(url)
-        merged_headers = merge_headers_with_defaults(headers)
+        _throttle_host(url)
+        merged_headers = _merge_headers_with_defaults(headers)
 
         response = requests.get(
             url, headers=merged_headers, params=params, timeout=timeout
@@ -164,8 +139,8 @@ async def http_get_bytes(
     """
 
     def do() -> bytes:
-        throttle_host(url)
-        merged_headers = merge_headers_with_defaults(headers)
+        _throttle_host(url)
+        merged_headers = _merge_headers_with_defaults(headers)
 
         response = requests.get(url, headers=merged_headers, timeout=timeout)
         if response.status_code != STATUS_OK:

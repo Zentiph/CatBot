@@ -15,7 +15,7 @@ __author__ = "Gavin Borne"
 __license__ = "MIT"
 
 
-file_cache: dict[str, bytes] = {}
+_file_cache: dict[str, bytes] = {}
 
 
 @dataclass(frozen=True)
@@ -207,10 +207,10 @@ def build_response_embed(
     if Path(icon_filepath).suffix.lower() not in {".png", ".jpg", ".jpeg"}:
         raise InvalidImageFormatError()
 
-    data = file_cache.get(icon_filepath)
+    data = _file_cache.get(icon_filepath)
     if data is None:
         data = Path(icon_filepath).read_bytes()
-        file_cache[icon_filepath] = data
+        _file_cache[icon_filepath] = data
 
     file = discord.File(BytesIO(data), filename=icon_filename)
     embed = discord.Embed(title=title, description=description, color=color)

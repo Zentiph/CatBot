@@ -17,23 +17,15 @@ from .inaturalist_api import (
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
-MAX_FILENAME_LEN = 40
-"""The maximum length of an attachment filename."""
+_MAX_FILENAME_LEN = 40  # maximum length of an attachment filename
 
 
-def safe_filename(filename: str) -> str:
-    """Ensure a filename is safe by replacing risky characters with underscores.
-
-    Args:
-        filename (str): The filename to make safe.
-
-    Returns:
-        str: The safe filename.
-    """
+def _safe_filename(filename: str) -> str:
+    # ensure a filename is safe by replacing risky characters with underscores
     keep = [c.lower() if c.isalnum() else "_" for c in filename]
     out = "".join(keep).strip("_")
 
-    return out[:MAX_FILENAME_LEN] or "animal"
+    return out[:_MAX_FILENAME_LEN] or "animal"
 
 
 async def build_animal_embed(
@@ -60,7 +52,7 @@ async def build_animal_embed(
         image_bytes = await http_get_bytes(result.images[index], timeout=10)
         image_fp = BytesIO(image_bytes)
 
-    filename = f"{safe_filename(result.kind)}.png"
+    filename = f"{_safe_filename(result.kind)}.png"
     file = discord.File(fp=image_fp, filename=filename)
 
     description_parts = []

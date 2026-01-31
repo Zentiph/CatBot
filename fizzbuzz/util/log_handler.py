@@ -9,22 +9,14 @@ from discord.ext import commands
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
-LOG_FILE = "logs.log"
+LOG_FILE = "logs.log"  # TODO: make an env var?
 """The file to log to."""
 
-# TODO: change when DB is added
-LOGGING_CHANNEL = 1306045987319451718
-"""The channel to post command logs in.
-This is a temporary solution until a DB is added.
-"""
 
-DEFAULT_FMT = (
+_DEFAULT_FMT = (
     "[%(asctime)s] [%(levelname)s] %(name)s - %(message)s (%(filename)s:%(lineno)d)"
 )
-"""The default logging format to use."""
-
-DEFAULT_DATE_FMT = "%Y-%m-%d %H:%M:%S"
-"""The default logging date format to use."""
+_DEFAULT_DATE_FMT = "%Y-%m-%d %H:%M:%S"
 
 
 class AnsiColor(StrEnum):
@@ -83,8 +75,8 @@ def config_logging(
     console_logging: bool,
     colored_logs: bool,
     debug: bool,
-    fmt: str = DEFAULT_FMT,
-    date_fmt: str = DEFAULT_DATE_FMT,
+    fmt: str = _DEFAULT_FMT,
+    date_fmt: str = _DEFAULT_DATE_FMT,
 ) -> None:
     """Configure FizzBuzz's logging.
 
@@ -93,9 +85,9 @@ def config_logging(
         console_logging (bool): Whether to enable console logging.
         colored_logs (bool): Whether to color console logs.
         debug (bool): Whether to log debug messages.
-        fmt (str, optional): The logging format to use. Defaults to DEFAULT_FMT.
+        fmt (str, optional): The logging format to use. Defaults to _DEFAULT_FMT.
         date_fmt (str, optional): The logging date format to use.
-            Defaults to DEFAULT_DATE_FMT.
+            Defaults to _DEFAULT_DATE_FMT.
     """
     handlers: list[logging.Handler] = []
     if console_logging:
