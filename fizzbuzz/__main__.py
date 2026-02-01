@@ -17,53 +17,47 @@ from requests import Timeout
 from fizzbuzz import log_handler
 from fizzbuzz.discord.interaction import report
 from fizzbuzz.discord.ui.emoji import Status
+from fizzbuzz.util.bot_role_handler import ensure_bot_role_properties_in_guild
 
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
 
-def init_arg_parser() -> ArgumentParser:
-    """Initialize the argument parser.
-
-    Returns:
-        ArgumentParser: The argument parser.
-    """
-    arg_parser = ArgumentParser(description="Run FizzBuzz with optional arguments")
-    arg_parser.add_argument(
-        "--log-file",
-        type=str,
-        default="logs.log",
-        help="Path to the file where logs will be written, defaults to 'logs.log'",
-    )
-    arg_parser.add_argument(
-        "--console-logging",
-        action=BooleanOptionalAction,
-        default=True,
-        help="Enable/disable console logging, on by default",
-    )
-    arg_parser.add_argument(
-        "--token-override",
-        type=str,
-        help="A token to override the token from .env"
-        " (for testing under a different app)",
-    )
-    arg_parser.add_argument(
-        "--debug",
-        action="store_true",
-        help="Launch the bot in debug mode (debug logs enabled)",
-    )
-    arg_parser.add_argument(
-        "--colored-logs",
-        action=BooleanOptionalAction,
-        default=True,
-        help="Use/don't use ANSI color formatting in the console, on by default",
-    )
-    arg_parser.add_argument(
-        "--show-env",
-        action="store_true",
-        help="Show the environment variables related to the bot on startup",
-    )
-    return arg_parser
+parser = ArgumentParser(description="Run FizzBuzz with optional arguments")
+parser.add_argument(
+    "--log-file",
+    type=str,
+    default="logs.log",
+    help="Path to the file where logs will be written, defaults to 'logs.log'",
+)
+parser.add_argument(
+    "--console-logging",
+    action=BooleanOptionalAction,
+    default=True,
+    help="Enable/disable console logging, on by default",
+)
+parser.add_argument(
+    "--token-override",
+    type=str,
+    help="A token to override the token from .env (for testing under a different app)",
+)
+parser.add_argument(
+    "--debug",
+    action="store_true",
+    help="Launch the bot in debug mode (debug logs enabled)",
+)
+parser.add_argument(
+    "--colored-logs",
+    action=BooleanOptionalAction,
+    default=True,
+    help="Use/don't use ANSI color formatting in the console, on by default",
+)
+parser.add_argument(
+    "--show-env",
+    action="store_true",
+    help="Show the environment variables related to the bot on startup",
+)
+args = parser.parse_args()
 
 
 intents = discord.Intents.default()
@@ -80,8 +74,11 @@ bot = commands.Bot(
     allowed_installs=discord.app_commands.AppInstallationType(guild=True, user=True),
 )
 
-parser = init_arg_parser()
-args = parser.parse_args()
+
+@bot.event
+async def on_guild_join(guild: discord.Guild) -> None:
+    """Run when joining a guild."""
+    await ensure_bot_role_properties_in_guild(bot, guild)
 
 
 @bot.event
@@ -101,6 +98,10 @@ async def on_ready() -> None:
     if bot.user is None:
         logging.error("Log in failed")
         return
+
+    # try to update bot's role color
+    for guild in bot.guilds:
+        await ensure_bot_role_properties_in_guild(bot, guild)
 
     logging.info(f"Logged in as {bot.user.name} and slash commands synced\n")
 
