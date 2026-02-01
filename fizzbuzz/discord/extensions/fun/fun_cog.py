@@ -27,8 +27,8 @@ from .inaturalist_api import (
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
-_FIZZBUZZ_PREVIEW_SIZE = 15
-_FIZZBUZZ_MAX_ITERS = 65536  # 2^16
+_FIZZBUZZ_PREVIEW_SIZE = 10
+_FIZZBUZZ_MAX_ITERS = 1048576
 
 
 def _fizzbuzz(n: int, /) -> str:
@@ -243,6 +243,13 @@ class FunCog(commands.Cog, name="Fun Commands"):
         """Perform the FizzBuzz algorithm and return stats on it."""
         log_app_command(interaction)
 
+        if iterations < 1:
+            await report(
+                interaction,
+                "The number of iterations must be positive.",
+                Status.FAILURE,
+            )
+            return
         if iterations > _FIZZBUZZ_MAX_ITERS:
             await report(
                 interaction,
@@ -253,17 +260,28 @@ class FunCog(commands.Cog, name="Fun Commands"):
                 Status.FAILURE,
             )
             return
+        if start < 1:
+            await report(
+                interaction,
+                "The starting value cannot be less than one.",
+                Status.FAILURE,
+            )
+            return
 
-        out = [_fizzbuzz(n) for n in range(start, iterations + 1)]
-        fizz_count = out.count("Fizz")
-        buzz_count = out.count("Buzz")
-        fb_count = out.count("FizzBuzz")
+        stop = start + iterations
+        last = stop - 1
+
+        fb_count = (last // 15) - ((start - 1) // 15)
+        fizz_count = (last // 3) - ((start - 1) // 3) - fb_count
+        buzz_count = (last // 5) - ((start - 1) // 5) - fb_count
         number_count = iterations - fizz_count - buzz_count - fb_count
 
-        if len(out) > 2 * _FIZZBUZZ_PREVIEW_SIZE:
-            head = out[:_FIZZBUZZ_PREVIEW_SIZE]
-            tail = out[-_FIZZBUZZ_PREVIEW_SIZE:]
+        if iterations > 2 * _FIZZBUZZ_PREVIEW_SIZE:
+            head = [_fizzbuzz(n) for n in range(start, start + _FIZZBUZZ_PREVIEW_SIZE)]
+            tail = [_fizzbuzz(n) for n in range(stop - _FIZZBUZZ_PREVIEW_SIZE, stop)]
             out = [*head, "...", *tail]
+        else:
+            out = [_fizzbuzz(n) for n in range(start, stop)]
 
         embed, icon = build_response_embed(
             title=f"{Visual.SODA} FizzBuzz",
