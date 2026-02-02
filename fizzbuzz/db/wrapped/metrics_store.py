@@ -5,6 +5,8 @@ throughout the year which will then have statistics run on it to create a presen
 for the server.
 """
 
+from collections.abc import Awaitable, Callable
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
@@ -38,15 +40,54 @@ CREATE INDEX IF NOT EXISTS idx_messages_channel_date
     ON messages (channel_id, created_at);
 """
 
-_DATA_ROOT_DIR = Path("data") / "wrapped"
+_DEFAULT_DATA_ROOT_DIR = Path("data") / "wrapped"
+
+ConnectFunction = Callable[[Path], Awaitable[aiosqlite.Connection]]
+
+
+@dataclass(frozen=True, slots=True)
+class MetricStoreConfig:
+    """Configuration for YearlyMetricStore."""
+
+    data_root_dir: Path = _DEFAULT_DATA_ROOT_DIR
+    schema_sql: str = _SCHEMA
+
+
+DEFAULT_METRIC_STORE_CONFIG = MetricStoreConfig()
+"""Default metric store config."""
 
 
 class YearlyMetricStore:
     """Manages one SQLite DB per year."""
 
-    def __init__(self) -> None:
-        """Manages one SQLite DB per year."""
+    def __init__(
+        self,
+        *,
+        config: MetricStoreConfig = DEFAULT_METRIC_STORE_CONFIG,
+        connect: ConnectFunction | None = None,
+    ) -> None:
+        """Manages one SQLite DB per year.
+
+        Args:
+            config (MetricStoreConfig): Config settings for the metric store
+                for testing. Defaults to standard production settings.
+            connect (ConnectFunction): Optional injectable connect function for testing.
+                Defaults to None.
+        """
+        self.__config = config
+        self.__connect = connect if connect is not None else aiosqlite.connect
         self.__connections: dict[int, aiosqlite.Connection] = {}
+
+    def db_path(self, year: int, /) -> Path:
+        """Compute the DB path for a given year.
+
+        Args:
+            year (int): The year.
+
+        Returns:
+            Path: The path.
+        """
+        return self.__config.data_root_dir / f"wrapped_{year}.sqlite"
 
     async def get_connection(self, year: int, /) -> aiosqlite.Connection:
         """Get or create a DB connection for a given year.
@@ -57,23 +98,24 @@ class YearlyMetricStore:
         Returns:
             aiosqlite.Connection: The connection corresponding to the given year.
         """
-        if year in self.__connections:
-            return self.__connections[year]
+        existing = self.__connections.get(year)
+        if existing is not None:
+            return existing
 
-        _DATA_ROOT_DIR.mkdir(parents=True, exist_ok=True)
-        path = _DATA_ROOT_DIR / f"wrapped_{year}.sqlite"
+        self.__config.data_root_dir.mkdir(parents=True, exist_ok=True)
+        path = self.db_path(year)
 
-        connection = await aiosqlite.connect(path)
-        await connection.execute(
+        conn = await self.__connect(path)
+        await conn.execute(
             """--sql
             PRAGMA foreign_keys = ON;
             """
         )
-        await connection.executescript(_SCHEMA)
-        await connection.commit()
+        await conn.executescript(self.__config.schema_sql)
+        await conn.commit()
 
-        self.__connections[year] = connection
-        return connection
+        self.__connections[year] = conn
+        return conn
 
     async def insert_message(
         self,
@@ -106,8 +148,12 @@ class YearlyMetricStore:
             sticker_count (int): The number of stickers attached to the message.
             embed_count (int): The number of embeds attached to the message.
         """
-        connection = await self.get_connection(year)
-        await connection.execute(
+        conn = await self.get_connection(year)
+
+        word_count = len(content.split()) if content else 0
+        char_count = len(content) if content else 0
+
+        await conn.execute(
             """--sql
             INSERT OR REPLACE INTO messages (
                 message_id,
@@ -131,8 +177,8 @@ class YearlyMetricStore:
                 str(author_id),
                 created_at_iso,
                 content,
-                len(content.split()) if content else 0,  # word count
-                len(content) if content else 0,  # char count
+                word_count,
+                char_count,
                 attachment_count,
                 image_count,
                 video_count,
@@ -162,8 +208,8 @@ class YearlyMetricStore:
             datetime | None: The latest message timestamp,
                 or None if there are none stored.
         """
-        connection = await self.get_connection(year)
-        async with connection.execute(
+        conn = await self.get_connection(year)
+        async with conn.execute(
             """--sql
             SELECT MAX(created_at)
             FROM messages
@@ -177,6 +223,21 @@ class YearlyMetricStore:
             return None
 
         return datetime.fromisoformat(row[0])
+
+    async def close_year(self, year: int, /) -> None:
+        """Close a specific year's connection.
+
+        Args:
+            year (int): The year of the connection to close.
+        """
+        conn = self.__connections.pop(year, None)
+        if conn is not None:
+            await conn.close()
+
+    async def close(self) -> None:
+        """Close all open connections."""
+        for year in list(self.__connections.keys()):
+            await self.close_year(year)
 
 
 metric_store = YearlyMetricStore()
