@@ -58,9 +58,10 @@ convention = "google"
 [lint.per-file-ignores]
 # Tests can be a bit looser.
 "tests/**/*.py" = [
-    "D",    # allow missing docstrings in tests
-    "S101", # allow assert in tests
-    "ANN",  # looser typing in tests
+    "D",       # allow missing docstrings in tests
+    "S101",    # allow assert in tests
+    "ANN",     # looser typing in tests
+    "PLR2004", # allow magic values for test ease
 ]
 "**/*.pyi" = ["PL"]
 
