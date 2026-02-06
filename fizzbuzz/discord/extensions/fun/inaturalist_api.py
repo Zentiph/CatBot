@@ -380,7 +380,8 @@ async def fetch_inat_animal(
         fact = fact.replace("*", r"\*")
     source = "iNaturalist"
     if wiki_url:
-        source = f"iNaturalist (Wiki: {wiki_url})"
+        # normalize URL to prevent discord formatting with spaces and breaking the link
+        source = f"iNaturalist (Wiki: {wiki_url.replace('%20', '_').replace(' ', '_')})"
 
     # if user typed a vague thing, the resolved names could help
     if fact and (preferred_name or scientific_name):
