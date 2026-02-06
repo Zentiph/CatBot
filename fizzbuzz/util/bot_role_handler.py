@@ -66,7 +66,10 @@ async def _create_configurable_bot_role(guild: discord.Guild) -> bool:
             color=DEFAULT_EMBED_COLOR,
         )
         await role.move(below=guild.me.top_role)
-    except discord.Forbidden:
+    except discord.HTTPException as e:  # likely missing permissions, log just in case
+        logging.exception(
+            f"Bad HTTP code when attempting to edit bot's config role (code {e.code})"
+        )
         return False
     else:
         return True
