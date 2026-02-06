@@ -98,7 +98,9 @@ class CarouselView(RestrictedView):
         The next button is disabled if the view is at the rightmost page.
         """
         self.previous_button.disabled = self.__index == 0
+        self.first_button.disabled = self.previous_button.disabled
         self.next_button.disabled = self.__index >= self.__count - 1
+        self.last_button.disabled = self.next_button.disabled
 
     @discord.ui.button(
         label=f"{Visual.PREVIOUS} Previous", style=discord.ButtonStyle.primary, row=0
