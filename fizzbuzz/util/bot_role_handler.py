@@ -58,14 +58,18 @@ async def _create_configurable_bot_role(guild: discord.Guild) -> bool:
     if not guild.me.guild_permissions.manage_roles:
         return False
 
-    # TODO: eventually store in DB for easy re-access
-    role = await guild.create_role(
-        reason="Configurable role for FizzBuzz",
-        name=_CONFIG_ROLE_NAME,
-        color=DEFAULT_EMBED_COLOR,
-    )
-    await role.move(below=guild.me.top_role)
-    return True
+    try:
+        # TODO: eventually store in DB for easy re-access
+        role = await guild.create_role(
+            reason="Configurable role for FizzBuzz",
+            name=_CONFIG_ROLE_NAME,
+            color=DEFAULT_EMBED_COLOR,
+        )
+        await role.move(below=guild.me.top_role)
+    except discord.Forbidden:
+        return False
+    else:
+        return True
 
 
 async def _edit_bot_role(
