@@ -17,7 +17,7 @@ __license__ = "MIT"
 class PageJumpModal(RestrictedModal["CarouselView"]):
     """A modal that takes a page number to jump to in a CarouselView."""
 
-    # THIS NEEDS TO UPDATED WITH CarouselView's PAGE COUNT IN __init__
+    # this is updated to use the modal's CarouselView's page count __init__
     page: discord.ui.TextInput[PageJumpModal] = discord.ui.TextInput(
         label="Page number", placeholder="", min_length=1
     )
