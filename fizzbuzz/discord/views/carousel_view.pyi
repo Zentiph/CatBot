@@ -43,9 +43,23 @@ class CarouselView(RestrictedView):
         _button: discord.ui.Button[CarouselView],
     ) -> None: ...
     @discord.ui.button(
+        label=f"{Visual.REWIND} First", style=discord.ButtonStyle.primary, row=1
+    )
+    async def first_button(
+        self, interaction: discord.Interaction, _button: discord.ui.Button[CarouselView]
+    ) -> None: ...
+    @discord.ui.button(
+        label=f"{Visual.FAST_FORWARD} Last", style=discord.ButtonStyle.primary, row=1
+    )
+    async def last_button(
+        self,
+        interaction: discord.Interaction,
+        _button: discord.ui.Button[CarouselView],
+    ) -> None: ...
+    @discord.ui.button(
         label=f"{Visual.ASTERISK} Jump to page",
         style=discord.ButtonStyle.primary,
-        row=1,
+        row=2,
         disabled=True,
     )
     async def jump_to_page(
