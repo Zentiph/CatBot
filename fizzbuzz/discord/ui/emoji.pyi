@@ -28,6 +28,8 @@ class Visual(StrEnum):
     PAWS = "🐾"
     NEXT = "▶️"
     PREVIOUS = "◀️"
+    FAST_FORWARD = "⏩"
+    REWIND = "⏪"
     ASTERISK = "*️⃣"
     HANDSHAKE = "🤝"
     SODA = "🥤"
