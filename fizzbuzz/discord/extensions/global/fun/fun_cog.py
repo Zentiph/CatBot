@@ -7,15 +7,15 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from ....util.http import ApiError
-from ....util.log_handler import cog_setup_log_msg, log_app_command
-from ...interaction import (
+from .....util.http import ApiError
+from .....util.log_handler import cog_setup_log_msg, log_app_command
+from ....interaction import (
     build_response_embed,
     report,
     safe_send,
 )
-from ...ui import COIN_HEADS_COLOR, COIN_TAILS_COLOR
-from ...ui.emoji import Status, Visual
+from ....ui import COIN_HEADS_COLOR, COIN_TAILS_COLOR
+from ....ui.emoji import Status, Visual
 from ..help import help_info
 from .animal_tools import AnimalCarouselView, build_animal_embed
 from .inaturalist_api import (

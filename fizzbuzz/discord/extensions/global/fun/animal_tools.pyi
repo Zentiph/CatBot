@@ -2,7 +2,7 @@ from typing import Final
 
 import discord
 
-from ...views import CarouselView
+from ....views import CarouselView
 from .inaturalist_api import (
     AnimalResult,
 )

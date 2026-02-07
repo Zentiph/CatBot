@@ -5,7 +5,7 @@ from typing import Final
 
 import discord
 
-from ...views import RestrictedModal, RestrictedView
+from ....views import RestrictedModal, RestrictedView
 from .color_tools import Color3
 
 __author__: Final[str]

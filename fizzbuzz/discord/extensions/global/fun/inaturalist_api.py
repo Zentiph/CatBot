@@ -9,7 +9,7 @@ from typing import Any, Literal
 import discord
 from discord import app_commands
 
-from ....util.http import STATUS_OK, ApiError, http_get_json
+from .....util.http import STATUS_OK, ApiError, http_get_json
 
 __author__ = "Gavin Borne"
 __license__ = "MIT"

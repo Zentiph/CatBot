@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import pkgutil
 from sys import exit as ex
+from typing import Literal
 
 import discord
 from discord import app_commands
@@ -22,6 +23,8 @@ from fizzbuzz.util.bot_role_handler import ensure_bot_role_properties_in_guild
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
+
+GroupType = Literal["global", "admin"]
 
 parser = ArgumentParser(description="Run FizzBuzz with optional arguments")
 parser.add_argument(
@@ -158,21 +161,25 @@ async def on_app_command_error(
     )
 
 
-async def load_group(to_bot: commands.Bot, base_pkg: str) -> None:
+async def load_group(
+    to_bot: commands.Bot, base_pkg: str, group_type: GroupType = "global"
+) -> None:
     """Load a group of extensions from a base package.
 
     Args:
         to_bot (commands.Bot): The bot to load the extensions to.
         base_pkg (str): The base package of the extension group.
+        group_type (GroupType, optional): The type of group to load.
+            Defaults to "global".
     """
     root = "fizzbuzz.discord.extensions"
-    pkg = import_module(root + "." + base_pkg)
+    pkg = import_module(root + "." + group_type + "." + base_pkg)
 
     for _, module_name, is_pkg in pkgutil.iter_modules(pkg.__path__):
         if is_pkg:
             continue  # skip sub packages
 
-        full_name = f"{root}.{base_pkg}.{module_name}"
+        full_name = f"{root}.{group_type}.{base_pkg}.{module_name}"
         if not full_name.endswith("_cog"):
             continue
 

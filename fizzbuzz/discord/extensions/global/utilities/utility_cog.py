@@ -7,8 +7,8 @@ from discord import app_commands
 from discord.ext import commands
 from psutil import Process
 
-from ....util.log_handler import cog_setup_log_msg, log_app_command
-from ...info import (
+from .....util.log_handler import cog_setup_log_msg, log_app_command
+from ....info import (
     DEPENDENCIES,
     DISCORD_DOT_PY_VERSION,
     HOST,
@@ -16,13 +16,13 @@ from ...info import (
     VERSION,
     get_uptime,
 )
-from ...interaction import (
+from ....interaction import (
     build_response_embed,
     get_guild_interaction_data,
     report,
     safe_send,
 )
-from ...ui.emoji import Status, Visual
+from ....ui.emoji import Status, Visual
 from ..help import help_info
 
 __author__ = "Gavin Borne"
