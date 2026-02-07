@@ -67,8 +67,9 @@ async def _create_configurable_bot_role(guild: discord.Guild) -> bool:
         )
         await role.move(below=guild.me.top_role)
     except discord.HTTPException as e:  # likely missing permissions, log just in case
-        logging.exception(
-            f"Bad HTTP code when attempting to edit bot's config role (code {e.code})"
+        logging.warning(
+            f"Bad HTTP code when attempting to edit bot's config role (code {e.code})",
+            exc_info=True,
         )
         return False
     else:
