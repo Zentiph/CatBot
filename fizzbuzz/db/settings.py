@@ -8,7 +8,7 @@ from typing import Any, Literal
 
 import aiosqlite
 
-from .db import DB_DIR
+from .db import DB_DIR, DatabaseError
 
 __author__ = "Gavin Borne"
 __license__ = "MIT"
@@ -206,6 +206,64 @@ class SettingsManager:
             (scope, str(scope_id)),
         )
         await conn.commit()
+
+    async def get_admin_role_ids(self, guild_id: int, /) -> list[int]:
+        """Get the IDs of all the admin roles in a guild.
+
+        Args:
+            guild_id (int): The ID of the guild.
+
+        Raises:
+            DatabaseError: If the IDs were not properly stored.
+
+        Returns:
+            list[int]: The list of admin role IDs.
+        """
+        admin_role_ids = (
+            await self.get_value("guild", guild_id, "admin_role_ids")
+        ) or []
+        if not isinstance(admin_role_ids, list):
+            raise DatabaseError(
+                "Expected a list of admin role IDs, "
+                f"got {type(admin_role_ids).__name__}"
+            )
+        # normalize in case they were stored as strings
+        return [int(i) for i in admin_role_ids]
+
+    async def set_admin_role_ids(self, guild_id: int, /, role_ids: list[int]) -> None:
+        """Set the IDs of all the admin roles in a guild.
+
+        Args:
+            guild_id (int): The ID of the guild.
+            role_ids (list[int]): The role IDs to store.
+        """
+        await self.set_value("guild", guild_id, "admin_role_ids", role_ids)
+
+    async def add_admin_role_id(self, guild_id: int, /, role_id: int) -> None:
+        """Add a single admin role ID to a guild.
+
+        Args:
+            guild_id (int): The ID of the guild.
+            role_id (int): The role ID to add.
+        """
+        role_ids = await self.get_admin_role_ids(guild_id)
+        if role_id in role_ids:
+            return
+        role_ids.append(role_id)
+        await self.set_admin_role_ids(guild_id, role_ids)
+
+    async def remove_admin_role_id(self, guild_id: int, /, role_id: int) -> None:
+        """Remove a single admin role ID from a guild.
+
+        Args:
+            guild_id (int): The ID of the guild.
+            role_id (int): The role ID to remove.
+        """
+        role_ids = await self.get_admin_role_ids(guild_id)
+        if role_id not in role_ids:
+            return
+        role_ids.remove(role_id)
+        await self.set_admin_role_ids(guild_id, role_ids)
 
 
 settings_manager = SettingsManager()

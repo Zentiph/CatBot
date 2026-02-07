@@ -16,10 +16,9 @@ from discord.ext import commands
 from requests import Timeout
 
 from fizzbuzz import log_handler
-from fizzbuzz.discord.checks import NotAdmin, NotInGuild
+from fizzbuzz.discord.checks import NotInGuild, Unauthorized
 from fizzbuzz.discord.interaction import report, safe_send
 from fizzbuzz.discord.ui.emoji import Status
-from fizzbuzz.util.bot_role_handler import ensure_bot_role_properties_in_guild
 
 __author__ = "Gavin Borne"
 __license__ = "MIT"
@@ -80,12 +79,6 @@ bot = commands.Bot(
 
 
 @bot.event
-async def on_guild_join(guild: discord.Guild) -> None:
-    """Run when joining a guild."""
-    await ensure_bot_role_properties_in_guild(bot, guild)
-
-
-@bot.event
 async def on_ready() -> None:
     """Sync and register slash commands."""
     await bot.tree.sync()
@@ -103,10 +96,6 @@ async def on_ready() -> None:
         logging.error("Log in failed")
         return
 
-    # try to update bot's role color
-    for guild in bot.guilds:
-        await ensure_bot_role_properties_in_guild(bot, guild)
-
     logging.info(f"Logged in as {bot.user.name} and slash commands synced\n")
 
 
@@ -120,7 +109,7 @@ async def on_app_command_error(
         interaction (discord.Interaction): The interaction instance.
         error (app_commands.AppCommandError): The error.
     """
-    if isinstance(error, (NotInGuild, NotAdmin)):
+    if isinstance(error, (NotInGuild, Unauthorized)):
         await safe_send(interaction, str(error))
         return
 
@@ -211,9 +200,13 @@ async def setup(logfile: Path) -> None:
         )
         logging.info("(Default values will be used if a variable is None.)")
 
+    # public cmds
     await load_group(bot, "color")
     await load_group(bot, "fun")
     await load_group(bot, "utilities")
+
+    # admin cmds
+    await load_group(bot, "settings", "admin")
 
     # load help last for proper command sync
     await load_group(bot, "help")

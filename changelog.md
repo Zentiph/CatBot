@@ -3,6 +3,20 @@
 # FizzBuzz Changelog
 A collective history of all the changes made to FizzBuzz.
 
+## v2.1.0
+* Added guild settings DB
+* Added command checks (guild-only, admin-only, etc)
+* Added /adminrole
+  * Server admins can set what counts as admin roles
+
+## v2.0.1
+* Bot can attempt to make its own role to give itself its color
+* Added start, end, and jump to page buttons to carousel views
+* Lowered max /animal fetch count to 5
+* Added env printing option for startup
+* Optimized /fizzbuzz
+* Small fixes
+
 ## v2.0.0
 * Full rebrand from CatBot to FizzBuzz
   * New icon and banner

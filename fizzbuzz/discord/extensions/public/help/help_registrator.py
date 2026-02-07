@@ -30,7 +30,7 @@ T_co = TypeVar("T_co", covariant=True)
 AppCommand = (
     app_commands.Command[Any, ..., Any] | app_commands.Group | app_commands.ContextMenu
 )
-Category = Literal["Color", "Fun", "Help", "Utilities"]
+Category = Literal["Color", "Fun", "Help", "Utilities", "Guild Settings"]
 
 COMMAND_CATEGORIES: tuple[Category] = get_args(Category)
 """All command categories."""
