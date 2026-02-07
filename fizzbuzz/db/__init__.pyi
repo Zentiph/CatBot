@@ -8,7 +8,6 @@ __all__: Final[list[str]]
 from . import wrapped as wrapped
 from .db import DB_DIR as DB_DIR
 from .settings import (
-    GuildSettings as GuildSettings,
-    SettingsStore as SettingsStore,
-    settings_store as settings_store,
+    SettingsManager as SettingsManager,
+    settings_manager as settings_manager,
 )

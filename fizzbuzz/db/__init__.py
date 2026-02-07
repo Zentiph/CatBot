@@ -5,12 +5,11 @@ __license__ = "MIT"  # noqa: RUF067 (disables "no code in __init__", allowing fo
 
 __all__ = [
     "DB_DIR",
-    "GuildSettings",
-    "SettingsStore",
-    "settings_store",
+    "SettingsManager",
+    "settings_manager",
     "wrapped",
 ]
 
 from . import wrapped
 from .db import DB_DIR
-from .settings import GuildSettings, SettingsStore, settings_store
+from .settings import SettingsManager, settings_manager

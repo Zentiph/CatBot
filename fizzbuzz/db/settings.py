@@ -1,7 +1,10 @@
 """DB settings storage."""
 
+from __future__ import annotations
+
 from datetime import UTC, datetime
-from typing import Any, TypedDict
+import json
+from typing import Any, Literal
 
 import aiosqlite
 
@@ -11,35 +14,33 @@ __author__ = "Gavin Borne"
 __license__ = "MIT"
 
 
-class GuildSettings(TypedDict):
-    """Settings for a guild."""
-
-    locale: str
-    log_channel_id: int
-    config_json: dict[str, Any]
-
-
 _DB_FILENAME = "bot.sqlite"
 
 _SCHEMA = """--sql
 PRAGMA journal_mode = WAL;
 PRAGMA foreign_keys = ON;
 
-CREATE TABLE IF NOT EXISTS guild_settings (
-    guild_id        TEXT PRIMARY KEY,
-    locale          TEXT,
-    log_channel_id  TEXT,
-    config_json     TEXT,
-    updated_at      TEXT NOT NULL
+CREATE TABLE IF NOT EXISTS settings (
+    scope       TEXT NOT NULL,  -- "guild", "user", "global"
+    scope_id    TEXT NOT NULL,  -- guild_id/user_id or "global"
+    key         TEXT NOT NULL,
+    value_json  TEXT,
+    updated_at  TEXT NOT NULL,
+    PRIMARY KEY (scope, scope_id, key)
 );
+
+CREATE INDEX IF NOT EXISTS idx_settings_scope
+    ON settings (scope, scope_id);
 """
 
+SettingsScope = Literal["guild", "user", "global"]
 
-class SettingsStore:
-    """A DB manager for storing guild and user settings."""
+
+class SettingsManager:
+    """A DB manager for general bot settings."""
 
     def __init__(self) -> None:
-        """A DB manager for storing guild and user settings."""
+        """A DB manager for general bot settings."""
         self.__conn: aiosqlite.Connection | None = None
 
     async def connect(self) -> aiosqlite.Connection:
@@ -54,70 +55,157 @@ class SettingsStore:
             await self.__conn.commit()
         return self.__conn
 
-    async def set_guild_settings(
-        self,
-        guild_id: int,
-        *,
-        locale: str | None = None,
-        log_channel_id: int | None = None,
-        config_json: str | None = None,
-    ) -> None:
-        """Upsert settings for a guild.
+    def __dump_json(self, value: object) -> str:
+        """Serialize a Python value to JSON.
 
         Args:
-            guild_id (int): The guild ID to update.
-            locale (str | None): Optional locale string.
-            log_channel_id (int | None): Optional log channel ID.
-            config_json (str | None): Optional JSON-serialized settings blob.
+            value (object): The value to serialize.
+
+        Returns:
+            str: The JSON representation.
+        """
+        return json.dumps(value, ensure_ascii=True, separators=(",", ":"))
+
+    def __load_json(self, value_json: str | None) -> object:
+        """Deserialize JSON to a Python value.
+
+        Args:
+            value_json (str | None): The JSON string to parse.
+
+        Returns:
+            Any: The parsed value, or None if value_json is None.
+        """
+        if value_json is None:
+            return None
+        return json.loads(value_json)
+
+    async def set_value(
+        self,
+        scope: SettingsScope,
+        scope_id: int | str,
+        key: str,
+        value: object,
+    ) -> None:
+        """Insert or update a setting value.
+
+        Args:
+            scope (SettingsScope): The setting scope ("guild", "user", "global").
+            scope_id (int | str): The scope identifier (guild/user id or "global").
+            key (str): The setting key.
+            value (object): The value to store (JSON-serializable).
         """
         conn = await self.connect()
         now = datetime.now(UTC).isoformat()
+        value_json = self.__dump_json(value)
         await conn.execute(
             """--sql
-            INSERT INTO guild_settings (
-                guild_id, prefix, locale, log_channel_id, config_json, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?)
-            ON CONFLICT(guild_id) DO UPDATE SET
-                prefix = excluded.prefix,
-                locale = excluded.locale,
-                log_channel_id = excluded.log_channel_id,
-                config_json = excluded.config_json,
+            INSERT INTO settings (
+                scope, scope_id, key, value_json, updated_at
+            ) VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(scope, scope_id, key) DO UPDATE SET
+                value_json = excluded.value_json,
                 updated_at = excluded.updated_at;
             """,
             (
-                str(guild_id),
-                locale,
-                str(log_channel_id) if log_channel_id else None,
-                config_json,
+                scope,
+                str(scope_id),
+                key,
+                value_json,
                 now,
             ),
         )
+        await conn.commit()
 
-    async def get_guild_settings(self, guild_id: int) -> GuildSettings | None:
-        """Fetch settings for a guild.
+    async def get_value(
+        self,
+        scope: SettingsScope,
+        scope_id: int | str,
+        key: str,
+    ) -> object | None:
+        """Fetch a single setting value.
 
         Args:
-            guild_id (int): The guild ID to fetch.
+            scope (SettingsScope): The setting scope.
+            scope_id (int | str): The scope identifier.
+            key (str): The setting key.
 
         Returns:
-            GuildSettings | None: The settings if present, otherwise None.
+            object | None: The value if present, otherwise None.
         """
         conn = await self.connect()
         async with conn.execute(
             """--sql
-            SELECT locale, log_channel_id, config_json
-            FROM guild_settings WHERE guild_id = ?;
+            SELECT value_json
+            FROM settings
+            WHERE scope = ? AND scope_id = ? AND key = ?;
             """,
-            (str(guild_id),),
+            (scope, str(scope_id), key),
         ) as cursor:
             row = await cursor.fetchone()
         if row is None:
             return None
-        return {
-            "locale": row[0],
-            "log_channel_id": int(row[1]),
-            "config_json": row[2],
-        }
+        return self.__load_json(row[0])
+
+    async def get_all(
+        self, scope: SettingsScope, scope_id: int | str
+    ) -> dict[str, Any]:
+        """Fetch all settings for a scope.
+
+        Args:
+            scope (SettingsScope): The setting scope.
+            scope_id (int | str): The scope identifier.
+
+        Returns:
+            dict[str, Any]: A mapping of setting keys to values.
+        """
+        conn = await self.connect()
+        async with conn.execute(
+            """--sql
+            SELECT key, value_json
+            FROM settings
+            WHERE scope = ? AND scope_id = ?;
+            """,
+            (scope, str(scope_id)),
+        ) as cursor:
+            rows = await cursor.fetchall()
+        return {row[0]: self.__load_json(row[1]) for row in rows}
+
+    async def delete_value(
+        self, scope: SettingsScope, scope_id: int | str, key: str
+    ) -> None:
+        """Delete a single setting value.
+
+        Args:
+            scope (SettingsScope): The setting scope.
+            scope_id (int | str): The scope identifier.
+            key (str): The setting key.
+        """
+        conn = await self.connect()
+        await conn.execute(
+            """
+            DELETE FROM settings
+            WHERE scope = ? AND scope_id = ? AND key = ?;
+            """,
+            (scope, str(scope_id), key),
+        )
+        await conn.commit()
+
+    async def delete_scope(self, scope: SettingsScope, scope_id: int | str) -> None:
+        """Delete all settings for a scope.
+
+        Args:
+            scope (SettingsScope): The setting scope.
+            scope_id (int | str): The scope identifier.
+        """
+        conn = await self.connect()
+        await conn.execute(
+            """--sql
+            DELETE FROM settings
+            WHERE scope = ? AND scope_id = ?;
+            """,
+            (scope, str(scope_id)),
+        )
+        await conn.commit()
 
 
-settings_store = SettingsStore()
+settings_manager = SettingsManager()
