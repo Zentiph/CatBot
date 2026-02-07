@@ -7,7 +7,7 @@ A collective history of all the changes made to FizzBuzz.
 * Added guild settings DB
 * Added command checks (guild-only, admin-only, etc)
 * Added /adminrole
-  * Server admins can set what counts as admin roles
+  * Server owner can set what roles can use FizzBuzz admin commands
 
 ## v2.0.1
 * Bot can attempt to make its own role to give itself its color
