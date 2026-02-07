@@ -25,7 +25,7 @@ __author__ = "Gavin Borne"
 __license__ = "MIT"
 
 
-GroupType = Literal["global", "admin"]
+GroupType = Literal["public", "admin"]
 
 parser = ArgumentParser(description="Run FizzBuzz with optional arguments")
 parser.add_argument(
@@ -155,7 +155,7 @@ async def on_app_command_error(
 
 
 async def load_group(
-    to_bot: commands.Bot, base_pkg: str, group_type: GroupType = "global"
+    to_bot: commands.Bot, base_pkg: str, group_type: GroupType = "public"
 ) -> None:
     """Load a group of extensions from a base package.
 
@@ -163,7 +163,7 @@ async def load_group(
         to_bot (commands.Bot): The bot to load the extensions to.
         base_pkg (str): The base package of the extension group.
         group_type (GroupType, optional): The type of group to load.
-            Defaults to "global".
+            Defaults to "public".
     """
     root = "fizzbuzz.discord.extensions"
     pkg = import_module(root + "." + group_type + "." + base_pkg)
