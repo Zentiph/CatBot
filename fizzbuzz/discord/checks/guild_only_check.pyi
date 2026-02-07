@@ -4,7 +4,7 @@ from typing import Final
 
 from discord.ext import commands
 
-from .types import CheckDecorator
+from .types import Check
 
 __author__: Final[str]
 __license__: Final[str]
@@ -12,4 +12,4 @@ __license__: Final[str]
 class NotInGuild(commands.CheckFailure):
     def __init__(self, message: str | None = None) -> None: ...
 
-def guild_only() -> CheckDecorator: ...
+def guild_only() -> Check: ...

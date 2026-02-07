@@ -1,15 +1,14 @@
 """Admin-only check using DB admin roles."""
 
-from typing import Any
-
 import discord
+from discord import app_commands
 from discord.ext import commands
 
 from ...db.db import DatabaseError
 from ...db.settings import settings_manager
 from ..ui.emoji import Status
 from .guild_only_check import NotInGuild
-from .types import CheckDecorator
+from .types import Check
 
 __author__ = "Gavin Borne"
 __license__ = "MIT"
@@ -31,22 +30,24 @@ class NotAdmin(commands.CheckFailure):
         )
 
 
-def admin_only() -> CheckDecorator:
+def admin_only() -> Check:
     """A check that ensures a command can only be used by an admin."""
 
-    async def predicate(ctx: commands.Context[Any]) -> bool:
-        member = ctx.author
+    async def predicate(interaction: discord.Interaction) -> bool:
+        member = interaction.user
 
-        if ctx.guild is None or isinstance(member, discord.User):
+        if interaction.guild is None or isinstance(member, discord.User):
             raise NotInGuild()
 
-        if ctx.guild.owner_id == member.id:
+        if interaction.guild.owner_id == member.id:
             return True
         if member.guild_permissions.administrator:
             return True
 
         admin_role_ids = (
-            await settings_manager.get_value("guild", ctx.guild.id, "admin_role_ids")
+            await settings_manager.get_value(
+                "guild", interaction.guild.id, "admin_role_ids"
+            )
         ) or []
         if not isinstance(admin_role_ids, list):
             raise DatabaseError(
@@ -61,4 +62,4 @@ def admin_only() -> CheckDecorator:
 
         raise NotAdmin()
 
-    return commands.check(predicate)
+    return app_commands.check(predicate)

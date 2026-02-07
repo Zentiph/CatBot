@@ -2,10 +2,12 @@
 
 from typing import Any
 
+import discord
+from discord import app_commands
 from discord.ext import commands
 
 from ..ui.emoji import Status
-from .types import CheckDecorator
+from .types import Check
 
 __author__ = "Gavin Borne"
 __license__ = "MIT"
@@ -28,12 +30,12 @@ class NotInGuild(commands.CheckFailure):
 
 # while this does exist already, I'm opting to do my own here for
 # more customized handling and error reporting.
-def guild_only() -> CheckDecorator:
+def guild_only() -> Check:
     """A check that ensures a command can only be used in a guild."""
 
-    def predicate(ctx: commands.Context[Any]) -> bool:
-        if ctx.guild is None:
+    def predicate(interaction: discord.Interaction[Any]) -> bool:
+        if interaction.guild is None:
             raise NotInGuild()
         return True
 
-    return commands.check(predicate)
+    return app_commands.check(predicate)

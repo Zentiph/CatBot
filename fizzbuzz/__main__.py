@@ -16,7 +16,8 @@ from discord.ext import commands
 from requests import Timeout
 
 from fizzbuzz import log_handler
-from fizzbuzz.discord.interaction import report
+from fizzbuzz.discord.checks import NotAdmin, NotInGuild
+from fizzbuzz.discord.interaction import report, safe_send
 from fizzbuzz.discord.ui.emoji import Status
 from fizzbuzz.util.bot_role_handler import ensure_bot_role_properties_in_guild
 
@@ -119,16 +120,8 @@ async def on_app_command_error(
         interaction (discord.Interaction): The interaction instance.
         error (app_commands.AppCommandError): The error.
     """
-    if isinstance(error, app_commands.errors.CheckFailure):  # restricted command
-        logging.info(
-            f"Unauthorized user {interaction.user} attempted"
-            " to use a restricted command",
-        )
-        await report(
-            interaction,
-            "You do not have permission to use this command.",
-            Status.FAILURE,
-        )
+    if isinstance(error, (NotInGuild, NotAdmin)):
+        await safe_send(interaction, str(error))
         return
 
     if isinstance(error, discord.Forbidden):
