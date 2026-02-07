@@ -14,10 +14,10 @@ from discord import app_commands
 from discord.ext import commands
 
 from .....util.log_handler import cog_setup_log_msg, log_app_command
+from ....checks import get_guild, get_member, guild_only
 from ....interaction import (
     build_response_embed,
     find_role,
-    get_guild_interaction_data,
     report,
     safe_send,
 )
@@ -141,6 +141,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         name="CSS color name",
         role="Role to copy the color from",
     )
+    @guild_only()
     @help_info(
         "Color",
         "Change your color to any unique 24-bit color",
@@ -185,18 +186,8 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         """Color role command handler."""
         log_app_command(interaction)
 
-        # all colorrole actions require a guild + Member
-        data = get_guild_interaction_data(interaction)
-        if data is None:
-            await report(
-                interaction,
-                "This command can only be used in a server!",
-                Status.FAILURE,
-            )
-            return
-
-        member = data.member
-        guild = data.guild
+        guild = get_guild(interaction)
+        member = get_member(interaction)
 
         if action == "reset":
             existing_role = find_role(get_color_role_name(member), guild)
@@ -343,7 +334,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         view = ColorView(
             interaction.user,
             color=color,
-            in_server=(get_guild_interaction_data(interaction) is not None),
+            in_server=(interaction.guild is not None),
         )
         await view.send(interaction, embed=embed, files=files, ephemeral=False)
 

@@ -52,3 +52,17 @@ def get_guild(interaction: discord.Interaction, /) -> discord.Guild:
         discord.Guild: The guild of the interaction.
     """
     return cast(discord.Guild, interaction.guild)
+
+
+def get_member(interaction: discord.Interaction, /) -> discord.Member:
+    """Get a member from an interaction with type safety.
+
+    This function is only safe to use on app commands checked with guild_only().
+
+    Args:
+        interaction (discord.Interaction): The interaction instance.
+
+    Returns:
+        discord.Member: The member who initiated the interaction.
+    """
+    return cast(discord.Member, interaction.user)

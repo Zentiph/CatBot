@@ -9,5 +9,6 @@ from .admin_only_check import NotAdmin as NotAdmin, admin_only as admin_only
 from .guild_only_check import (
     NotInGuild as NotInGuild,
     get_guild as get_guild,
+    get_member as get_member,
     guild_only as guild_only,
 )
