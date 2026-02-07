@@ -7,7 +7,6 @@ __all__ = [
     "add_new_role_to_member",
     "build_response_embed",
     "find_role",
-    "get_guild_interaction_data",
     "promote_role",
     "report",
     "safe_edit",
@@ -17,7 +16,6 @@ __all__ = [
 
 from .responses import (
     build_response_embed,
-    get_guild_interaction_data,
     report,
     safe_edit,
     safe_send,

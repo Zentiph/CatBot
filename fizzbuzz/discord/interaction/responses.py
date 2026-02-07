@@ -217,20 +217,3 @@ def build_response_embed(
     embed.set_author(name=author, icon_url=f"attachment://{icon_filename}")
 
     return embed, file
-
-
-def get_guild_interaction_data(
-    interaction: discord.Interaction, /
-) -> GuildInteractionData | None:
-    """Get the necessary information needed for an interaction that occurs in a guild.
-
-    Args:
-        interaction (discord.Interaction): The interaction instance.
-
-    Returns:
-        GuildInteractionData | None: The guild interaction data,
-            or None if the interaction did not happen in a guild.
-    """
-    if interaction.guild is None or not isinstance(interaction.user, discord.Member):
-        return None
-    return GuildInteractionData(member=interaction.user, guild=interaction.guild)
