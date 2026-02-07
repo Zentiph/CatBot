@@ -10,4 +10,4 @@ __license__ = "MIT"  # noqa: RUF067 (disables "no code in __init__", allowing fo
 
 __all__ = ["metric_store"]
 
-from .metrics_store import metric_store
+from .metrics import metric_store
