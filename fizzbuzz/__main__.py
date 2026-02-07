@@ -205,7 +205,6 @@ async def setup(logfile: Path) -> None:
     if args.show_env:
         logging.info("Running FizzBuzz with environment variables:")
         logging.info("TOKEN: (hidden)")
-        logging.info(f"DB_DIR: {os.getenv('DB_DIR')}")
         logging.info(f"HTTP_USER_AGENT: {os.getenv('HTTP_USER_AGENT')}")
         logging.info(
             f"HTTP_PER_HOST_MIN_INTERVAL: {os.getenv('HTTP_PER_HOST_MIN_INTERVAL')}"
