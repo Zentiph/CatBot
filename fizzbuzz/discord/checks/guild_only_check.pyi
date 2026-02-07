@@ -2,14 +2,16 @@
 
 from typing import Final
 
-from discord.ext import commands
+import discord
+from discord import app_commands
 
 from .types import Check
 
 __author__: Final[str]
 __license__: Final[str]
 
-class NotInGuild(commands.CheckFailure):
+class NotInGuild(app_commands.CheckFailure):
     def __init__(self, message: str | None = None) -> None: ...
 
 def guild_only() -> Check: ...
+def get_guild(interaction: discord.Interaction, /) -> discord.Guild: ...

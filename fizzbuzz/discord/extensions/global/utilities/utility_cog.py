@@ -8,6 +8,7 @@ from discord.ext import commands
 from psutil import Process
 
 from .....util.log_handler import cog_setup_log_msg, log_app_command
+from ....checks import get_guild, guild_only
 from ....info import (
     DEPENDENCIES,
     DISCORD_DOT_PY_VERSION,
@@ -18,7 +19,6 @@ from ....info import (
 )
 from ....interaction import (
     build_response_embed,
-    get_guild_interaction_data,
     report,
     safe_send,
 )
@@ -100,21 +100,13 @@ class UtilityCog(commands.Cog, name="Utility Commands"):
         await safe_send(interaction, embed=embed, file=icon)
 
     @app_commands.command(name="server", description="Get info about this server")
+    @guild_only()
     @help_info("Utilities")
     async def server(self, interaction: discord.Interaction) -> None:
         """Get server info."""
         log_app_command(interaction)
 
-        data = get_guild_interaction_data(interaction)
-        if data is None:
-            await report(
-                interaction,
-                "This command can only be used in a server!",
-                Status.FAILURE,
-            )
-            return
-
-        guild = data.guild
+        guild = get_guild(interaction)
 
         owner = guild.owner
         guild_icon = guild.icon
@@ -150,21 +142,13 @@ class UtilityCog(commands.Cog, name="Utility Commands"):
     @app_commands.command(
         name="members", description="Get info about the members in this server"
     )
+    @guild_only()
     @help_info("Utilities")
     async def members(self, interaction: discord.Interaction) -> None:
         """Get member info."""
         log_app_command(interaction)
 
-        data = get_guild_interaction_data(interaction)
-        if data is None:
-            await report(
-                interaction,
-                "This command can only be used in a server!",
-                Status.FAILURE,
-            )
-            return
-
-        guild = data.guild
+        guild = get_guild(interaction)
         members = guild.members
         member_count = guild.member_count
         if member_count is None:

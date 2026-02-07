@@ -2,7 +2,6 @@
 
 import discord
 from discord import app_commands
-from discord.ext import commands
 
 from ...db.db import DatabaseError
 from ...db.settings import settings_manager
@@ -14,7 +13,7 @@ __author__ = "Gavin Borne"
 __license__ = "MIT"
 
 
-class NotAdmin(commands.CheckFailure):
+class NotAdmin(app_commands.CheckFailure):
     """Raised when a non-admin user attempts to use an admin-only command."""
 
     def __init__(self, message: str | None = None) -> None:

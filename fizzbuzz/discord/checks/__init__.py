@@ -3,7 +3,7 @@
 __author__ = "Gavin Borne"
 __license__ = "MIT"  # noqa: RUF067 (disables "no code in __init__", allowing for __license__ to be defined here)
 
-__all__ = ["NotAdmin", "NotInGuild", "admin_only", "guild_only"]
+__all__ = ["NotAdmin", "NotInGuild", "admin_only", "get_guild", "guild_only"]
 
 from .admin_only_check import NotAdmin, admin_only
-from .guild_only_check import NotInGuild, guild_only
+from .guild_only_check import NotInGuild, get_guild, guild_only
