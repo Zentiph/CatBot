@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import pkgutil
 from sys import exit as ex
+from typing import Literal
 
 import discord
 from discord import app_commands
@@ -15,13 +16,15 @@ from discord.ext import commands
 from requests import Timeout
 
 from fizzbuzz import log_handler
-from fizzbuzz.discord.interaction import report
+from fizzbuzz.discord.checks import NotInGuild, Unauthorized
+from fizzbuzz.discord.interaction import report, safe_send
 from fizzbuzz.discord.ui.emoji import Status
-from fizzbuzz.util.bot_role_handler import ensure_bot_role_properties_in_guild
 
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
+
+GroupType = Literal["public", "admin"]
 
 parser = ArgumentParser(description="Run FizzBuzz with optional arguments")
 parser.add_argument(
@@ -76,12 +79,6 @@ bot = commands.Bot(
 
 
 @bot.event
-async def on_guild_join(guild: discord.Guild) -> None:
-    """Run when joining a guild."""
-    await ensure_bot_role_properties_in_guild(bot, guild)
-
-
-@bot.event
 async def on_ready() -> None:
     """Sync and register slash commands."""
     await bot.tree.sync()
@@ -99,10 +96,6 @@ async def on_ready() -> None:
         logging.error("Log in failed")
         return
 
-    # try to update bot's role color
-    for guild in bot.guilds:
-        await ensure_bot_role_properties_in_guild(bot, guild)
-
     logging.info(f"Logged in as {bot.user.name} and slash commands synced\n")
 
 
@@ -116,16 +109,8 @@ async def on_app_command_error(
         interaction (discord.Interaction): The interaction instance.
         error (app_commands.AppCommandError): The error.
     """
-    if isinstance(error, app_commands.errors.CheckFailure):  # restricted command
-        logging.info(
-            f"Unauthorized user {interaction.user} attempted"
-            " to use a restricted command",
-        )
-        await report(
-            interaction,
-            "You do not have permission to use this command.",
-            Status.FAILURE,
-        )
+    if isinstance(error, (NotInGuild, Unauthorized)):
+        await safe_send(interaction, str(error))
         return
 
     if isinstance(error, discord.Forbidden):
@@ -158,21 +143,25 @@ async def on_app_command_error(
     )
 
 
-async def load_group(to_bot: commands.Bot, base_pkg: str) -> None:
+async def load_group(
+    to_bot: commands.Bot, base_pkg: str, group_type: GroupType = "public"
+) -> None:
     """Load a group of extensions from a base package.
 
     Args:
         to_bot (commands.Bot): The bot to load the extensions to.
         base_pkg (str): The base package of the extension group.
+        group_type (GroupType, optional): The type of group to load.
+            Defaults to "public".
     """
     root = "fizzbuzz.discord.extensions"
-    pkg = import_module(root + "." + base_pkg)
+    pkg = import_module(root + "." + group_type + "." + base_pkg)
 
     for _, module_name, is_pkg in pkgutil.iter_modules(pkg.__path__):
         if is_pkg:
             continue  # skip sub packages
 
-        full_name = f"{root}.{base_pkg}.{module_name}"
+        full_name = f"{root}.{group_type}.{base_pkg}.{module_name}"
         if not full_name.endswith("_cog"):
             continue
 
@@ -211,9 +200,13 @@ async def setup(logfile: Path) -> None:
         )
         logging.info("(Default values will be used if a variable is None.)")
 
+    # public cmds
     await load_group(bot, "color")
     await load_group(bot, "fun")
     await load_group(bot, "utilities")
+
+    # admin cmds
+    await load_group(bot, "settings", "admin")
 
     # load help last for proper command sync
     await load_group(bot, "help")

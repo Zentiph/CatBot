@@ -6,10 +6,10 @@ from io import BytesIO
 
 import discord
 
-from ....util.http import http_get_bytes
-from ...interaction import build_response_embed, safe_edit
-from ...ui.emoji import Visual
-from ...views import CarouselView
+from .....util.http import http_get_bytes
+from ....interaction import build_response_embed, safe_edit
+from ....ui.emoji import Visual
+from ....views import CarouselView
 from .inaturalist_api import (
     AnimalResult,
 )

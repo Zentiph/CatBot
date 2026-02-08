@@ -25,7 +25,7 @@ T_co = TypeVar("T_co", covariant=True)
 AppCommand: TypeAlias = (
     app_commands.Command[Any, ..., Any] | app_commands.Group | app_commands.ContextMenu
 )
-Category: TypeAlias = Literal["Color", "Fun", "Help", "Utilities"]
+Category: TypeAlias = Literal["Color", "Fun", "Help", "Utilities", "Guild Settings"]
 
 COMMAND_CATEGORIES: Final[tuple[Category]]
 

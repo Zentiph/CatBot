@@ -18,8 +18,8 @@ from typing import (
 import discord
 from discord import app_commands
 
-from ...interaction import build_response_embed
-from ...ui.emoji import Visual
+from ....interaction import build_response_embed
+from ....ui.emoji import Visual
 
 __author__ = "Gavin Borne"
 __license__ = "MIT"
@@ -30,7 +30,7 @@ T_co = TypeVar("T_co", covariant=True)
 AppCommand = (
     app_commands.Command[Any, ..., Any] | app_commands.Group | app_commands.ContextMenu
 )
-Category = Literal["Color", "Fun", "Help", "Utilities"]
+Category = Literal["Color", "Fun", "Help", "Utilities", "Guild Settings"]
 
 COMMAND_CATEGORIES: tuple[Category] = get_args(Category)
 """All command categories."""

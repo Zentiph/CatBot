@@ -6,9 +6,8 @@ from logging import getLogger
 import discord
 from discord.ext import commands
 
-from ....db.wrapped import metric_store
+from .....db.wrapped import metric_store
 
-# from ...info import CAT_GUILD_ID
 CAT_GUILD_ID = 0  # placeholder
 
 COMMIT_EVERY = 512

@@ -59,6 +59,3 @@ def build_response_embed(
     icon_filepath: str = "static/branding/fizzbuzz_icon.jpg",
     icon_filename: str = "image.png",
 ) -> tuple[discord.Embed, discord.File]: ...
-def get_guild_interaction_data(
-    interaction: discord.Interaction, /
-) -> GuildInteractionData | None: ...

@@ -6,7 +6,7 @@ import logging
 
 import discord
 
-from ...interaction import (
+from ....interaction import (
     add_new_role_to_member,
     build_response_embed,
     find_role,
@@ -14,8 +14,8 @@ from ...interaction import (
     safe_edit,
     update_role_color,
 )
-from ...ui.emoji import Status, Visual
-from ...views import RestrictedModal, RestrictedView
+from ....ui.emoji import Status, Visual
+from ....views import RestrictedModal, RestrictedView
 from .color_tools import CSS_COLOR_NAME_TO_HEX, Color3, generate_color_image
 
 __author__ = "Gavin Borne"
