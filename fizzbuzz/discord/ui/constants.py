@@ -5,6 +5,8 @@ import discord
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
+__all__ = ["COIN_HEADS_COLOR", "COIN_TAILS_COLOR", "DEFAULT_EMBED_COLOR"]
+
 DEFAULT_EMBED_COLOR = discord.Color(int("c34b0f", 16))
 """The default color for FizzBuzz's embeds."""
 

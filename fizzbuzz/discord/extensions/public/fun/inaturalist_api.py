@@ -14,6 +14,13 @@ from .....util.http import STATUS_OK, ApiError, http_get_json
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
+__all__ = [
+    "AnimalResult",
+    "ImageFetchAmount",
+    "animal_kind_autocomplete",
+    "fetch_inat_animal",
+]
+
 ImageFetchAmount = Literal[1, 2, 3, 4, 5]
 
 _INAT_TAXA_URL = "https://api.inaturalist.org/v1/taxa"

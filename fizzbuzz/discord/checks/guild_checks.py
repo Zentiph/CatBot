@@ -11,6 +11,8 @@ from .types import Check
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
+__all__ = ["NotInGuild", "get_guild", "get_member", "guild_only"]
+
 
 class NotInGuild(app_commands.CheckFailure):
     """Raised when a user who is not in a guild attempts to use a guild-only command."""

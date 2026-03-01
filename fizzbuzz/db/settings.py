@@ -13,6 +13,8 @@ from .db import DB_DIR, DatabaseError
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
+__all__ = ["SettingsManager", "SettingsScope", "settings_manager"]
+
 
 _DB_FILENAME = "bot.sqlite"
 

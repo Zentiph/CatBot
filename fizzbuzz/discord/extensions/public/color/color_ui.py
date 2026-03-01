@@ -21,6 +21,15 @@ from .color_tools import CSS_COLOR_NAME_TO_HEX, Color3, generate_color_image
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
+__all__ = [
+    "ColorView",
+    "DarkenModal",
+    "LightenModal",
+    "build_color_embed",
+    "get_color_role_name",
+    "update_color_role",
+]
+
 
 def build_color_embed(
     *, title: str, description: str, color: Color3

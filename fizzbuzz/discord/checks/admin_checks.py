@@ -11,6 +11,8 @@ from .types import Check
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
+__all__ = ["Unauthorized", "admin_only", "owner_only"]
+
 
 class Unauthorized(app_commands.CheckFailure):
     """Raised when an unauthorized user attempts to use an authorized command."""

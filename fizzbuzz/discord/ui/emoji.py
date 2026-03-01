@@ -5,6 +5,8 @@ from enum import StrEnum
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
+__all__ = ["Status", "Visual"]
+
 
 class Status(StrEnum):
     """A class of status-related emojis."""

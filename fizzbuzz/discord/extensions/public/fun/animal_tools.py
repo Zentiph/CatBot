@@ -17,6 +17,8 @@ from .inaturalist_api import (
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
+__all__ = ["AnimalCarouselView", "build_animal_embed"]
+
 _MAX_FILENAME_LEN = 40  # maximum length of an attachment filename
 
 
