@@ -52,7 +52,7 @@ __license__ = "MIT"
 logger = logging.getLogger("ColorCog")
 
 ColorRoleAction = Literal["set", "reset", "reassign"]
-ColorRoleKind = Literal["hex", "rgb", "name", "random", "copy"]
+ColorRoleKind = Literal["hex", "random", "copy"]
 ColorKind = Literal["hex", "rgb", "name", "role", "random"]
 
 
@@ -62,10 +62,6 @@ async def _handle_colorrole_set(
     guild: discord.Guild,
     kind: ColorRoleKind,
     hex6: str | None = None,
-    r: int | None = None,
-    g: int | None = None,
-    b: int | None = None,
-    name: str | None = None,
     role: discord.Role | None = None,
 ) -> None:
     if kind == "hex":
@@ -75,28 +71,6 @@ async def _handle_colorrole_set(
         hex_norm = hex6.lstrip("#").lower()
         discord_color = discord.Color(int(hex_norm, 16))
         color_repr = f"#{hex_norm}"
-
-    elif kind == "rgb":
-        if r is None or g is None or b is None or not validate_rgb(r, g, b):
-            await report(
-                interaction, "Provide a valid RGB color (0-255).", Status.FAILURE
-            )
-            return
-        discord_color = discord.Color.from_rgb(r, g, b)
-        color_repr = str((r, g, b))
-
-    elif kind == "name":
-        if not name:
-            await report(interaction, "Provide a CSS color name.", Status.FAILURE)
-            return
-        key = name.lower()
-        if key not in CSS_COLOR_NAME_TO_HEX:
-            await report(
-                interaction, "Unknown color name. Use /color list.", Status.FAILURE
-            )
-            return
-        discord_color = discord.Color(int(CSS_COLOR_NAME_TO_HEX[key], 16))
-        color_repr = key
 
     elif kind == "copy":
         if role is None:
@@ -135,10 +109,6 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         action="What to do",
         kind="How to pick the color (only for action=set)",
         hex6="Hex value (RRGGBB or #RRGGBB)",
-        r="Red (0-255)",
-        g="Green (0-255)",
-        b="Blue (0-255)",
-        name="CSS color name",
         role="Role to copy the color from",
     )
     @guild_only()
@@ -151,22 +121,13 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             "**only when setting your color role**",
             "hex6": "Your new color as a 6-character hex color code, "
             "**only when setting your color with `kind` as `hex`**",
-            "r": "The red component of your new color, "
-            "**only when setting your color with `kind` as `rgb`**",
-            "g": "The green component of your new color, "
-            "**only when setting your color with `kind` as `rgb`**",
-            "b": "The blue component of your new color, "
-            "**only when setting your color with `kind` as `rgb`**",
-            "name": "Your new color as a color name, "
-            "**only when setting your color with `kind` as `name`**",
             "role": "A role whose color to copy as your color, "
             "**only when setting your color with `kind` as `role`**",
         },
         examples=(
             "/colorrole action:set kind:hex hex6:ffffff",
-            "/colorrole action:set kind:rgb r:255 g:255 b:255",
-            "/colorrole action:set kind:name name:white",
             "/colorrole action:set kind:role role:@Red",
+            "/colorrole action:set kind:random",
             "/colorrole action:reset",
             "/colorrole action:reassign",
         ),
@@ -177,10 +138,6 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         action: ColorRoleAction,
         kind: ColorRoleKind | None = None,
         hex6: str | None = None,
-        r: int | None = None,
-        g: int | None = None,
-        b: int | None = None,
-        name: str | None = None,
         role: discord.Role | None = None,
     ) -> None:
         """Color role command handler."""
@@ -234,10 +191,6 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
                 guild=guild,
                 kind=kind,
                 hex6=hex6,
-                r=r,
-                g=g,
-                b=b,
-                name=name,
                 role=role,
             )
 
