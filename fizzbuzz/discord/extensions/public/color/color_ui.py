@@ -80,6 +80,8 @@ async def update_color_role(
     member: discord.Member,
     guild: discord.Guild,
     color: discord.Color,
+    color2: discord.Color | None,
+    color3: discord.Color | None,
     color_repr: str,
     interaction: discord.Interaction,
     logger: logging.Logger,
@@ -90,6 +92,8 @@ async def update_color_role(
         member (discord.Member): The member whose role to update.
         guild (discord.Guild): The guild to update the color in.
         color (discord.Color): The new color.
+        color2 (discord.Color | None): The second color (for gradients).
+        color3 (discord.Color | None): The third color (for holographic roles).
         color_repr (str): A representation of the color to use in the response.
         interaction (discord.Interaction): The interaction instance.
         logger (logging.Logger): The logger to log with in case moving roles fails.
@@ -97,13 +101,17 @@ async def update_color_role(
     existing_role = find_role(get_color_role_name(member), guild)
 
     if existing_role:
-        if existing_role.color == color:
+        if (
+            existing_role.color == color
+            and existing_role.secondary_color == color2
+            and existing_role.tertiary_color == color3
+        ):
             await report(
                 interaction, "This is already your role color!", Status.FAILURE
             )
             return
 
-        await update_role_color(existing_role, color)
+        await update_role_color(existing_role, color, color2, color3)
         await report(
             interaction,
             f"Your role color has been updated to {color_repr}.",
@@ -346,6 +354,8 @@ class ColorView(RestrictedView):
             interaction.user,
             interaction.guild,
             discord.Color.from_rgb(*self.current_color.as_rgb()),
+            None,
+            None,
             f"#{self.current_color.as_hex6()}",
             interaction,
             logging.getLogger("ColorCog"),

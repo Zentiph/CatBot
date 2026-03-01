@@ -52,8 +52,23 @@ __license__ = "MIT"
 logger = logging.getLogger("ColorCog")
 
 ColorRoleAction = Literal["set", "reset", "reassign"]
-ColorRoleKind = Literal["hex", "rgb", "name", "random", "copy"]
+ColorRoleKind = Literal["standard", "random", "copy", "gradient", "holographic"]
+# TODO: add other color systems like HSL and HSV
 ColorKind = Literal["hex", "rgb", "name", "role", "random"]
+
+
+async def _check_enhanced_role_colors(
+    interaction: discord.Interaction, guild: discord.Guild
+) -> bool:
+    if "ENHANCED_ROLE_COLORS" not in guild.features:
+        await report(
+            interaction,
+            "This server does not have Enhanced Role Colors enabled, "
+            "so gradients/holographic roles aren't available.",
+            Status.FAILURE,
+        )
+        return False
+    return True
 
 
 async def _handle_colorrole_set(
@@ -62,13 +77,13 @@ async def _handle_colorrole_set(
     guild: discord.Guild,
     kind: ColorRoleKind,
     hex6: str | None = None,
-    r: int | None = None,
-    g: int | None = None,
-    b: int | None = None,
-    name: str | None = None,
+    hex62: str | None = None,
     role: discord.Role | None = None,
 ) -> None:
-    if kind == "hex":
+    discord_color2 = None
+    discord_color3 = None
+
+    if kind == "standard":
         if not hex6 or not validate_hex(hex6):
             await report(interaction, "Provide a valid hex color.", Status.FAILURE)
             return
@@ -76,27 +91,34 @@ async def _handle_colorrole_set(
         discord_color = discord.Color(int(hex_norm, 16))
         color_repr = f"#{hex_norm}"
 
-    elif kind == "rgb":
-        if r is None or g is None or b is None or not validate_rgb(r, g, b):
-            await report(
-                interaction, "Provide a valid RGB color (0-255).", Status.FAILURE
-            )
+    elif kind == "gradient":
+        if not await _check_enhanced_role_colors(interaction, guild):
             return
-        discord_color = discord.Color.from_rgb(r, g, b)
-        color_repr = str((r, g, b))
 
-    elif kind == "name":
-        if not name:
-            await report(interaction, "Provide a CSS color name.", Status.FAILURE)
+        if not hex6 or not validate_hex(hex6):
+            await report(interaction, "Provide a valid hex color.", Status.FAILURE)
             return
-        key = name.lower()
-        if key not in CSS_COLOR_NAME_TO_HEX:
+        if not hex62 or not validate_hex(hex62):
             await report(
-                interaction, "Unknown color name. Use /color list.", Status.FAILURE
+                interaction, "Provide a valid second hex color.", Status.FAILURE
             )
             return
-        discord_color = discord.Color(int(CSS_COLOR_NAME_TO_HEX[key], 16))
-        color_repr = key
+
+        hex_norm = hex6.lstrip("#").lower()
+        hex_norm2 = hex62.lstrip("#").lower()
+        discord_color = Color3.from_hex6(hex_norm).as_discord_color()
+        discord_color2 = Color3.from_hex6(hex_norm2).as_discord_color()
+        color_repr = f"#{hex_norm} -> #{hex_norm2}"
+
+    elif kind == "holographic":
+        if not await _check_enhanced_role_colors(interaction, guild):
+            return
+
+        # required colors for holographic
+        discord_color = discord.Color(11127295)
+        discord_color2 = discord.Color(16759788)
+        discord_color3 = discord.Color(16761760)
+        color_repr = "holographic"
 
     elif kind == "copy":
         if role is None:
@@ -110,7 +132,14 @@ async def _handle_colorrole_set(
         color_repr = f"{discord_color.to_rgb()!s} (random)"
 
     await update_color_role(
-        member, guild, discord_color, color_repr, interaction, logger
+        member,
+        guild,
+        discord_color,
+        discord_color2,
+        discord_color3,
+        color_repr,
+        interaction,
+        logger,
     )
 
 
@@ -135,11 +164,8 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         action="What to do",
         kind="How to pick the color (only for action=set)",
         hex6="Hex value (RRGGBB or #RRGGBB)",
-        r="Red (0-255)",
-        g="Green (0-255)",
-        b="Blue (0-255)",
-        name="CSS color name",
-        role="Role to copy the color from",
+        hex62="Second hex value (RRGGBB or #RRGGBB)",
+        role="Role to copy",
     )
     @guild_only()
     @help_info(
@@ -150,23 +176,18 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
             "kind": "The color input type to use, "
             "**only when setting your color role**",
             "hex6": "Your new color as a 6-character hex color code, "
-            "**only when setting your color with `kind` as `hex`**",
-            "r": "The red component of your new color, "
-            "**only when setting your color with `kind` as `rgb`**",
-            "g": "The green component of your new color, "
-            "**only when setting your color with `kind` as `rgb`**",
-            "b": "The blue component of your new color, "
-            "**only when setting your color with `kind` as `rgb`**",
-            "name": "Your new color as a color name, "
-            "**only when setting your color with `kind` as `name`**",
+            "**only when setting your color with `kind` as `standard` or `gradient`**",
+            "hex62": "Your second color as a 6-character hex color code, "
+            "**only when setting your color with `kind` as `gradient`**",
             "role": "A role whose color to copy as your color, "
             "**only when setting your color with `kind` as `role`**",
         },
         examples=(
-            "/colorrole action:set kind:hex hex6:ffffff",
-            "/colorrole action:set kind:rgb r:255 g:255 b:255",
-            "/colorrole action:set kind:name name:white",
+            "/colorrole action:set kind:standard hex6:ffffff",
+            "/colorrole action:set kind:gradient hex6:ffffff hex62:000000",
+            "/colorrole action:set kind:holographic ",
             "/colorrole action:set kind:role role:@Red",
+            "/colorrole action:set kind:random",
             "/colorrole action:reset",
             "/colorrole action:reassign",
         ),
@@ -177,10 +198,7 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
         action: ColorRoleAction,
         kind: ColorRoleKind | None = None,
         hex6: str | None = None,
-        r: int | None = None,
-        g: int | None = None,
-        b: int | None = None,
-        name: str | None = None,
+        hex62: str | None = None,
         role: discord.Role | None = None,
     ) -> None:
         """Color role command handler."""
@@ -196,7 +214,11 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
                     interaction, "You do not have a color role!", Status.FAILURE
                 )
                 return
-            await existing_role.edit(color=discord.Color(int("000000", 16)))
+            await existing_role.edit(
+                color=discord.Color(int("000000", 16)),
+                secondary_color=None,
+                tertiary_color=None,
+            )
             await report(
                 interaction,
                 "Your role's color has been reset to invisible.",
@@ -224,22 +246,17 @@ class ColorCog(commands.Cog, name="Color Role Commands"):
 
         # action is "set"
         if kind is None:
-            await report(
-                interaction, "Provide kind (hex/rgb/name/random/copy).", Status.FAILURE
-            )
-        else:
-            await _handle_colorrole_set(
-                interaction,
-                member=member,
-                guild=guild,
-                kind=kind,
-                hex6=hex6,
-                r=r,
-                g=g,
-                b=b,
-                name=name,
-                role=role,
-            )
+            kind = "standard"
+
+        await _handle_colorrole_set(
+            interaction,
+            member=member,
+            guild=guild,
+            kind=kind,
+            hex6=hex6,
+            hex62=hex62,
+            role=role,
+        )
 
     @app_commands.command(
         name="color", description="Color tools (info + interactive view)"
