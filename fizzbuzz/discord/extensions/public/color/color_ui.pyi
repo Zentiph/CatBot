@@ -19,6 +19,8 @@ async def update_color_role(
     member: discord.Member,
     guild: discord.Guild,
     color: discord.Color,
+    color2: discord.Color | None,
+    color3: discord.Color | None,
     color_repr: str,
     interaction: discord.Interaction,
     logger: logging.Logger,
