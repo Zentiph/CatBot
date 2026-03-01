@@ -12,6 +12,18 @@ from psutil import Process
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
+__all__ = [
+    "BOT_APP_ID",
+    "DEPENDENCIES",
+    "DISCORD_DOT_PY_VERSION",
+    "HOST",
+    "PROTOTYPE_BOT_APP_ID",
+    "PYTHON_VERSION",
+    "START_TIME",
+    "VERSION",
+    "get_uptime",
+]
+
 _SECONDS_PER_HOUR = 3600
 _SECONDS_PER_MINUTE = 60
 _HOURS_PER_DAY = 24

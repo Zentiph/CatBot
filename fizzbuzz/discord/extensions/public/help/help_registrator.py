@@ -24,6 +24,18 @@ from ....ui.emoji import Visual
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
+__all__ = [
+    "COMMAND_CATEGORIES",
+    "AppCommand",
+    "Category",
+    "HasHelpInfo",
+    "HelpInfo",
+    "build_command_info_str",
+    "build_help_homepage",
+    "get_help_info",
+    "help_info",
+]
+
 P = ParamSpec("P")
 T_co = TypeVar("T_co", covariant=True)
 

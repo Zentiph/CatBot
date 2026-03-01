@@ -17,6 +17,14 @@ from ..discord.info import VERSION
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
+__all__ = [
+    "STATUS_OK",
+    "ApiError",
+    "ApiJsonResponse",
+    "http_get_bytes",
+    "http_get_json",
+]
+
 _DEFAULT_USER_AGENT = os.getenv(
     "HTTP_USER_AGENT",
     # clip leading 'v' from version
