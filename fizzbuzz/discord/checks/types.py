@@ -6,6 +6,8 @@ from typing import Any, TypeVar
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
+__all__ = ["Check", "CheckT"]
+
 T = TypeVar("T")
 
 CheckT = Callable[[T], T]

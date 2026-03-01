@@ -9,6 +9,15 @@ from discord.ext import commands
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
+__all__ = [
+    "LOG_FILE",
+    "AnsiColor",
+    "AnsiColorFormatter",
+    "cog_setup_log_msg",
+    "config_logging",
+    "log_app_command",
+]
+
 LOG_FILE = "logs.log"  # TODO: make an env var?
 """The file to log to."""
 

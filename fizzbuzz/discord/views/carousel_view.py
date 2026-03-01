@@ -13,6 +13,8 @@ from .restricted_view import RestrictedModal, RestrictedView
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
+__all__ = ["CarouselView", "PageJumpModal"]
+
 
 class PageJumpModal(RestrictedModal["CarouselView"]):
     """A modal that takes a page number to jump to in a CarouselView."""

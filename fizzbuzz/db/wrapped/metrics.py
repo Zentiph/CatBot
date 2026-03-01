@@ -13,6 +13,8 @@ import aiosqlite
 __author__ = "Gavin Borne"
 __license__ = "MIT"
 
+__all__ = ["YearlyMetricStore", "metric_store"]
+
 _SCHEMA = """--sql
 CREATE TABLE IF NOT EXISTS messages (
     message_id       TEXT PRIMARY KEY,
