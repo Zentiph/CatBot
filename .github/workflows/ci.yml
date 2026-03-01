@@ -1,0 +1,52 @@
+name: CI (Python)
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+
+permissions:
+    contents: read
+
+concurrency:
+    group: ci-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    ci:
+        runs-on: ubuntu-latest
+
+        strategy:
+            fail-fast: false
+            matrix:
+                python-version: ["3.12"] # docker uses 3.12 slim, change if docker changes
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Set up Python
+              uses: actions/setup-python@v4
+              with:
+                  python-version: ${{ matrix.python-version }}
+                  cache: pip
+
+            - name: Install dependencies
+              run: |
+                  python -m pip install --upgrade pip
+                  if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+                  if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+                  pip install ruff pyright pytest
+
+            - name: Ruff format check
+              run: ruff format --check
+
+            - name: Ruff lint
+              run: ruff check .
+
+            - name: Type check (Pyright)
+              run: pyright
+
+            - name: Tests (pytest)
+              run: |
+                if [ -d tests]; then pytest -q; else echo "No tests found"; fi
