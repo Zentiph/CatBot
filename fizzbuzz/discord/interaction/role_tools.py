@@ -66,18 +66,36 @@ def find_role(role: str, guild: discord.Guild, /) -> discord.Role | None:
     return discord.utils.find(lambda r: r.name == role, guild.roles)
 
 
-async def update_role_color(role: discord.Role, color: discord.Color, /) -> None:
+async def update_role_color(
+    role: discord.Role,
+    color: discord.Color,
+    secondary_color: discord.Color | None = None,
+    tertiary_color: discord.Color | None = None,
+    /,
+) -> None:
     """Set the given role's color.
 
     Args:
         role (discord.Role): The role to edit.
         color (discord.Color): The new color.
+        secondary_color (discord.Color | None, optional): The secondary color,
+            for gradients. Defaults to None.
+        tertiary_color (discord.Color | None, optional): The tertiary color,
+            for holographic roles. Defaults to None.
     """
-    await role.edit(color=color)
+    await role.edit(
+        color=color, secondary_color=secondary_color, tertiary_color=tertiary_color
+    )
     logging.debug(
-        "Role %s has had its color changed to %r",
+        "Role %s has had its color changed to %r (secondary: %r, tertiary: %r)",
         role.name,
         (color.r, color.g, color.b),
+        (secondary_color.r, secondary_color.g, secondary_color.b)
+        if secondary_color
+        else None,
+        (tertiary_color.r, tertiary_color.g, tertiary_color.b)
+        if tertiary_color
+        else None,
     )
 
 
