@@ -71,6 +71,41 @@ async def _check_enhanced_role_colors(
     return True
 
 
+async def _handle_colorrole_set_gradient(
+    interaction: discord.Interaction,
+    member: discord.Member,
+    guild: discord.Guild,
+    hex6: str | None,
+    hex62: str | None,
+) -> None:
+    if not await _check_enhanced_role_colors(interaction, guild):
+        return
+
+    if not hex6 or not validate_hex(hex6):
+        await report(interaction, "Provide a valid hex color.", Status.FAILURE)
+        return
+    if not hex62 or not validate_hex(hex62):
+        await report(interaction, "Provide a valid second hex color.", Status.FAILURE)
+        return
+
+    hex_norm = hex6.lstrip("#").lower()
+    hex_norm2 = hex62.lstrip("#").lower()
+    discord_color = Color3.from_hex6(hex_norm).as_discord_color()
+    discord_color2 = Color3.from_hex6(hex_norm2).as_discord_color()
+    color_repr = f"#{hex_norm} -> #{hex_norm2}"
+
+    await update_color_role(
+        member,
+        guild,
+        discord_color,
+        discord_color2,
+        None,
+        color_repr,
+        interaction,
+        logger,
+    )
+
+
 async def _handle_colorrole_set(
     interaction: discord.Interaction,
     member: discord.Member,
@@ -92,23 +127,8 @@ async def _handle_colorrole_set(
         color_repr = f"#{hex_norm}"
 
     elif kind == "gradient":
-        if not await _check_enhanced_role_colors(interaction, guild):
-            return
-
-        if not hex6 or not validate_hex(hex6):
-            await report(interaction, "Provide a valid hex color.", Status.FAILURE)
-            return
-        if not hex62 or not validate_hex(hex62):
-            await report(
-                interaction, "Provide a valid second hex color.", Status.FAILURE
-            )
-            return
-
-        hex_norm = hex6.lstrip("#").lower()
-        hex_norm2 = hex62.lstrip("#").lower()
-        discord_color = Color3.from_hex6(hex_norm).as_discord_color()
-        discord_color2 = Color3.from_hex6(hex_norm2).as_discord_color()
-        color_repr = f"#{hex_norm} -> #{hex_norm2}"
+        await _handle_colorrole_set_gradient(interaction, member, guild, hex6, hex62)
+        return
 
     elif kind == "holographic":
         if not await _check_enhanced_role_colors(interaction, guild):

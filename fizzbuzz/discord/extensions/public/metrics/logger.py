@@ -8,6 +8,9 @@ from discord.ext import commands
 
 from .....db.wrapped import metric_store
 
+# temporary flag to disable this module, until the DB is fully implemented
+DISABLED = True
+
 CAT_GUILD_ID = 0  # placeholder
 
 COMMIT_EVERY = 512
@@ -139,10 +142,10 @@ class WrappedLoggerCog(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
         """Log messages as they come in."""
-        # try:
-        #     await self._log_single_message(message, commit=True)
-        # except Exception:
-        #     logger.exception("Failed to log message for wrapped")
+        try:
+            await self._log_single_message(message, commit=True)
+        except Exception:
+            logger.exception("Failed to log message for wrapped")
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
@@ -249,4 +252,6 @@ class WrappedLoggerCog(commands.Cog):
 
 async def setup(bot: commands.Bot) -> None:
     """Load the WrappedLogger cog."""
+    if DISABLED:
+        return
     await bot.add_cog(WrappedLoggerCog(bot))

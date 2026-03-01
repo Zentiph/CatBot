@@ -213,11 +213,11 @@ class SettingsManager:
         Args:
             guild_id (int): The ID of the guild.
 
-        Raises:
-            DatabaseError: If the IDs were not properly stored.
-
         Returns:
             list[int]: The list of admin role IDs.
+
+        Raises:
+            DatabaseError: If the IDs were not properly stored.
         """
         admin_role_ids = (
             await self.get_value("guild", guild_id, "admin_role_ids")

@@ -346,11 +346,11 @@ async def fetch_inat_animal(
         images (ImageFetchAmount, optional): The number of images to fetch.
             Defaults to 1.
 
-    Raises:
-        ApiError: If the animal kind provided has no images on iNaturalist.
-
     Returns:
         AnimalResult: The result of the search.
+
+    Raises:
+        ApiError: If the animal kind provided has no images on iNaturalist.
     """
     kind = kind.strip().lower()
     resolved_query, taxon = await _resolve_inat_taxon(kind)

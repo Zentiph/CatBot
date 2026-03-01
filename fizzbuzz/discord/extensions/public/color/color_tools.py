@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from io import BytesIO
+import math
 import re
 import secrets
 
@@ -675,7 +676,7 @@ class Color3:
         if abs(delta) < tiny:
             delta = 0.0
 
-        if delta == 0.0:
+        if math.isclose(delta, 0.0):
             h = 0.0
         elif rp == c_max:
             h = 60.0 * _rem_euclid((gp - bp) / delta, 6.0)
@@ -685,7 +686,7 @@ class Color3:
             h = 60.0 * ((rp - gp) / delta + 4.0)
 
         l = (c_max - c_min) / 2.0  # noqa: E741 (ambiguous name)
-        s = 0.0 if delta == 0.0 else delta / (1.0 - abs(2.0 * l - 1.0))
+        s = 0.0 if math.isclose(delta, 0.0) else delta / (1.0 - abs(2.0 * l - 1.0))
 
         return h, s, l
 
