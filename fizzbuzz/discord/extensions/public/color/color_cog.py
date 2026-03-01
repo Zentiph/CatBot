@@ -57,6 +57,20 @@ ColorRoleKind = Literal["standard", "random", "copy", "gradient", "holographic"]
 ColorKind = Literal["hex", "rgb", "name", "role", "random"]
 
 
+async def _check_enhanced_role_colors(
+    interaction: discord.Interaction, guild: discord.Guild
+) -> bool:
+    if "ENHANCED_ROLE_COLORS" not in guild.features:
+        await report(
+            interaction,
+            "This server does not have Enhanced Role Colors enabled, "
+            "so gradients/holographic roles aren't available.",
+            Status.FAILURE,
+        )
+        return False
+    return True
+
+
 async def _handle_colorrole_set(
     interaction: discord.Interaction,
     member: discord.Member,
@@ -78,13 +92,7 @@ async def _handle_colorrole_set(
         color_repr = f"#{hex_norm}"
 
     elif kind == "gradient":
-        if "ENHANCED_ROLE_COLORS" not in guild.features:
-            await report(
-                interaction,
-                "This server does not have Enhanced Role Colors enabled, "
-                "so gradients aren't available.",
-                Status.FAILURE,
-            )
+        if not await _check_enhanced_role_colors(interaction, guild):
             return
 
         if not hex6 or not validate_hex(hex6):
@@ -103,13 +111,7 @@ async def _handle_colorrole_set(
         color_repr = f"#{hex_norm} -> #{hex_norm2}"
 
     elif kind == "holographic":
-        if "ENHANCED_ROLE_COLORS" not in guild.features:
-            await report(
-                interaction,
-                "This server does not have Enhanced Role Colors enabled, "
-                "so holographic roles aren't available.",
-                Status.FAILURE,
-            )
+        if not await _check_enhanced_role_colors(interaction, guild):
             return
 
         # required colors for holographic
