@@ -2,7 +2,7 @@
 FizzBuzz is a user-focused Discord bot made for fun, social, and interactive activities.
 
 [![GitHub License](https://img.shields.io/github/license/zentiph/fizzbuzz?style=flat-square&labelColor=0f0f0f)](https://github.com/Zentiph/fizzbuzz/blob/main/license.md)
-[![Contributors](https://img.shields.io/github/contributors/zentiph/fizzbuzz?style=flat-square&labelColor=0f0f0f)](../../graphs/contributors)
+[![Contributors](https://img.shields.io/github/contributors/zentiph/fizzbuzz?style=flat-square&labelColor=0f0f0f)](https://github.com/Zentiph/FizzBuzz/graphs/contributors)
 <br/>
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/t/zentiph/fizzbuzz?style=flat-square&labelColor=0f0f0f)](https://github.com/zentiph/fizzbuzz/commits/main)
 [![Last Commit](https://img.shields.io/github/last-commit/zentiph/fizzbuzz?style=flat-square&labelColor=0f0f0f)](https://github.com/zentiph/fizzbuzz/commits/main)
