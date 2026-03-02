@@ -3,6 +3,10 @@
 # FizzBuzz Changelog
 A collective history of all the changes made to FizzBuzz.
 
+## v2.2.0
+* Added support for gradient and holographic color roles for /colorrole
+* Removed rgb and color name support for /colorrole
+
 ## v2.1.0
 * Added guild settings DB
 * Added command checks (guild-only, admin-only, etc)
