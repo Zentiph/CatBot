@@ -1,8 +1,14 @@
-FROM rust:slim AS builder
+FROM rust:alpine AS builder
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    pkg-config libssl-dev cmake clang libclang-dev \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache \
+    pkgconfig \
+    openssl-dev openssl-libs-static \
+    sqlite-dev sqlite-static \
+    cmake clang clang-dev \
+    musl-dev
+
+ENV OPENSSL_STATIC=1
+ENV SQLITE3_STATIC=1
 
 WORKDIR /app
 
@@ -11,16 +17,14 @@ COPY src ./src
 
 RUN cargo build --release
 
-FROM debian:bookworm-slim
+FROM alpine:3.23
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates tzdata libsqlite3-0 \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache ca-certificates tzdata
 
 WORKDIR /app
 
 COPY --from=builder /app/target/release/fizzbuzz ./fizzbuzz
-COPY static/ ./static/
+COPY public/ ./public/
 
 ENTRYPOINT ["./fizzbuzz"]
 CMD []

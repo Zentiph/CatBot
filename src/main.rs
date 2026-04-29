@@ -16,11 +16,11 @@ use tracing::{error, info, warn};
 ///
 /// # Fields
 ///
-/// - `token` (`String`) - The Discord bot token.
+/// - `token` (`Option<String>`) - The Discord bot token.
 /// - `db_dir` (`String`) - The path to the directory where the bot's DBs are stored.
 #[derive(Debug, Deserialize)]
 struct Environment {
-    token: String,
+    token: Option<String>,
     db_dir: String,
 }
 
@@ -107,7 +107,11 @@ async fn main() {
     )
     .expect("Failed to configure logging");
 
-    let token = args.token_override.unwrap_or(env.token);
+    let token = args.token_override.unwrap_or(env.token.unwrap_or_default());
+    if token.is_empty() {
+        error!("No token provided");
+        std::process::exit(1);
+    }
 
     let mut client = Client::builder(&token, GatewayIntents::all())
         .event_handler(Bot { debug: args.debug })
