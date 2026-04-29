@@ -1,8 +1,0 @@
-{
-  "typeCheckingMode": "basic",
-  "reportMissingTypeStubs": "none",
-  "reportUnknownMemberType": "none",
-  "reportUnknownVariableType": "none",
-  "venvPath": ".",
-  "exclude": ["**/__pycache__", ".venv", "dist", "build"]
-}

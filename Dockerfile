@@ -1,24 +1,26 @@
-FROM python:3.12-slim
+FROM rust:slim AS builder
 
-# sys basics
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates curl tzdata \
+    pkg-config libssl-dev cmake clang libclang-dev \
     && rm -rf /var/lib/apt/lists/*
-
-# avoid .pyc files and ensure unbuffered stdout/stderr for logs
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-# install python deps
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY Cargo.toml Cargo.lock ./
+COPY src ./src
 
-# copy src and needed items
-COPY fizzbuzz/ ./fizzbuzz/
+RUN cargo build --release
+
+FROM debian:bookworm-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates tzdata libsqlite3-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY --from=builder /app/target/release/fizzbuzz ./fizzbuzz
 COPY static/ ./static/
 
-# args provided at runtime will be appended
-ENTRYPOINT ["python", "-m", "fizzbuzz"]
+ENTRYPOINT ["./fizzbuzz"]
 CMD []

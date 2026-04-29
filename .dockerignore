@@ -1,12 +1,6 @@
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
+target/
 *.log
 *.sqlite*
-.venv/
-venv/
 .vscode/
-tests/
 .git/
 .gitignore

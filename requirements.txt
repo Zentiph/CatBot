@@ -1,6 +1,0 @@
-aiosqlite
-discord.py
-pillow
-psutil
-pytz
-requests
