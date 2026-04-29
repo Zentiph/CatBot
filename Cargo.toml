@@ -42,7 +42,7 @@ chrono-tz = "0.10.4"
 # structured logging
 tracing = "0.1.44"
 # log output/formatting
-tracing-subscriber = "0.3.23"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter", "chrono"] }
 # file logging
 tracing-appender = "0.2.5"
 
@@ -63,3 +63,5 @@ serde_json = "1.0"
 lru = "0.18.0"
 # CSS color names
 csscolorparser = "0.8.3"
+# result
+anyhow = "1.0.102"

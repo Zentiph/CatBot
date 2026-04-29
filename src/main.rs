@@ -10,8 +10,8 @@ struct Args {
     #[arg(short, long, action = ArgAction::SetTrue, default_value_t = false)]
     debug: bool,
 
-    /// Path to the file where logs will be written. Defaults to "fizzbuzz.log".
-    #[arg(long, default_value = "fizzbuzz.log")]
+    /// Path to the file where logs will be written.
+    #[arg(long)]
     log_file: Option<String>,
 
     /// Enable/disable console logging. Defaults to true.
@@ -31,6 +31,7 @@ struct Args {
     token_override: Option<String>,
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let args = Args::parse();
 }
