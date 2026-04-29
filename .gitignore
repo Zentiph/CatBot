@@ -8,3 +8,7 @@ __pycache__/
 .pytest_cache/
 data/
 test_data/
+
+# Added by cargo
+
+/target
