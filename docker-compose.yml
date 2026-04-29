@@ -1,3 +1,5 @@
+# docker compose --profile test build && docker compose --profile test up -d
+
 services:
   bot:
     # production
