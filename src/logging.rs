@@ -12,7 +12,7 @@ const TIME_FORMAT: &str = "%Y-%m-%d %H:%M:%S";
 /// # Arguments
 ///
 /// - `debug_mode` (`bool`) - Whether to enable debug mode (more verbose logging).
-/// - `log_file` (`Option<&str>`) - The file to log to, if any.
+/// - `log_file` (`Option<String>`) - The file to log to, if any.
 /// - `console_logging` (`bool`) - Whether to enable console logging.
 /// - `colored_logs` (`bool`) - Whether to color console logs.
 ///
@@ -23,10 +23,9 @@ const TIME_FORMAT: &str = "%Y-%m-%d %H:%M:%S";
 /// # Errors
 ///
 /// Returns an error if the logging setup fails.
-/// ```
 pub fn config_tracing(
     debug_mode: bool,
-    log_file: Option<&str>,
+    log_file: Option<String>,
     console_logging: bool,
     colored_logs: bool,
 ) -> anyhow::Result<()> {
@@ -40,6 +39,7 @@ pub fn config_tracing(
             .create(true)
             .append(true)
             .open(log_file)?;
+        file.set_len(0)?;
 
         layers.push(
             fmt::layer()
@@ -82,7 +82,6 @@ pub fn config_tracing(
 /// # Arguments
 ///
 /// - `name` (`&str`) - The name of the command group.
-/// ```
 pub fn log_command_group_setup(name: &str) {
     info!("{name} command group loaded");
 }
@@ -94,7 +93,6 @@ pub fn log_command_group_setup(name: &str) {
 /// # Arguments
 ///
 /// - `interaction` (`&CommandInteraction`) - The interaction instance of the command.
-/// ```
 pub fn log_app_command(interaction: &CommandInteraction) {
     // don't build if debug isn't enabled
     if !tracing::enabled!(tracing::Level::DEBUG) {

@@ -5,63 +5,45 @@ edition = "2024"
 
 [dependencies]
 ### core ###
-# discord API
 serenity = "0.12"
-# slash commands
 poise = "0.6.2"
-# async runtime
 tokio = { version = "1.21.2", features = ["full"]}
+futures = "0.3"
 
 ### database ###
-# async sqlite
 sqlx = { version = "0.8", features = ["runtime-tokio", "sqlite"] }
 
 ### http + networking ###
-# http client
 reqwest = { version = "0.13.3", features = ["json"] }
-# rate limiting
 governor = "0.10.4"
 
 ### image processing ###
-# basic image ops
 image = "0.25.10"
-# color math
 palette = "0.7.6"
 
 ### system info ###
-# memory/process info
 sysinfo = "0.38.4"
 
 ### time + timezones ###
-# datetime
 chrono = "0.4.44"
-# timezone support
 chrono-tz = "0.10.4"
 
 ### logging ###
-# structured logging
 tracing = "0.1.44"
-# log output/formatting
 tracing-subscriber = { version = "0.3.23", features = ["env-filter", "chrono"] }
-# file logging
 tracing-appender = "0.2.5"
 
 ### config + API
-# .env files
+envy = "0.4.2"
 dotenvy = "0.15.7"
-# CLI args
 clap = { version = "4.5", features = ["derive"] }
 
 ### serialization ###
-# general serialization
 serde = "1.0.228"
-# JSON
 serde_json = "1.0"
 
 ### utilities ###
-# LRU cache
 lru = "0.18.0"
-# CSS color names
 csscolorparser = "0.8.3"
-# result
 anyhow = "1.0.102"
+inventory = "0.3.24"
