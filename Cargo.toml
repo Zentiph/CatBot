@@ -50,7 +50,7 @@ tracing-appender = "0.2.5"
 # .env files
 dotenvy = "0.15.7"
 # CLI args
-clap = "4.6.1"
+clap = { version = "4.5", features = ["derive"] }
 
 ### serialization ###
 # general serialization
