@@ -15,10 +15,10 @@ from discord import app_commands
 from discord.ext import commands
 from requests import Timeout
 
-from fizzbuzz import log_handler
-from fizzbuzz.discord.checks import NotInGuild, Unauthorized
-from fizzbuzz.discord.interaction import report, safe_send
-from fizzbuzz.discord.ui.emoji import Status
+from fizzbuzz_python import log_handler
+from fizzbuzz_python.discord.checks import NotInGuild, Unauthorized
+from fizzbuzz_python.discord.interaction import report, safe_send
+from fizzbuzz_python.discord.ui.emoji import Status
 
 __author__ = "Gavin Borne"
 __license__ = "MIT"
