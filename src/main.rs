@@ -3,7 +3,7 @@
 use clap::{ArgAction, Parser};
 use dotenvy::dotenv;
 use envy::from_env;
-use fizzbuzz::{commands, logging};
+use fizzbuzz::{commands, info, logging};
 use serde::Deserialize;
 use serenity::{
     Client,
@@ -16,12 +16,14 @@ use tracing::{error, info, warn};
 ///
 /// # Fields
 ///
-/// - `token` (`Option<String>`) - The Discord bot token.
+/// - `token` (`String`) - The Discord bot token.
 /// - `db_dir` (`String`) - The path to the directory where the bot's DBs are stored.
+/// - `http_user_agent` (`String`) - The user agent to use for HTTP requests.
 #[derive(Debug, Deserialize)]
 struct Environment {
-    token: Option<String>,
+    token: String,
     db_dir: String,
+    http_user_agent: String,
 }
 
 /// Run FizzBuzz with optional arguments
@@ -95,6 +97,8 @@ impl EventHandler for Bot {
 /// Run the bot.
 #[tokio::main]
 async fn main() {
+    info::init_start_time();
+
     let args = Args::parse();
     dotenv().ok();
     let env = from_env::<Environment>().expect("Invalid environment configuration");
@@ -107,7 +111,7 @@ async fn main() {
     )
     .expect("Failed to configure logging");
 
-    let token = args.token_override.unwrap_or(env.token.unwrap_or_default());
+    let token = args.token_override.unwrap_or(env.token);
     if token.is_empty() {
         error!("No token provided");
         std::process::exit(1);

@@ -1,3 +1,5 @@
+//! All of the command modules for FizzBuzz.
+
 use serenity::all::{CommandInteraction, Context, CreateCommand};
 use tracing::error;
 

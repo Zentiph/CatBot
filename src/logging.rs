@@ -1,3 +1,5 @@
+//! Logging utility for FizzBuzz.
+
 use std::fs::OpenOptions;
 
 use serenity::all::{CommandInteraction, ResolvedValue};
