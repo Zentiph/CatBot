@@ -1,4 +1,4 @@
-//! Information about FizzBuzz and its run conditions.
+//! Global information about FizzBuzz and its run conditions.
 
 use std::sync::OnceLock;
 
@@ -7,14 +7,10 @@ use chrono::{DateTime, Utc};
 /// The current release version of FizzBuzz.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-/// The application ID of the bot.
-pub const BOT_APP_ID: u64 = 1303870147873996902;
-/// The application ID of the prototype bot.
-pub const PROTOTYPE_BOT_APP_ID: u64 = 1437156873722921053;
-
 /// The time that the program started.
 static START_TIME: OnceLock<DateTime<Utc>> = OnceLock::new();
 /// Initializes the start time of the program.
+/// If the start time has already been initialized, does nothing.
 pub fn init_start_time() {
     START_TIME.get_or_init(Utc::now);
 }
@@ -23,6 +19,10 @@ pub fn init_start_time() {
 /// # Returns
 ///
 /// - `DateTime<Utc>` - The start time.
+///
+/// # Panics
+///
+/// Panics if the start time has not been initialized.
 pub fn start_time() -> DateTime<Utc> {
     *START_TIME.get().expect("Start time not initialized")
 }
@@ -42,6 +42,11 @@ pub fn get_uptime_string() -> String {
     format!("{days} days, {hours} hours, {minutes} minutes, {seconds} seconds")
 }
 
+/// Get information about the hosting device.
+///
+/// # Returns
+///
+/// - `String` - The host device information.
 pub fn host() -> String {
     format!(
         "{} {}",
