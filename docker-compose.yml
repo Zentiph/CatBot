@@ -7,6 +7,7 @@ services:
     build: .
     env_file: .env
     restart: unless-stopped
+    entrypoint: [ "/bin/sh", "-c", "/app/fizzbuzz 2>&1 | tee /app/fizzbuzz.log" ]
     # depends_on: [db, redis]
     # keep logs modest so they don't fill disk
     logging:
@@ -18,13 +19,14 @@ services:
       - prod
     volumes:
       - ./data:/app/data # so db data persists
+      - ./fizzbuzz.log:/app/fizzbuzz.log
 
   bot-test:
     image: fizzbuzz:latest
     build: .
     env_file: .env.test
     restart: no
-    entrypoint: [ "/bin/sh", "-lc", "/app/fizzbuzz --token-override \"$$TESTING_TOKEN\" --debug" ]
+    entrypoint: [ "/bin/sh", "-lc", "/app/fizzbuzz --token-override \"$$TESTING_TOKEN\" --debug 2>&1 | tee /app/fizzbuzz-test.log" ]
     logging:
       driver: json-file
       options:
@@ -34,3 +36,4 @@ services:
       - test
     volumes:
       - ./test_data:/app/data
+      - ./fizzbuzz.log:/app/fizzbuzz.log
