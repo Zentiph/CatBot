@@ -1,13 +1,13 @@
 [package]
 name = "fizzbuzz"
-version = "0.1.0"
+version = "2.3.0"
 edition = "2024"
 
 [dependencies]
 ### core ###
 serenity = "0.12"
 poise = "0.6.2"
-tokio = { version = "1.21.2", features = ["full"]}
+tokio = { version = "1.52.2", features = ["full"]}
 futures = "0.3"
 
 ### database ###
