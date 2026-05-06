@@ -4,7 +4,9 @@ use std::fs::OpenOptions;
 
 use serenity::all::{CommandInteraction, ResolvedValue};
 use tracing::{debug, info};
-use tracing_subscriber::{EnvFilter, Layer, fmt, layer::SubscriberExt, util::SubscriberInitExt};
+use tracing_subscriber::{
+    EnvFilter, Layer, fmt, layer::SubscriberExt, util::SubscriberInitExt,
+};
 
 /// The format for logging timestamps.
 const TIME_FORMAT: &str = "%Y-%m-%d %H:%M:%S";
@@ -48,7 +50,9 @@ pub fn config_tracing(
                 .with_target(true)
                 .with_file(true)
                 .with_line_number(true)
-                .with_timer(fmt::time::ChronoLocal::new(TIME_FORMAT.to_string()))
+                .with_timer(fmt::time::ChronoLocal::new(
+                    TIME_FORMAT.to_string(),
+                ))
                 .with_ansi(false) // file logging should never use ANSI
                 .with_writer(file)
                 .boxed(),
@@ -61,7 +65,9 @@ pub fn config_tracing(
                 .with_target(true)
                 .with_file(true)
                 .with_line_number(true)
-                .with_timer(fmt::time::ChronoLocal::new(TIME_FORMAT.to_string()))
+                .with_timer(fmt::time::ChronoLocal::new(
+                    TIME_FORMAT.to_string(),
+                ))
                 .with_ansi(colored_logs)
                 .boxed(),
         );

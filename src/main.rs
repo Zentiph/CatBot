@@ -9,7 +9,10 @@ use fizzbuzz::{commands, info, logging};
 use serde::Deserialize;
 use serenity::{
     Client,
-    all::{ActivityData, Command, Context, EventHandler, GatewayIntents, Interaction, Ready},
+    all::{
+        ActivityData, Command, Context, EventHandler, GatewayIntents,
+        Interaction, Ready,
+    },
     async_trait,
 };
 use tracing::{error, info, warn};
@@ -65,7 +68,9 @@ struct Bot {
 #[async_trait]
 impl EventHandler for Bot {
     async fn ready(&self, ctx: Context, ready: Ready) {
-        match Command::set_global_commands(&ctx.http, commands::all_commands()).await {
+        match Command::set_global_commands(&ctx.http, commands::all_commands())
+            .await
+        {
             Ok(cmds) => info!("Registered {} commands", cmds.len()),
             Err(e) => {
                 error!("Failed to register commands: {e}");
@@ -105,7 +110,8 @@ async fn main() {
 
     let args = Args::parse();
     dotenv().ok();
-    let env = from_env::<Environment>().expect("Invalid environment configuration");
+    let env =
+        from_env::<Environment>().expect("Invalid environment configuration");
 
     logging::config_tracing(
         args.debug,

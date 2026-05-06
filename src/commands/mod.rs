@@ -52,7 +52,8 @@ pub struct Command {
     pub run: for<'a> fn(
         &'a Context,
         &'a CommandInteraction,
-    ) -> futures::future::BoxFuture<'a, anyhow::Result<()>>,
+    )
+        -> futures::future::BoxFuture<'a, anyhow::Result<()>>,
 }
 impl Command {
     /// Get the help text for the command.
@@ -101,7 +102,9 @@ inventory::collect!(Command);
 pub fn all_commands() -> Vec<CreateCommand> {
     inventory::iter::<Command>
         .into_iter()
-        .map(|cmd| CreateCommand::new(cmd.info.name).description(cmd.info.description))
+        .map(|cmd| {
+            CreateCommand::new(cmd.info.name).description(cmd.info.description)
+        })
         .collect()
 }
 
