@@ -1,6 +1,6 @@
 //! All of the command modules for FizzBuzz.
 
-use std::collections::HashMap;
+pub mod misc;
 
 use serenity::all::{CommandInteraction, Context, CreateCommand};
 use tracing::error;
@@ -29,16 +29,16 @@ pub enum CommandCategory {
 /// - `name` (`&'static str`) - The name of the command.
 /// - `description` (`&'static str`) - The description of the command.
 /// - `category` (`CommandCategory`) - The category of the command.
-/// - `params` (`HashMap<String`) - A map of parameter names to their descriptions.
-/// - `examples` (`Option<Vec<String>>`) - A list of examples of how to use the command.
-/// - `notes` (`Option<Vec<String>>`) - Any special notes about the command.
+/// - `params` (`&'static [(&'static str, &'static str)]`) - Parameter names and descriptions.
+/// - `examples` (`Option<&'static [&'static str]>`) - Examples of how to use the command.
+/// - `notes` (`Option<&'static [&'static str]>`) - Any special notes about the command.
 pub struct CommandInfo {
     pub name: &'static str,
     pub description: &'static str,
     pub category: CommandCategory,
-    pub params: HashMap<String, String>,
-    pub examples: Option<Vec<String>>,
-    pub notes: Option<Vec<String>>,
+    pub params: &'static [(&'static str, &'static str)],
+    pub examples: Option<&'static [&'static str]>,
+    pub notes: Option<&'static [&'static str]>,
 }
 
 /// A command.
@@ -46,11 +46,9 @@ pub struct CommandInfo {
 /// # Fields
 ///
 /// - `info` (`CommandInfo`) - Information about the command.
-/// - `register` (`fn() -> CreateCommand`) - The function that registers the command.
 /// - `run` (`for<'a> fn(&'a Context`) - The function that runs the command.
 pub struct Command {
     pub info: CommandInfo,
-    pub register: fn() -> CreateCommand,
     pub run: for<'a> fn(
         &'a Context,
         &'a CommandInteraction,
@@ -72,17 +70,17 @@ impl Command {
         help.push_str(self.info.description);
 
         help.push_str("\n**Parameters:**");
-        for (param, desc) in &self.info.params {
+        for (param, desc) in self.info.params {
             help.push_str(&format!("\n`{}`: {}", param, desc));
         }
 
-        if let Some(examples) = &self.info.examples {
+        if let Some(examples) = self.info.examples {
             help.push_str("\n**Examples:**");
             for example in examples {
                 help.push_str(&format!("\n`{}`", example));
             }
         }
-        if let Some(notes) = &self.info.notes {
+        if let Some(notes) = self.info.notes {
             help.push_str("\n**Notes:**");
             for note in notes {
                 help.push_str(&format!("\n`{}`", note));
@@ -103,7 +101,7 @@ inventory::collect!(Command);
 pub fn all_commands() -> Vec<CreateCommand> {
     inventory::iter::<Command>
         .into_iter()
-        .map(|cmd| (cmd.register)())
+        .map(|cmd| CreateCommand::new(cmd.info.name).description(cmd.info.description))
         .collect()
 }
 
@@ -136,7 +134,6 @@ pub async fn handle(ctx: &Context, command: &CommandInteraction) {
 /// - `description` (`&'static str`) - The description of the command.
 /// - `category` (`CommandCategory`) - The category of the command.
 /// - `params` (`{ "name" => "description", ... }`) - Map of parameter names to descriptions.
-/// - `register` (`fn() -> CreateCommand`) - The function that registers the command.
 /// - `run` (`async fn`) - The function that runs the command.
 ///
 /// # Optional Arguments
@@ -152,7 +149,6 @@ pub async fn handle(ctx: &Context, command: &CommandInteraction) {
 ///     description: "Does foo",
 ///     category: CommandCategory::Misc,
 ///     params: { "arg" => "Some argument" },
-///     register: register,
 ///     run: run,
 ///     examples: ["/foo bar"],
 ///     notes: ["Only usable in servers"],
@@ -165,7 +161,6 @@ macro_rules! register_command {
         description: $desc:expr,
         category: $cat:expr,
         params: { $($pk:expr => $pv:expr),* $(,)? },
-        register: $register:expr,
         run: $run:expr
         $(, examples: [$($ex:expr),* $(,)?])?
         $(, notes: [$($note:expr),* $(,)?])?
@@ -177,23 +172,18 @@ macro_rules! register_command {
                     name: $name,
                     description: $desc,
                     category: $cat,
-                    params: {
-                        let mut map = std::collections::HashMap::new();
-                        $(map.insert($pk.to_string(), $pv.to_string());)*
-                        map
-                    },
+                    params: &[$(($pk, $pv),)*],
                     examples: {
-                        let mut _val: Option<Vec<String>> = None;
-                        $(_val = Some(vec![$($ex.to_string()),*]);)?
+                        let _val: Option<&'static [&'static str]> = None;
+                        $(let _val = Some(&[$($ex,)*] as &[&str]);)?
                         _val
                     },
                     notes: {
-                        let mut _val: Option<Vec<String>> = None;
-                        $(_val = Some(vec![$($note.to_string()),*]);)?
+                        let _val: Option<&'static [&'static str]> = None;
+                        $(let _val = Some(&[$($note,)*] as &[&str]);)?
                         _val
                     },
                 },
-                register: $register,
                 run: |ctx, cmd| Box::pin($run(ctx, cmd)),
             }
         }
