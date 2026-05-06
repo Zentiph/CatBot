@@ -1,5 +1,7 @@
 //! The entrypoint of FizzBuzz.
 
+use std::process::exit;
+
 use clap::{ArgAction, Parser};
 use dotenvy::dotenv;
 use envy::from_env;
@@ -18,7 +20,7 @@ use tracing::{error, info, warn};
 ///
 /// - `token` (`Option<String>`) - The Discord bot token.
 /// - `db_dir` (`String`) - The path to the directory where the bot's DBs are stored.
-/// - `http_user_agent` (`String`) - The user agent to use for HTTP requests.
+/// - `http_user_agent` (`String`) - The user agent to use for HTTP requests made in the bot's name.
 #[derive(Debug, Deserialize)]
 struct Environment {
     token: Option<String>, // optional if token_override is used
@@ -26,7 +28,7 @@ struct Environment {
     http_user_agent: String,
 }
 
-/// Run FizzBuzz with optional arguments
+/// Run FizzBuzz with optional arguments.
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
@@ -90,6 +92,8 @@ impl EventHandler for Bot {
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Interaction::Command(cmd) = interaction {
             commands::handle(&ctx, &cmd).await;
+        } else {
+            warn!("Received invalid interaction: {interaction:?}");
         }
     }
 }
@@ -114,7 +118,7 @@ async fn main() {
     let token = args.token_override.or(env.token).unwrap_or_default();
     if token.is_empty() {
         error!("No token provided");
-        std::process::exit(1);
+        exit(1);
     }
 
     let mut client = Client::builder(&token, GatewayIntents::all())
