@@ -56,6 +56,42 @@ pub struct Command {
         &'a CommandInteraction,
     ) -> futures::future::BoxFuture<'a, anyhow::Result<()>>,
 }
+impl Command {
+    /// Get the help text for the command.
+    ///
+    /// # Arguments
+    ///
+    /// - `&self` (`&Command`) - The command.
+    ///
+    /// # Returns
+    ///
+    /// - `String` - The help text.
+    pub fn help(&self) -> String {
+        let mut help = String::new();
+
+        help.push_str(self.info.description);
+
+        help.push_str("\n**Parameters:**");
+        for (param, desc) in &self.info.params {
+            help.push_str(&format!("\n`{}`: {}", param, desc));
+        }
+
+        if let Some(examples) = &self.info.examples {
+            help.push_str("\n**Examples:**");
+            for example in examples {
+                help.push_str(&format!("\n`{}`", example));
+            }
+        }
+        if let Some(notes) = &self.info.notes {
+            help.push_str("\n**Notes:**");
+            for note in notes {
+                help.push_str(&format!("\n`{}`", note));
+            }
+        }
+
+        help
+    }
+}
 
 inventory::collect!(Command);
 
