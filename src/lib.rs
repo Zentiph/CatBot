@@ -1,5 +1,5 @@
 //! All the functionality for FizzBuzz.
 
-pub mod commands;
+pub mod discord;
 pub mod info;
 pub mod logging;

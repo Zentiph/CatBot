@@ -5,7 +5,7 @@ use std::process::exit;
 use clap::{ArgAction, Parser};
 use dotenvy::dotenv;
 use envy::from_env;
-use fizzbuzz::{commands, info, logging};
+use fizzbuzz::{discord::commands, info, logging};
 use serde::Deserialize;
 use serenity::{
     Client,

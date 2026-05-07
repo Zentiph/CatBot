@@ -170,8 +170,8 @@ macro_rules! register_command {
         $(,)?
     ) => {
         inventory::submit! {
-            $crate::commands::Command {
-                info: $crate::commands::CommandInfo {
+            $crate::discord::commands::Command {
+                info: $crate::discord::commands::CommandInfo {
                     name: $name,
                     description: $desc,
                     category: $cat,

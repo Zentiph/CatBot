@@ -9,6 +9,7 @@ serenity = "0.12"
 poise = "0.6.2"
 tokio = { version = "1.52.2", features = ["full"]}
 futures = "0.3"
+fizzbuzz-macros = { path = "fizzbuzz-macros" }
 
 ### database ###
 sqlx = { version = "0.8", features = ["runtime-tokio", "sqlite"] }
