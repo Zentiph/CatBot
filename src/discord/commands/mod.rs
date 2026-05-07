@@ -2,6 +2,8 @@
 
 pub mod misc;
 
+pub use fizzbuzz_macros::command;
+
 use serenity::all::{CommandInteraction, Context, CreateCommand};
 use tracing::error;
 
@@ -129,66 +131,3 @@ pub async fn handle(ctx: &Context, command: &CommandInteraction) {
     }
 }
 
-/// Register a command.
-///
-/// # Required Arguments
-///
-/// - `name` (`&'static str`) - The name of the command.
-/// - `description` (`&'static str`) - The description of the command.
-/// - `category` (`CommandCategory`) - The category of the command.
-/// - `params` (`{ "name" => "description", ... }`) - Map of parameter names to descriptions.
-/// - `run` (`async fn`) - The function that runs the command.
-///
-/// # Optional Arguments
-///
-/// - `examples` (`["example1", ...]`) - Examples of how to use the command.
-/// - `notes` (`["note1", ...]`) - Special notes about the command.
-///
-/// # Example
-///
-/// ```rust
-/// register_command!(
-///     name: "foo",
-///     description: "Does foo",
-///     category: CommandCategory::Misc,
-///     params: { "arg" => "Some argument" },
-///     run: run,
-///     examples: ["/foo bar"],
-///     notes: ["Only usable in servers"],
-/// );
-/// ```
-#[macro_export]
-macro_rules! register_command {
-    (
-        name: $name:expr,
-        description: $desc:expr,
-        category: $cat:expr,
-        params: { $($pk:expr => $pv:expr),* $(,)? },
-        run: $run:expr
-        $(, examples: [$($ex:expr),* $(,)?])?
-        $(, notes: [$($note:expr),* $(,)?])?
-        $(,)?
-    ) => {
-        inventory::submit! {
-            $crate::discord::commands::Command {
-                info: $crate::discord::commands::CommandInfo {
-                    name: $name,
-                    description: $desc,
-                    category: $cat,
-                    params: &[$(($pk, $pv),)*],
-                    examples: {
-                        let _val: Option<&'static [&'static str]> = None;
-                        $(let _val = Some(&[$($ex,)*] as &[&str]);)?
-                        _val
-                    },
-                    notes: {
-                        let _val: Option<&'static [&'static str]> = None;
-                        $(let _val = Some(&[$($note,)*] as &[&str]);)?
-                        _val
-                    },
-                },
-                run: |ctx, cmd| Box::pin($run(ctx, cmd)),
-            }
-        }
-    };
-}

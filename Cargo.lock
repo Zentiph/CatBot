@@ -935,6 +935,7 @@ dependencies = [
  "csscolorparser",
  "dotenvy",
  "envy",
+ "fizzbuzz-macros",
  "futures",
  "governor",
  "image",
@@ -952,6 +953,15 @@ dependencies = [
  "tracing",
  "tracing-appender",
  "tracing-subscriber",
+]
+
+[[package]]
+name = "fizzbuzz-macros"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.117",
 ]
 
 [[package]]
