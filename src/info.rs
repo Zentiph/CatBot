@@ -9,11 +9,13 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// The time that the program started.
 static START_TIME: OnceLock<DateTime<Utc>> = OnceLock::new();
+
 /// Initializes the start time of the program.
 /// If the start time has already been initialized, does nothing.
 pub fn init_start_time() {
     START_TIME.get_or_init(Utc::now);
 }
+
 /// Returns the start time of the program.
 ///
 /// # Returns

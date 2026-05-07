@@ -64,7 +64,6 @@ struct Args {
 struct Bot {
     debug: bool,
 }
-
 #[async_trait]
 impl EventHandler for Bot {
     async fn ready(&self, ctx: Context, ready: Ready) {

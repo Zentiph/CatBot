@@ -27,6 +27,15 @@ const TIME_FORMAT: &str = "%Y-%m-%d %H:%M:%S";
 /// # Errors
 ///
 /// Returns an error if the logging setup fails.
+///
+/// # Example
+///
+/// ```rust
+/// use fizzbuzz::logging::config_tracing;
+///
+/// config_tracing(false, Some("logs.log"), true, true)
+///     .expect("Failed to configure logging");
+/// ```
 pub fn config_tracing(
     debug_mode: bool,
     log_file: Option<String>,
@@ -90,6 +99,14 @@ pub fn config_tracing(
 /// # Arguments
 ///
 /// - `name` (`&str`) - The name of the command group.
+///
+/// # Example
+///
+/// ```rust
+/// use fizzbuzz::{discord::commands::CommandCategory, logging::log_command_group_setup};
+///
+/// log_command_group_setup(CommandCategory::Misc.to_string());
+/// ```
 pub fn log_command_group_setup(name: &str) {
     info!("{name} command group loaded");
 }
@@ -101,6 +118,16 @@ pub fn log_command_group_setup(name: &str) {
 /// # Arguments
 ///
 /// - `interaction` (`&CommandInteraction`) - The interaction instance of the command.
+///
+/// # Example
+///
+/// ```rust
+/// use serenity::all::CommandInteraction;
+/// use fizzbuzz::logging::log_app_command;
+///
+/// let interaction = CommandInteraction::default();
+/// log_app_command(&interaction);
+/// ```
 pub fn log_app_command(interaction: &CommandInteraction) {
     // don't build if debug isn't enabled
     if !tracing::enabled!(tracing::Level::DEBUG) {

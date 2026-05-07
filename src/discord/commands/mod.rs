@@ -49,6 +49,29 @@ pub struct CommandInfo {
 ///
 /// - `info` (`CommandInfo`) - Information about the command.
 /// - `run` (`for<'a> fn(&'a Context`) - The function that runs the command.
+///
+/// # Example
+///
+/// ```rust
+/// use serenity::all::Context;
+/// use fizzbuzz::discord::commands::Command;
+///
+/// async fn ping(ctx: &Context) -> anyhow::Result<()> {
+///     Ok(())
+/// }
+///
+/// let command = Command {
+///     info: CommandInfo {
+///         name: "ping",
+///         description: "Pong.",
+///         category: CommandCategory::Misc,
+///         params: &[("target", "Who to ping")],
+///         examples: None,
+///         notes: None,
+///     },
+///     run: ping,
+/// };
+/// ```
 pub struct Command {
     pub info: CommandInfo,
     pub run: for<'a> fn(
@@ -130,4 +153,3 @@ pub async fn handle(ctx: &Context, command: &CommandInteraction) {
         None => error!("Unknown command: {}", command.data.name),
     }
 }
-
